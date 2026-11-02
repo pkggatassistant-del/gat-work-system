@@ -332,7 +332,7 @@ function log_(actor, action, target, detail) {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sh = ss.getSheetByName(CONFIG.SHEETS.AUDIT_LOG);
     if (!sh) return;
-    sh.appendRow(['LG-' + Date.now(), now_, actor, action, target, detail]);
+    sh.appendRow(['LG-' + Date.now(), now_(), actor, action, target, detail]);
   } catch (e) { /* log พังไม่ให้กระทบงานหลัก */ }
 }
 
