@@ -42,13 +42,14 @@ setTimeout(() => {
   ok('สรุป: มีหัวข้อ "ระบบเอกสาร 4 ประเภท"', sumTxt.includes('ระบบเอกสาร 4 ประเภท'));
   ok('สรุป: มีบล็อก 24 หัวข้อ', sumTxt.includes('รวม 24 หัวข้อ'));
 
-  // 4) แผนภาพ เครื่องมือคิด (meta.hierarchy) ถูกวาดในแท็บกระบวนการ
+  // 4) แผนภาพ เอกสารข้อกำหนด (meta.hierarchy) ตามภาพจริง
   gat.showTab('process');
   const proc = d.getElementById('procBody').textContent;
-  ok('แท็บกระบวนการ: มีหัว "ความสัมพันธ์ของเครื่องมือคิด"', proc.includes('ความสัมพันธ์ของเครื่องมือคิด'));
-  ok('แผนภาพ: PM กำหนดว่าต้องทำอะไร ใครรับผิดชอบ', proc.includes('กำหนดว่าต้องทำอะไร ใครรับผิดชอบ และทำเมื่อไร'));
+  ok('แท็บกระบวนการ: หัว "ความสัมพันธ์ของเอกสารข้อกำหนด"', proc.includes('ความสัมพันธ์ของเอกสารข้อกำหนด'));
+  ok('แผนภาพ: PM กำหนดว่าต้องทำอะไร ใครรับผิดชอบ', proc.includes('กำหนดว่าต้องทำอะไร ใครรับผิดชอบ และทำเมื่อไหร่'));
   ok('แผนภาพ: มีปลายทาง Evidence / KPI / Audit', proc.includes('Evidence / KPI / Audit'));
-  ok('hero แสดง v2.5 (ตัดชื่อยาว)', proc.includes('v2.5'));
+  ok('แผนภาพ: SD = เอกสารข้อกำหนดคุณลักษณะงาน', proc.includes('เอกสารข้อกำหนดคุณลักษณะงาน'));
+  ok('hero แสดง v2.7 (ตัดชื่อยาว)', proc.includes('v2.7'));
 
   // 5) ข้อความคัดลอก (buildSummaryText ผ่าน export)
   ok('แท็บครบหลัง render', d.querySelectorAll('.tabpane').length === 8);
