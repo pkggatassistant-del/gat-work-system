@@ -32,6 +32,54 @@ var CONFIG = {
   REC_PAD: 4
 };
 
+/* ================= เมนูในชีท (onOpen — แสดงเมื่อเปิดชีทครั้งแรก) ================= */
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('🛡 GAT')
+    .addItem('🧪 ล้างแถวทดสอบ REC-0016–0019', 'cleanTestRows')
+    .addItem('🧪 ล้างแถวทดสอบ (ระบุช่วงเลข REC)…', 'cleanTestRowsPrompt')
+    .addSeparator()
+    .addItem('⚙ ตั้งค่าโครงชีท (setupSheets)', 'setupSheets')
+    .addItem('🔄 migrateSheets (ชีทเก่า → v1.1)', 'migrateSheets')
+    .addToUi();
+}
+
+/* ===== ล้างแถวทดสอบ REC-0016–0019 (เก็บ 0020 = หลักฐานวงจรทดสอบที่ผ่านครบ) =====
+ * ลบทั้งแถว → ชีทเหลือ 15 ใบ seed + 0020; ช่องว่างแถวที่ลบถูกปิดด้วยการลบแบบ row เต็ม
+ */
+function cleanTestRows() {
+  cleanRecRange_('GAT-REC-0016', 'GAT-REC-0019');
+  try { SpreadsheetApp.getUi().alert('ล้างแถวทดสอบ REC-0016–0019 เรียบร้อย (ชีทเหลือ seed 15 ใบ + REC-0020)'); } catch (e) {}
+}
+
+/* ===== ล้างแบบระบุช่วงเอง (เช่น GAT-REC-0016 ถึง GAT-REC-0026) ===== */
+function cleanTestRowsPrompt() {
+  var ui = SpreadsheetApp.getUi();
+  var res = ui.prompt('ล้างแถวทดสอบ', 'พิมพ์ช่วงเลข REC ที่จะลบ (เช่น: 0016-0019):', ui.ButtonSet.OK_CANCEL);
+  if (res.getSelectedButton() !== ui.Button.OK) return;
+  var m = String(res.getResponseText()).trim().match(/^(\d{4})\s*-\s*(\d{4})$/);
+  if (!m) { try { ui.alert('รูปแบบไม่ถูก — ต้องเป็น 0016-0019'); } catch (e) {} return; }
+  cleanRecRange_(CONFIG.REC_PREFIX + m[1], CONFIG.REC_PREFIX + m[2]);
+  try { ui.alert('ล้างแล้ว: ' + CONFIG.REC_PREFIX + m[1] + ' ถึง ' + CONFIG.REC_PREFIX + m[2]); } catch (e) {}
+}
+
+function cleanRecRange_(fromId, toId) {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEETS.RECS);
+  if (!sh) throw new Error('ไม่พบชีท ' + CONFIG.SHEETS.RECS);
+  var lastRow = sh.getLastRow();
+  if (lastRow < 2) return 0;
+  var vals = sh.getRange(2, 1, lastRow - 1, 1).getValues(); // REC_ID คอลัมน์ A
+  var f = fromId.replace('GAT-REC-', ''), t = toId.replace('GAT-REC-', '');
+  var del = [];
+  for (var i = 0; i < vals.length; i++) {
+    var v = String(vals[i][0]).replace(CONFIG.REC_PREFIX, '');
+    if (v !== '' && v >= f && v <= t) del.push(i + 2);
+  }
+  for (var d = del.length - 1; d >= 0; d--) sh.deleteRow(del[d]);
+  log_('GAT(แดง)', 'clean_test_rows', fromId + '..' + toId, 'ลบแถวทดสอบ ' + del.length + ' แถว');
+  return del.length;
+}
+
 /* ================= SETUP (รันครั้งเดียว หรือรันใหม่เมื่ออัปเดตโครง) ================= */
 function setupSheets() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
