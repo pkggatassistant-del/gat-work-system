@@ -48,7 +48,7 @@ setTimeout(() => {
   ok('แท็บกระบวนการ: มีหัว "ความสัมพันธ์ของเครื่องมือคิด"', proc.includes('ความสัมพันธ์ของเครื่องมือคิด'));
   ok('แผนภาพ: PM กำหนดว่าต้องทำอะไร ใครรับผิดชอบ', proc.includes('กำหนดว่าต้องทำอะไร ใครรับผิดชอบ และทำเมื่อไร'));
   ok('แผนภาพ: มีปลายทาง Evidence / KPI / Audit', proc.includes('Evidence / KPI / Audit'));
-  ok('hero แสดง v2.3 (ตัดชื่อยาว)', proc.includes('v2.3'));
+  ok('hero แสดง v2.4 (ตัดชื่อยาว)', proc.includes('v2.4'));
 
   // 5) ข้อความคัดลอก (buildSummaryText ผ่าน export)
   ok('แท็บครบหลัง render', d.querySelectorAll('.tabpane').length === 8);
@@ -70,6 +70,11 @@ setTimeout(() => {
 
   // 9) แม่แบบ PM 18 หัวข้อ
   ok('PM_TEMPLATE: 18 หัวข้อ + Process Code/Records & Evidence', proc.includes('แม่แบบ PM — เอกสารกระบวนการ 18 หัวข้อ') && proc.includes('Process Code') && proc.includes('Records & Evidence'));
+
+  // 10) แม่แบบ WI 15 หัวข้อ + กฎแตกจาก PM
+  ok('WI_TEMPLATE: 15 หัวข้อ + Reference PM/Completion Criteria', proc.includes('แม่แบบ WI — คำสั่งปฏิบัติ 15 หัวข้อ') && proc.includes('Reference PM') && proc.includes('Completion Criteria'));
+  ok('WI_RULE: กฎ "WI ต้องแตกจากขั้นตอนของ PM" แสดงบนหน้า', proc.includes('WI ต้องแตกออกมาจากแต่ละขั้นตอนของ PM'));
+  ok('WI_PRINCIPLE: หลักเกณฑ์ อ่านแล้วทำตามได้จริง', proc.includes('ผู้ปฏิบัติงานต้องอ่านแล้วทำตามได้จริง'));
 
   console.log('\n══ RESULT: ' + pass + ' pass / ' + fail + ' fail ══');
   process.exit(fail ? 1 : 0);
