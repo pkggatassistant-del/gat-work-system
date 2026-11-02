@@ -18,7 +18,8 @@ var GAT = (function () {
     recs: [],
     registersBCT: [],
     lastImport: null,
-    filter: { bu: '', type: '', q: '' }
+    filter: { bu: '', type: '', q: '' },
+    page: 1
   };
 
   /* ---------- util ---------- */
@@ -274,7 +275,12 @@ var GAT = (function () {
   /* ---------- renders ---------- */
   function status(msg) { id('statusBar').innerHTML = '<span class="ok">' + esc(msg) + '</span>'; }
   function renderAll() {
-    renderDash(); renderRegisters(); renderUniverse(); renderRecs(); renderSummary(); loadProcess();
+    renderDash(); renderRegisters(); renderUniverse(); renderRecs(); renderSummary(); renderBctStatus(); loadProcess();
+  }
+  function copyText(t, msg) {
+    var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); status(msg || ('📋 คัดลอกแล้ว: ' + t)); } catch (e) { status('คัดลอกไม่ได้: ' + t); }
+    document.body.removeChild(ta);
   }
 
   /* ---------- แท็บกระบวนการทีม GAT (PM/WI/SD/FM ของทีมเอง) ---------- */
@@ -285,9 +291,8 @@ var GAT = (function () {
       .then(function (j) {
         if (!j) { box.innerHTML = '<div class="empty">โหลด gat-process.json ไม่ได้</div>'; return; }
         var h = [];
-        h.push('<div class="card"><h3>⚙ ' + j.meta.title + ' — ' + j.meta.version + '</h3>');
-        h.push('<div style="font-size:13px;color:#667">' + j.meta.owner + '</div>');
-        h.push('<h4 style="margin-top:14px">👥 ทีม GAT</h4><table class="tbl"><tr><th>สมาชิก</th><th>ด้านที่รับผิดชอบ</th><th>หมายเหตุ</th></tr>');
+        h.push('<div class="hero"><div class="goldlbl">Team Process Framework · PM / WI / SD / FM</div><h2>⚙ ' + esc(j.meta.title) + ' — ' + esc(j.meta.version) + '</h2><p>' + esc(j.meta.owner) + ' · นิยามผูกกฎบัตร GAT v1.4 — SLA 3/5/7 วัน · อุทธรณ์ OAC · สถานะ 5 ระดับ 🟢🟡🟠🔴⚫ · เอกสารฉบับเต็ม: GAT-QMS-001 v1.0</p></div>');
+        h.push('<div class="card"><h3>👥 ทีม GAT</h3><table class="tbl"><tr><th>สมาชิก</th><th>ด้านที่รับผิดชอบ</th><th>หมายเหตุ</th></tr>');
         (j.TEAM || []).forEach(function (t) { h.push('<tr><td><b>' + t.who + '</b></td><td>' + t.side + '</td><td>' + (t.note || '') + '</td></tr>'); });
         h.push('</table></div>');
         ['PM', 'WI', 'SD', 'FM'].forEach(function (k) {
@@ -321,11 +326,11 @@ var GAT = (function () {
     var recClosed = recs.filter(function (x) { return String(x.STATUS).indexOf('ปิด') >= 0; });
 
     var h = [];
-    h.push('<div class="cards">');
-    h.push(kpiHTML('รายการตรวจ (Registers)', regs.length));
-    h.push(kpiHTML('PM/FM/WI/SD', byType.PM + ' · ' + byType.FM + ' · ' + byType.WI + ' · ' + byType.SD));
-    h.push(kpiHTML('สถานะ 🟢/🟡/🔴', byStat['🟢'] + ' / ' + byStat['🟡'] + ' / ' + byStat['🔴']));
-    h.push(kpiHTML('ข้อเสนอแนะ', recs.length + ' (เปิด ' + recOpen.length + ' · ปิด ' + recClosed.length + ')'));
+    h.push('<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:18px">');
+    h.push(kpiHTML('รายการตรวจ (Registers)', fmt(regs.length), 'n'));
+    h.push(kpiHTML('PM / FM / WI / SD', byType.PM + ' · ' + byType.FM + ' · ' + byType.WI + ' · ' + byType.SD, 'v'));
+    h.push(kpiHTML('สถานะ 🟢 / 🟡 / 🔴', byStat['🟢'] + ' / ' + byStat['🟡'] + ' / ' + byStat['🔴'], byStat['🔴'] > 0 ? 'r' : 'g'));
+    h.push(kpiHTML('ข้อเสนอแนะ GAT-REC', fmt(recs.length) + '<div style="font-size:12px;color:#7d93b2;font-weight:600">เปิด ' + recOpen.length + ' · ปิด ' + recClosed.length + '</div>', 'a'));
     h.push('</div>');
 
     h.push('<h3>1) ทะเบียนงานตรวจ (Registers)</h3>');
@@ -347,6 +352,7 @@ var GAT = (function () {
       '• เว็บ: 7 แท็บ (Dashboard / Registers / BCT / ข้อเสนอแนะ / สรุป / Universe / รายงาน)<br>' +
       '• ชีท BCT กลาง: GAT_Registers + GAT_Entries + GAT_Issues + GAT_AuditLog (GAS ทำงานจริง — ทดสอบวงจร open→respond→close ผ่าน)<br>' +
       '• เทมเพลต bct-template.xlsx: ติดตั้งฐานใหม่ได้ใน 4 ขั้น<br>' +
+      '• เอกสาร QMS: <b>GAT-QMS-001 v1.0</b> ครบ 8 ส่วน (แม่แบบของพี่หนึ่ง) + gat-process.json v1.2 ผูกกฎบัตร v1.4<br>' +
       '• ความปลอดภัย: รันเลขอยู่ฝั่งชีท (LockService) · POST text/plain เลี่ยง CORS · ไฟล์ต้นฉบับ BU ไม่ถูกแก้</div>');
 
     h.push('<h3>4) งานค้าง/ถัดไป (roadmap)</h3>');
@@ -363,18 +369,14 @@ var GAT = (function () {
     var act = document.createElement('div');
     act.style.marginTop = '14px';
     var b1 = document.createElement('button'); b1.textContent = '📄 คัดลอกเป็นข้อความ';
-    b1.onclick = function () {
-      var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select();
-      try { document.execCommand('copy'); status('คัดลอกสรุปแล้ว'); } catch (e) { prompt('คัดลอกด้วยตัวเอง:', txt); }
-      document.body.removeChild(ta);
-    };
+    b1.onclick = function () { copyText(txt, 'คัดลอกสรุปแล้ว'); };
     var b2 = document.createElement('button'); b2.textContent = '⬇ ดาวน์โหลด .md'; b2.style.marginLeft = '8px';
     b2.onclick = function () { download('GAT-สรุปผลงาน-' + new Date().toISOString().slice(0, 10) + '.md', txt); };
     act.appendChild(b1); act.appendChild(b2); box.appendChild(act);
   }
 
-  function kpiHTML(label, val) {
-    return '<div class="kpi card" style="min-width:170px"><div style="color:#667;font-size:12px">' + label + '</div><div style="font-size:22px;font-weight:700;margin-top:2px">' + val + '</div></div>';
+  function kpiHTML(label, val, cls) {
+    return '<div class="kpi' + (cls ? ' ' + cls : '') + '"><div class="l">' + label + '</div><div class="b">' + val + '</div></div>';
   }
 
   function buildSummaryText() {
@@ -397,11 +399,12 @@ var GAT = (function () {
     L.push('');
     L.push('## 2) ข้อเสนอแนะรันเลข');
     L.push('- รวม ' + recs.length + ' ใบ (ชุดแรก F-01–F-15 สวัสดิการ 29 ต.ค. 69)');
-    L.push('- 🔴 ' + recRed.length + ' · 🟢 ' + (recs.length - recRed.length) + ' · เปิดอยู่ ' + recOpen.length + ' · ปิด ' + recClosed.length + ' · ไม่แแ้ ' + recNoFix.length);
+    L.push('- 🔴 ' + recRed.length + ' · 🟢 ' + (recs.length - recRed.length) + ' · เปิดอยู่ ' + recOpen.length + ' · ปิด ' + recClosed.length + ' · ไม่แก้ ' + recNoFix.length);
     L.push('- วงจร: ออกใบ (รันเลขในชีท) → BU ตอบ (แก้=หลักฐาน / ไม่แก้=เหตุผล+ผู้รับผิดชอบ) → GAT ยืนยัน/ปิด');
     L.push('');
     L.push('## 3) โครงสร้างที่สร้างเสร็จ');
-    L.push('- แท็บ 7 (Dashboard/Registers/BCT/ข้อเสนอแนะ/สรุป/Universe/รายงาน)');
+    L.push('- แท็บ 8 (Dashboard/Registers/BCT/ข้อเสนอแนะ/สรุป/Universe/กระบวนการ/รายงาน) — UI Enterprise v1.2');
+    L.push('- QMS: GAT-QMS-001 v1.0 ครบ 8 ส่วน (แม่แบบของพี่หนึ่ง) + gat-process.json v1.2 ผูกกฎบัตร GAT v1.4');
     L.push('- ชีท BCT: GAT_Registers/GAT_Entries/GAT_Issues/GAT_AuditLog + GAS (LockService รันเลข)');
     L.push('- เทมเพลต bct-template.xlsx ติดตั้งฐานใหม่ 4 ขั้น');
     L.push('');
@@ -455,8 +458,8 @@ var GAT = (function () {
       }).join('<li class="arw">→</li>') + '</ol>' +
       '<div class="note">หลักการ: <b>No Review → No Sign → No Submission</b> — ทุกรายการใน Registers เดินตามกระบวนการนี้บน BCT ก่อนขึ้น Dashboard</div></div>';
   }
-  function kpi(label, big, sub) {
-    return '<div class="card kpi"><div class="l">' + esc(label) + '</div><div class="b">' + big + '</div><div class="s">' + esc(sub) + '</div></div>';
+  function kpi(label, big, sub, cls) {
+    return '<div class="kpi ' + (cls || '') + '"><div class="l">' + esc(label) + '</div><div class="b">' + big + '</div><div class="s">' + esc(sub) + '</div></div>';
   }
   function barChart(byType, meta) {
     var max = Math.max(1, Object.keys(byType).reduce(function (a, k) { return Math.max(a, byType[k]); }, 0));
@@ -468,21 +471,45 @@ var GAT = (function () {
     }).join('') + '</table>';
   }
 
+  var PAGE_SIZE = 25;
   function renderRegisters() {
-    var regs = filtered().slice(0, 400);
+    var all = filtered();
+    var totalPages = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
+    if (state.page > totalPages) state.page = totalPages;
+    if (state.page < 1) state.page = 1;
+    var regs = all.slice((state.page - 1) * PAGE_SIZE, state.page * PAGE_SIZE);
     var opts = uniqueCol('BU').map(function (b) {
       return '<option' + (state.filter.bu === b ? ' selected' : '') + '>' + esc(b) + '</option>';
     }).join('');
     id('buFilter').innerHTML = '<option value="">— BU ทั้งหมด —</option>' + opts;
     id('buFilter').value = state.filter.bu;
     id('regBody').innerHTML = regs.map(function (r) {
-      return '<tr><td class="mono">' + esc(r.REG_ID) + '</td><td>' + esc(r.BU) +
+      return '<tr><td class="mono"><span class="copy-id" data-rid="' + esc(r.REG_ID) + '" title="กดเพื่อคัดลอกรหัส">' + esc(r.REG_ID) + '</span></td><td>' + esc(r.BU) +
         '</td><td><span class="chip" data-tp="' + esc(r.PROCESS_TYPE) + '">' + esc(r.PROCESS_TYPE) + '</span></td><td>' + esc(r.TITLE) +
         '</td><td>' + esc(r.REGULATOR || '') + '</td><td>' + esc(r.FREQUENCY || '') +
         '</td><td>' + esc((r.OWNER || '') + (r.SIGNATORY ? ' · ลงนาม: ' + r.SIGNATORY : '')) +
         '</td><td class="stat">' + esc(r.STATUS || '') + '</td><td class="mono src">' + esc(r.SOURCE || '') + '</td></tr>';
     }).join('') || '<tr><td colspan="9" class="empty">ไม่มีข้อมูลตรงเงื่อนไข</td></tr>';
-    id('regCount').textContent = 'แสดง ' + regs.length + ' / ทั้งหมด ' + state.registers.length;
+    id('regCount').textContent = 'จากทั้งหมด ' + fmt(all.length) + ' รายการ';
+    var pg = id('regPage');
+    if (pg) {
+      var from = all.length ? (state.page - 1) * PAGE_SIZE + 1 : 0;
+      var to = Math.min(all.length, state.page * PAGE_SIZE);
+      var btn = function (p, lbl, dis) { return '<button class="button-lite" data-pg="' + p + '"' + (dis ? ' disabled' : '') + ' style="padding:6px 12px;margin:0 4px">' + lbl + '</button>'; };
+      pg.innerHTML = 'แสดง ' + from + '–' + to + ' จาก ' + fmt(all.length) + ' · หน้า ' + state.page + '/' + totalPages + ' ' +
+        btn(1, '« หน้าแรก', state.page <= 1) + btn(state.page - 1, '‹ ก่อนหน้า', state.page <= 1) +
+        btn(state.page + 1, 'ถัดไป ›', state.page >= totalPages) + btn(totalPages, 'ท้ายสุด »', state.page >= totalPages);
+    }
+  }
+  function renderBctStatus() {
+    var pairs = [
+      ['stApi', (window.GAT_CONFIG.BCT_API ? String(window.GAT_CONFIG.BCT_API).slice(0, 58) + '…' : 'ยังไม่ตั้งค่า (วาง URL ในช่องด้านบน)')],
+      ['stSeed', fmt(state.registers.filter(function (r) { return String(r.SOURCE || '').indexOf('seed') >= 0; }).length) + ' รายการ'],
+      ['stBct', fmt(state.registersBCT.length) + ' รายการ'],
+      ['stEntries', fmt(state.entries.length) + ' รายการ'],
+      ['stIssues', fmt(state.recs.length) + ' ใบ (เปิด ' + fmt(state.recs.filter(function (x) { return String(x.STATUS).indexOf('ปิด') < 0; }).length) + ')']
+    ];
+    pairs.forEach(function (p) { if (id(p[0])) id(p[0]).textContent = p[1]; });
   }
   function uniqueCol(col) {
     var set = {};
@@ -636,12 +663,12 @@ var GAT = (function () {
   function boot() {
     id('btnImport').addEventListener('click', importBCT);
     id('btnSeed').addEventListener('click', function () { status('โหลด seed…'); loadSeed().then(function () { status('✅ seed (xlsx) โหลดแล้ว ' + state.registers.length + ' รายการ'); }); });
-    id('buFilter').addEventListener('change', function () { state.filter.bu = this.value; renderAll(); });
-    id('typeFilter').addEventListener('change', function () { state.filter.type = this.value; renderAll(); });
-    id('qFilter').addEventListener('input', function () { state.filter.q = this.value; renderRegisters(); renderDash(); });
+    id('buFilter').addEventListener('change', function () { state.filter.bu = this.value; state.page = 1; renderAll(); });
+    id('typeFilter').addEventListener('change', function () { state.filter.type = this.value; state.page = 1; renderAll(); });
+    id('qFilter').addEventListener('input', function () { state.filter.q = this.value; state.page = 1; renderRegisters(); renderDash(); });
     document.body.addEventListener('click', function (e) {
       if (e.target.classList.contains('lnk')) {
-        state.filter.bu = e.target.getAttribute('data-bu'); renderAll(); showTab('registers');
+        state.filter.bu = e.target.getAttribute('data-bu'); state.page = 1; renderAll(); showTab('registers');
       }
     });
     id('btnOpenRec').addEventListener('click', openRec);
@@ -672,14 +699,22 @@ var GAT = (function () {
   }
   document.addEventListener('DOMContentLoaded', boot);
 
+  var TAB_NAMES = { dashboard: 'Dashboard', registers: 'Registers', bct: 'BCT Import/Export', recs: 'ข้อเสนอแนะ', universe: 'Regulatory Universe', summary: 'สรุปผลงาน GAT', process: 'กระบวนการทีม GAT', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
   function showTab(name) {
-    document.querySelectorAll('.tabpane').forEach(function (p) { p.style.display = 'none'; });
-    var t = id('pane-' + name); if (t) t.style.display = 'block';
-    document.querySelectorAll('.nav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-tab') === name); });
+    document.querySelectorAll('.tabpane').forEach(function (p) { p.classList.remove('on'); p.style.display = 'none'; });
+    var t = id('pane-' + name);
+    if (t) { t.classList.add('on'); t.style.display = 'block'; }
+    document.querySelectorAll('nav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-tab') === name); });
+    var c = id('crumbTab'); if (c) c.textContent = TAB_NAMES[name] || name;
+    var sb = document.getElementById('sidebar'); if (sb && sb.classList) sb.classList.remove('open');
   }
   document.addEventListener('click', function (e) {
-    var a = e.target.closest && e.target.closest('.nav a');
-    if (a) { e.preventDefault(); showTab(a.getAttribute('data-tab')); }
+    var a = e.target.closest && e.target.closest('nav a');
+    if (a) { e.preventDefault(); showTab(a.getAttribute('data-tab')); return; }
+    var pp = e.target.getAttribute && e.target.getAttribute('data-pg');
+    if (pp) { state.page = parseInt(pp, 10) || 1; renderRegisters(); return; }
+    var cp = e.target.closest && e.target.closest('.copy-id');
+    if (cp) { var ct = cp.getAttribute('data-rid') || cp.textContent; copyText(ct, '📋 คัดลอกรหัสแล้ว: ' + ct); }
   });
 
   /* export ชุด register ปัจจุบันกลับเข้ารูปแบบ BCT (CSV คอลัมน์ตรง GAT_Registers) */

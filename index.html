@@ -3,79 +3,210 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GAT Work System — Web GAT (General Audit Team · กลุ่ม PKG)</title>
+<title>GAT Audit Intelligence — PKG Group Compliance & Audit Platform</title>
 <script src="gat-config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--blue:#1d4ed8;--bg:#f5f7fb;--ink:#0f172a;--line:#e2e8f0}
+/* ============================================================
+   GAT Audit Intelligence — Design System "Enterprise Navy"
+   ============================================================ */
+:root{
+  --navy-900:#0a1628; --navy-800:#0f2038; --navy-700:#16304f;
+  --ink:#1a2b45; --ink-2:#3d5271; --muted:#7d93b2;
+  --gold:#c9a227; --gold-soft:#b58e1f;
+  --bg:#f3f5f9; --surface:#ffffff;
+  --line:#e3e9f2; --line-2:#eef2f8;
+  --blue:#175cd3; --blue-soft:#eaf1fe;
+  --green:#0e8345; --green-soft:#e8f6ee;
+  --amber:#c47c0a; --amber-soft:#fdf3e0;
+  --red:#c0231b; --red-soft:#fdeceb;
+  --purple:#6d3fc0; --cyan:#0c7d95;
+  --sh-1:0 1px 2px rgba(15,32,56,.05),0 1px 3px rgba(15,32,56,.06);
+  --sh-2:0 4px 14px rgba(15,32,56,.08),0 2px 4px rgba(15,32,56,.04);
+  --sh-3:0 12px 32px rgba(15,32,56,.14);
+  --r:12px;
+}
 *{box-sizing:border-box}
-body{margin:0;font-family:'Sarabun','Prompt',system-ui,sans-serif;background:var(--bg);color:var(--ink)}
-header{background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;padding:18px 24px}
-header h1{margin:0;font-size:22px}header .sub{opacity:.8;font-size:13px;margin-top:4px}
-.nav{display:flex;gap:4px;background:#fff;border-bottom:1px solid var(--line);padding:0 16px;position:sticky;top:0;z-index:5}
-.nav a{padding:12px 14px;text-decoration:none;color:#475569;font-weight:600;border-bottom:3px solid transparent;cursor:pointer}
-.nav a.on{color:var(--blue);border-color:var(--blue)}
-main{padding:18px 24px;max-width:1400px;margin:0 auto}
-.tabpane{display:none}
-#statusBar{padding:10px 14px;background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:14px;font-size:14px;color:#64748b}
-#statusBar .ok{color:#047857;font-weight:600}
-.cols2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(max-width:900px){.cols2{grid-template-columns:1fr}}
-.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
-.card h3{margin:0 0 10px;font-size:16px}
-.kpi .l{font-size:13px;color:#64748b}.kpi .b{font-size:30px;font-weight:800;margin:4px 0}.kpi .s{font-size:12px;color:#94a3b8}
-#kpiRow{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:14px}
-#kpiRow .card{margin-bottom:0}
-.tbl{width:100%;border-collapse:collapse;font-size:13px}
-.tbl th{background:#f1f5f9;text-align:left;padding:8px;border-bottom:2px solid var(--line);white-space:nowrap}
-.tbl td{padding:7px 8px;border-bottom:1px solid #eef2f7;vertical-align:top}
-.chip{display:inline-block;padding:2px 10px;border-radius:99px;font-weight:700;font-size:12px;color:#fff;background:#64748b}
-.chip[data-tp="PM"]{background:#2563eb}.chip[data-tp="WI"]{background:#0891b2}.chip[data-tp="SD"]{background:#7c3aed}.chip[data-tp="FM"]{background:#b45309}
-.stat{font-weight:700}
-.mono{font-family:ui-monospace,monospace;font-size:12px}
-.src{color:#059669}
-.sev-red{background:#fee2e2;color:#b91c1c;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:700}
-.sev-grn{background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:700}
-.empty{color:#94a3b8;text-align:center;padding:18px}
-.flow{list-style:none;display:flex;flex-wrap:wrap;gap:6px;padding:0;margin:8px 0}
-.flow li{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;border-radius:8px;padding:6px 10px;font-size:12px}
-.flow li.arw{background:none;border:0;color:#94a3b8;font-weight:800;padding:6px 0}
-.note{background:#fffbeb;border:1px solid #fde68a;padding:10px 12px;border-radius:8px;font-size:13px;margin-top:8px}
-.barbox{background:#f1f5f9;border-radius:99px;height:16px;position:relative;min-width:120px}
-.bar{height:16px;border-radius:99px;min-width:2px}
-.barbox span{position:absolute;right:8px;top:0;font-size:11px;line-height:16px;font-weight:700;color:#334155}
-.lbl{white-space:nowrap;font-weight:700;font-size:12px}
-.lnk{color:var(--blue);cursor:pointer;text-decoration:underline}
-.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-.filters input,.filters select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px}
-button,.btn{background:var(--blue);color:#fff;border:0;border-radius:8px;padding:9px 16px;font-weight:700;cursor:pointer;font-size:13px}
-button.alt{background:#475569}.button-lite{background:#e2e8f0;color:#0f172a}
-textarea#reportOut{width:100%;min-height:220px;font-family:ui-monospace,monospace;font-size:13px;border:1px solid var(--line);border-radius:10px;padding:12px}
-code{background:#eef2ff;padding:1px 6px;border-radius:6px;font-size:12px}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:'IBM Plex Sans Thai','Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+::selection{background:var(--blue);color:#fff}
+
+/* ---------- App frame ---------- */
+.app{display:flex;min-height:100vh}
+aside{width:248px;background:linear-gradient(180deg,var(--navy-900),var(--navy-800));color:#c8d6ea;position:fixed;top:0;bottom:0;left:0;z-index:30;display:flex;flex-direction:column;transition:transform .25s ease}
+.brand{display:flex;align-items:center;gap:12px;padding:20px 20px 16px}
+.brand .lg{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,var(--gold),#e5c558);display:flex;align-items:center;justify-content:center;font-size:21px;color:var(--navy-900);box-shadow:0 4px 12px rgba(201,162,39,.35);flex:0 0 42px}
+.brand h1{margin:0;font-size:15.5px;color:#fff;letter-spacing:.2px;font-weight:700}
+.brand .sub{font-size:10.5px;color:#8fa7c7;letter-spacing:.6px;text-transform:uppercase;margin-top:1px}
+nav{padding:6px 12px 20px;overflow-y:auto;flex:1}
+.nav-hd{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#6c86ad;padding:16px 10px 6px;font-weight:700}
+nav a{display:flex;align-items:center;gap:11px;padding:9.5px 12px;border-radius:9px;color:#aebfdc;text-decoration:none;font-weight:600;font-size:13.5px;margin:1px 0;cursor:pointer;border:1px solid transparent;transition:all .15s}
+nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+nav a.on{background:linear-gradient(90deg,rgba(201,162,39,.16),rgba(201,162,39,.05));color:#fff;border-color:rgba(201,162,39,.35)}
+nav a.on .ic{filter:none}
+nav a .ic{width:20px;text-align:center;font-size:15px;flex:0 0 20px}
+nav a .ct{margin-left:auto;background:var(--red);color:#fff;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:99px}
+.nav-foot{padding:12px 16px 16px;font-size:11px;color:#7d93b2;border-top:1px solid rgba(255,255,255,.08)}
+.nav-foot .v{color:#c9d8ee;font-weight:600}
+.dot-ok{display:inline-block;width:7px;height:7px;border-radius:99px;background:#35d07f;margin-right:6px;box-shadow:0 0 0 3px rgba(53,208,127,.18)}
+
+.topbar{position:fixed;top:0;left:248px;right:0;height:58px;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 22px;z-index:20}
+.crumb{font-weight:700;font-size:15px;color:var(--ink)}
+.crumb .sep{color:#b6c4d8;margin:0 8px}
+.crumb .sec{color:var(--muted);font-weight:600}
+.top-live{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2);background:var(--green-soft);border:1px solid #cdeeda;padding:5px 12px;border-radius:99px;font-weight:600}
+.top-live .tm{color:var(--green);font-variant-numeric:tabular-nums}
+.burger{display:none;background:none;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:16px;cursor:pointer} /* mobile */
+
+main{margin-left:248px;padding:76px 26px 40px;max-width:1360px}
+.tabpane{display:none;animation:fade .25s ease}
+.tabpane.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---------- Cards / KPI ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;margin-bottom:16px;box-shadow:var(--sh-1)}
+.card h3{margin:0 0 4px;font-size:15.5px;color:var(--ink);display:flex;align-items:center;gap:8px}
+.card .desc{font-size:12.5px;color:var(--muted);margin:0 0 12px}
+.card-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.card-hd h3{margin:0}
+#kpiRow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:16px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh-1);position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--blue)}
+.kpi.g::before{background:var(--green)}.kpi.a::before{background:var(--amber)}.kpi.r::before{background:var(--red)}.kpi.n::before{background:var(--navy-700)}.kpi.v::before{background:var(--purple)}
+.kpi .l{font-size:12px;color:var(--muted);font-weight:600}
+.kpi .b{font-size:27px;font-weight:800;margin:5px 0 1px;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:11.5px;color:var(--muted)}
+
+/* ---------- Tables ---------- */
+.tblwrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+.tbl th{background:#f6f8fb;text-align:left;padding:9px 12px;border-bottom:2px solid var(--line);white-space:nowrap;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-2);font-weight:700;position:sticky;top:0}
+.tbl td{padding:8px 12px;border-bottom:1px solid var(--line-2);vertical-align:top}
+.tbl tbody tr:hover{background:#f8faff}
+.tbl td.num{font-variant-numeric:tabular-nums}
+
+/* ---------- Chips / badges ---------- */
+.chip{display:inline-block;padding:2.5px 10px;border-radius:99px;font-weight:700;font-size:11px;color:#fff;letter-spacing:.03em}
+.chip[data-tp="PM"]{background:var(--blue)}.chip[data-tp="WI"]{background:var(--cyan)}.chip[data-tp="SD"]{background:var(--purple)}.chip[data-tp="FM"]{background:var(--gold-soft)}
+.pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:7px;font-size:11.5px;font-weight:700}
+.pill.g{background:var(--green-soft);color:var(--green)}.pill.a{background:var(--amber-soft);color:var(--amber)}
+.pill.r{background:var(--red-soft);color:var(--red)}.pill.n{background:var(--blue-soft);color:var(--blue)}
+.pill.m{background:#eef2f8;color:var(--ink-2)}
+.stat{font-weight:700;font-size:12.5px}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11.5px}
+.src{color:var(--green);font-size:11px}
+.sev-red{background:var(--red-soft);color:#8c1710;padding:3px 9px;border-radius:7px;font-size:11px;font-weight:700;display:inline-block}
+.sev-grn{background:var(--green-soft);color:#0a6b3a;padding:3px 9px;border-radius:7px;font-size:11px;font-weight:700;display:inline-block}
+.lnk{color:var(--blue);cursor:pointer;text-decoration:none;font-weight:600;border-bottom:1px dashed rgba(23,92,211,.4)}
+.lnk:hover{border-bottom-style:solid}
+
+/* ---------- Controls (เดิมทั้งหมด เพื่อ app.js) ---------- */
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.filters input,.filters select{padding:9px 12px;border:1px solid #cdd8e6;border-radius:9px;font-size:13px;background:#fff;color:var(--ink);font-family:inherit;transition:border .15s,box-shadow .15s}
+.filters input:focus,.filters select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(23,92,211,.12)}
+select#recSev,select#respDecision{padding:9px 12px;border:1px solid #cdd8e6;border-radius:9px;font-size:13px;background:#fff;font-family:inherit}
+button,.btn{background:var(--blue);color:#fff;border:0;border-radius:9px;padding:9.5px 16px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s;box-shadow:var(--sh-1)}
+button:hover{filter:brightness(1.08);transform:translateY(-1px)}
+button:active{transform:none}
+button.alt{background:var(--navy-800)}
+button.gold{background:linear-gradient(135deg,var(--gold),#d9b53a);color:var(--navy-900)}
+.button-lite{background:#e8eef7;color:var(--ink);box-shadow:none;border:1px solid #d5dfec}
+.button-lite:hover{background:#dde6f3}
+textarea#reportOut{width:100%;min-height:240px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;border:1px solid #cdd8e6;border-radius:10px;padding:14px;background:#fbfcfe;color:var(--ink)}
+textarea#recDetail{width:100%}
+code{background:var(--blue-soft);color:var(--blue);padding:1px 6px;border-radius:6px;font-size:11.5px;font-family:'IBM Plex Mono',monospace}
 ol.manual li{margin-bottom:8px}
+.empty{color:var(--muted);text-align:center;padding:22px;font-size:13px}
+
+/* ---------- Flow (9 ขั้น) ---------- */
+.flow{list-style:none;display:flex;flex-wrap:wrap;gap:6px;padding:0;margin:8px 0}
+.flow li{background:var(--blue-soft);border:1px solid #c9dcf8;color:#123f8f;border-radius:8px;padding:6px 11px;font-size:12px;font-weight:600}
+.flow li.arw{background:none;border:0;color:#9db1cc;font-weight:800;padding:6px 0}
+
+/* ---------- Process timeline (แท็บกระบวนการ) ---------- */
+.proc{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:10px}
+.proc .step{background:#fff;border:1px solid var(--line);border-radius:11px;padding:14px 16px;border-top:3px solid var(--blue)}
+.proc .step h5{margin:0 0 6px;font-size:14px;display:flex;gap:8px;align-items:center}
+.proc .step .n{width:24px;height:24px;border-radius:7px;background:var(--navy-800);color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 24px}
+.proc .step p{margin:0;font-size:12.5px;color:var(--ink-2)}
+.proc .step small{color:var(--muted)}
+
+/* ---------- Note / toast ---------- */
+.note{background:var(--amber-soft);border:1px solid #f3dda8;padding:11px 14px;border-radius:9px;font-size:13px;margin-top:10px}
+#statusBar{position:fixed;bottom:22px;right:22px;z-index:60;pointer-events:none}
+#statusBar .ok{display:inline-block;background:var(--navy-900);color:#e9f2ff;padding:11px 18px;border-radius:11px;font-size:13px;font-weight:600;box-shadow:var(--sh-3);animation:toast .3s ease;max-width:440px}
+@keyframes toast{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.pginfo{font-size:12px;color:var(--muted);margin-top:8px}
+.copy-id{cursor:pointer;border-bottom:1px dotted #90a4bd}
+.copy-id:hover{color:var(--blue);border-bottom-color:var(--blue)}
+
+/* ---------- Hero / cover (แท็บกระบวนการ+สรุปผลงาน) ---------- */
+.hero{background:linear-gradient(135deg,var(--navy-900) 0%,var(--navy-700) 60%,#1c3d63 100%);color:#d9e5f5;border-radius:16px;padding:26px 28px;margin-bottom:18px;position:relative;overflow:hidden;box-shadow:var(--sh-2)}
+.hero::after{content:'';position:absolute;right:-60px;top:-60px;width:230px;height:230px;border-radius:99px;background:radial-gradient(circle,rgba(201,162,39,.25),transparent 65%)}
+.hero h2{margin:0 0 6px;color:#fff;font-size:20px}
+.hero p{margin:0;font-size:13.5px;color:#a9bdd9;max-width:760px}
+.hero .goldlbl{display:inline-block;background:rgba(201,162,39,.18);border:1px solid rgba(201,162,39,.4);color:#ecd489;font-size:11px;font-weight:700;letter-spacing:.08em;padding:4px 12px;border-radius:99px;margin-bottom:10px;text-transform:uppercase}
+
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ---------- Responsive (โครงจเดิม + burger) ---------- */
+@media(max-width:980px){
+  aside{transform:translateX(-100%)}
+  aside.open{transform:none;box-shadow:var(--sh-3)}
+  .topbar{left:0}
+  .burger{display:inline-block}
+  main{margin-left:0;padding:74px 16px 32px}
+  .cols2{grid-template-columns:1fr}
+  .scrim{position:fixed;inset:0;background:rgba(10,22,40,.45);z-index:25}
+}
+@media print{
+  aside,.topbar,#statusBar,.filters,.burger{display:none!important}
+  main{margin:0;padding:0}
+}
 </style>
 </head>
 <body>
-<header>
-  <h1>🛡 GAT Work System — Web GAT</h1>
-  <div class="sub">General Audit Team · กระบวนการ PM / WI / SD / FM · ทำงานร่วม Google Sheet BCT · <span id="ver"></span></div>
-</header>
+<div class="app">
+<aside id="sidebar">
+  <div class="brand">
+    <div class="lg">🛡</div>
+    <div>
+      <h1>GAT Audit Intelligence</h1>
+      <div class="sub">PKG Group · Compliance Platform</div>
+    </div>
+  </div>
+  <nav id="mainNav">
+    <div class="nav-hd">ภาพรวม</div>
+    <a data-tab="dashboard" class="on"><span class="ic">📊</span> Dashboard</a>
+    <a data-tab="summary"><span class="ic">🧭</span> สรุปผลงาน GAT</a>
+    <div class="nav-hd">งานตรวจสอบ</div>
+    <a data-tab="registers"><span class="ic">🗂</span> Registers</a>
+    <a data-tab="universe"><span class="ic">🗺</span> Regulatory Universe</a>
+    <a data-tab="recs"><span class="ic">🧾</span> ข้อเสนอแนะ (รันเลข)</a>
+    <div class="nav-hd">การเชื่อมข้อมูล</div>
+    <a data-tab="bct"><span class="ic">🔄</span> BCT Import/Export</a>
+    <div class="nav-hd">เอกสารระบบ</div>
+    <a data-tab="process"><span class="ic">⚙</span> กระบวนการทีม GAT</a>
+    <a data-tab="report"><span class="ic">📤</span> รายงานผู้บริหาร</a>
+    <a id="navQms" data-tab="qms" style="display:none"><span class="ic">📘</span> QMS Document</a>
+  </nav>
+  <div class="nav-foot"><span class="dot-ok"></span>ระบบออนไลน์ · <span class="v" id="ver"></span></div>
+</aside>
 
-<nav class="nav">
-  <a data-tab="dashboard" class="on">📊 Dashboard</a>
-  <a data-tab="registers">🗂 Registers</a>
-  <a data-tab="bct">📥 BCT Import/Export</a>
-  <a data-tab="recs">🧾 ข้อเสนอแนะ (รันเลข)</a>
-  <a data-tab="universe">🗺 Regulatory Universe</a>
-  <a data-tab="summary">📋 สรุปผลงาน GAT</a>
-  <a data-tab="process">⚙ กระบวนการทีม GAT</a>
-  <a data-tab="report">📤 รายงาน</a>
-</nav>
+<div class="topbar">
+  <button class="burger" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+  <div class="crumb"><span id="crumbTab">Dashboard</span><span class="sep">/</span><span class="sec">GAT Work System</span></div>
+  <div class="top-live">🟢 LIVE · <span class="tm" id="clock">--:--:--</span></div>
+</div>
 
 <main>
-  <div id="statusBar">พร้อมทำงาน — seed จะโหลดอัตโนมัติเมื่อเปิดหน้า</div>
+  <div id="statusBar"></div>
 
   <!-- ============ DASHBOARD ============ -->
-  <section class="tabpane" id="pane-dashboard">
+  <section class="tabpane on" id="pane-dashboard">
     <div id="kpiRow"></div>
     <div id="dashBody"></div>
   </section>
@@ -91,94 +222,87 @@ ol.manual li{margin-bottom:8px}
         <option value="SD">SD — มาตรฐาน/เอกสาร</option>
         <option value="FM">FM — แบบฟอร์ม/รายงาน</option>
       </select>
-      <input id="qFilter" placeholder="ค้นหา (หน่วยงาน / ชื่อ / เจ้าของ…)" style="flex:1;min-width:220px">
+      <input id="qFilter" placeholder="🔍 ค้นหา (หน่วยงาน / ชื่อ / เจ้าของ…)" style="flex:1;min-width:220px">
       <button class="alt" onclick="GAT.exportForBCT()">⬇ Export รูปแบบ BCT (CSV)</button>
     </div>
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <h3>Compliance Master Register — ตามโครง 12 ช่องของ xlsx</h3>
-        <span id="regCount" style="font-size:12px;color:#64748b"></span>
+      <div class="card-hd">
+        <h3>Compliance Master Register</h3>
+        <span id="regCount" style="font-size:12px;color:var(--muted)"></span>
       </div>
-      <div style="overflow:auto">
+      <div class="tblwrap">
       <table class="tbl">
         <thead><tr><th>REG_ID</th><th>BU</th><th>Type</th><th>รายการ/ข้อกำหนด</th><th>หน่วยงานกำกับ</th><th>ความถี่</th><th>เจ้าของ/ลงนาม</th><th>สถานะ</th><th>ที่มา</th></tr></thead>
         <tbody id="regBody"></tbody>
       </table>
       </div>
+      <div class="pginfo" id="regPage"></div>
     </div>
   </section>
 
   <!-- ============ BCT ============ -->
   <section class="tabpane" id="pane-bct">
     <div class="card">
-      <h3>การเชื่อมกับ Google Sheet BCT (บอร์ดทีม BU)</h3>
-      <p>ทีม BU บันทึกรายการตรวจสอบบนชีท BCT (ชีท <code>GAT_Registers</code>, <code>GAT_Entries</code>, <code>GAT_Issues</code> (ข้อเสนอแนะรันเลข GAT-REC-xxxx)) → ระบบนี้ดึงขึ้น Dashboard ผ่าน Google Apps Script Web App</p>
+      <h3>การเชื่อมกับ Google Sheet BCT <span class="pill n">สถาปัตยกรรม 2 ฐาน</span></h3>
+      <p class="desc">ทีม BU บันทึกรายการตรวจสอบบนชีท BCT (ชีท <code>GAT_Registers</code>, <code>GAT_Entries</code>, <code>GAT_Issues</code> — รันเลข <code>GAT-REC-xxxx</code> ฝั่งเซิร์ฟเวอร์) → แพลตฟอร์มนี้ดึงขึ้นกลางผ่าน Google Apps Script Web App</p>
       <ol class="manual">
         <li>เปิด Google Sheet <b>BCT</b> → เมนู <b>ส่วนขยาย (Extensions) → Apps Script</b></li>
-        <li>วางโค้ดจากไฟล์ <code>gat/gas-bct-bridge.js</code> ทั้งไฟล์ → บันทึก</li>
-        <li>เลือกฟังก์ชัน <code>setupSheets</code> → กด <b>Run</b> ครั้งเดียว (อนุญาตสิทธิ์) — จะสร้างชีท 3 ชีท + AuditLog อัตโนมัติ</li>
-        <li><b>Deploy → New deployment → Web app</b> · Execute as: <i>Me</i> · Who has access: <i>Anyone</i> → คัดลอก URL ลงในช่องด้านล่าง → <b>บันทึก API URL</b></li>
+        <li>วางโค้ดจากไฟล์ <code>gas-bct-bridge.js</code> ทั้งไฟล์ → บันทึก</li>
+        <li>เลือกฟังก์ชัน <code>setupSheets</code> → กด <b>Run</b> ครั้งเดียว (อนุญาตสิทธิ์) — สร้างชีทครบ + AuditLog อัตโนมัติ</li>
+        <li><b>Deploy → New deployment → Web app</b> · Execute as: <i>Me</i> · Access: <i>Anyone</i> → คัดลอก URL ลงช่องด้านล่าง → <b>บันทึก API URL</b></li>
         <li>กด <b>📥 Import จาก BCT</b> — ข้อมูล live จะผสมกับ seed แล้วขึ้น Dashboard ทันที</li>
       </ol>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
-        <input id="bctApiUrl" placeholder="https://script.google.com/macros/s/…/exec" style="flex:1;min-width:300px;padding:9px;border:1px solid var(--line);border-radius:8px">
+      <div class="filters" style="margin-top:10px">
+        <input id="bctApiUrl" placeholder="https://script.google.com/macros/s/…/exec" style="flex:1;min-width:300px">
         <button onclick="(function(){var u=document.getElementById('bctApiUrl').value.trim();if(u){localStorage.setItem('gat_bct_api',u);GAT_STATUS_MSG('✅ บันทึก URL แล้ว');}else{GAT_STATUS_MSG('⚠️ ยังไม่ได้กรอก URL');}})()">💾 บันทึก API URL</button>
         <button id="btnImport">📥 Import จาก BCT</button>
         <button id="btnSeed" class="button-lite">♻️ โหลด seed (xlsx) ใหม่</button>
       </div>
-      <div class="note">นำเข้า/ส่งออก: <b>นำเข้า</b> = ชีท GAT_Registers/Entries/Issues → Dashboard · <b>ส่งออก</b> = Export CSV แถวล่างหรือปุ่ม Export ในแท็บ Registers (วางลงชีทได้เลย เพราะคอลัมน์ตรงกัน)</div>
+      <div class="note">ส่งออก = Export CSV คอลัมน์ตรง GAT_Registers (วางลงชีทได้เลย) · ทุกการเขียนของ GAS ประทับเวลาลง <code>GAT_AuditLog</code> อัตโนมัติ</div>
     </div>
     <div class="card">
-      <h3>สถานะตอนนี้</h3>
+      <h3>สถานะการเชื่อมต่อปัจจุบัน</h3>
       <table class="tbl"><tbody>
-        <tr><td>BCT API</td><td id="stApi">—</td></tr>
-        <tr><td>Registers จาก seed</td><td id="stSeed">—</td></tr>
-        <tr><td>Registers จาก BCT</td><td id="stBct">—</td></tr>
-        <tr><td>Entries (ผลบันทึก BU)</td><td id="stEntries">—</td></tr>
-        <tr><td>ข้อเสนอแนะ (REC)</td><td id="stIssues">—</td></tr>
+        <tr><td>BCT API</td><td id="stApi" class="mono">—</td></tr>
+        <tr><td>Registers จาก seed</td><td id="stSeed" class="num">—</td></tr>
+        <tr><td>Registers จาก BCT</td><td id="stBct" class="num">—</td></tr>
+        <tr><td>Entries (ผลบันทึก BU)</td><td id="stEntries" class="num">—</td></tr>
+        <tr><td>ข้อเสนอแนะ (REC)</td><td id="stIssues" class="num">—</td></tr>
       </tbody></table>
     </div>
   </section>
 
-  <!-- ============ RECS (ข้อเสนอแนะรันเลข) ============ -->
+  <!-- ============ RECS ============ -->
   <section class="tabpane" id="pane-recs">
     <div class="card">
-      <h3>① GAT ออกข้อเสนอแนะใหม่ (ระบบรันเลข GAT-REC-0001, 0002, …)</h3>
-      <p style="font-size:13px;color:#475569">วงจร: GAT ตรวจ → ออกข้อเสนอแนะ (รันเลข ส่งเข้า BCT อัตโนมัติ) → BU พิจารณา: <b>แก้ไข</b> (แนบหลักฐานการแก้ไข) หรือ <b>ไม่แก้ไข</b> (เหตุผล + ชื่อผู้รับผิดชอบ) → GAT ตรวจคำตอบแล้วปิด — ป้าย 🔴 ถ้า BU ไม่แก้ GAT ต้องยืนยันกลับอย่างเป็นทางการ (SOP ขั้น ⑤)</p>
+      <h3>① GAT ออกข้อเสนอแนะใหม่ <span class="pill n">รันเลขอัตโนมัติ GAT-REC-0001…</span></h3>
+      <p class="desc">วงจร: GAT ตรวจ → ออกข้อเสนอแนะ (รันเลข ส่งเข้า BCT อัตโนมัติ) → BU พิจารณา: <b>แก้ไข</b> (แนบหลักฐาน) หรือ <b>ไม่แก้ไข</b> (เหตุผล + ผู้รับผิดชอบ) → GAT ตรวจคำตอบแล้วปิด — ป้าย 🔴 ที่ BU ไม่แก้ GAT ต้องยืนยันกลับอย่างเป็นทางการ (SOP ขั้น ⑤)</p>
       <div class="filters">
         <select id="recRegPick" style="flex:1;min-width:280px"><option value="">— เลือกรายการจาก Registers (ต้นเรื่อง) —</option></select>
-        <select id="recSev" style="padding:9px;border:1px solid var(--line);border-radius:8px">
+        <select id="recSev">
           <option>🔴 ขัดกฎหมาย/จำเป็นจริง</option>
           <option selected>🟢 ข้อเสนอ</option>
         </select>
       </div>
+      <div class="filters"><input id="recTitle" placeholder="หัวข้อข้อเสนอแนะ (สั้น ชัด — อ้างชีท+แถวในรายละเอียด)" style="flex:1;min-width:280px"></div>
+      <div class="filters"><textarea id="recDetail" rows="4" placeholder="รายละเอียดสิ่งที่ตรวจพบ + ข้อเสนอแนะ (อ้างชีท+แถวต้นฉบับ — ห้ามเดา ตามกฎเหล็ก)" style="flex:1;min-width:280px;font-family:inherit"></textarea></div>
       <div class="filters">
-        <input id="recTitle" placeholder="หัวข้อข้อเสนอแนะ (สั้น ชัด อ้างชีท+แถวได้ในรายละเอียด)" style="flex:1;min-width:280px">
-      </div>
-      <div class="filters">
-        <textarea id="recDetail" rows="4" placeholder="รายละเอียดสิ่งที่ตรวจพบ + ข้อเสนอแนะ (อ้างชีท+แถว ต้นฉบับ — ห้ามเดา ตามกฎเหล็ก)" style="flex:1;min-width:280px;font-family:inherit"></textarea>
-      </div>
-      <div class="filters">
-        <input id="recBy" placeholder="ชื่อผู้ออกข้อเสนอแนะ (GAT)" value="GAT" style="width:240px">
-        <button id="btnOpenRec">🧾 รันเลข + ส่งเข้า BCT</button>
+        <input id="recBy" placeholder="ผู้ออกข้อเสนอแนะ (GAT)" value="GAT" style="width:240px">
+        <button id="btnOpenRec" class="gold">🧾 รันเลข + ส่งเข้า BCT</button>
         <button class="button-lite" id="btnDraftRec">⬇ ดาวน์โหลดโครง .txt (สำรอง)</button>
       </div>
     </div>
     <div class="card">
-      <h3>② BU พิจารณา (แก้ไข/ไม่แก้ไข)</h3>
-      <p style="font-size:13px;color:#475569">BU กรอกบนชีท BCT โดยตรงได้ (คอลัมน์ BU_DECISION / EVIDENCE_URL / NO_FIX_REASON / RESPONSIBLE) หรือกรอกผ่านฟอร์มนี้ — ระบบส่งค่าทันที</p>
+      <h3>② BU พิจารณา (แก้ไข / ไม่แก้ไข)</h3>
+      <p class="desc">BU กรอกบนชีท BCT ตรงคอลัมน์ <code>BU_DECISION / EVIDENCE_URL / NO_FIX_REASON / RESPONSIBLE</code> หรือกรอกผ่านฟอร์มนี้ — ระบบส่งค่าทันที</p>
+      <div class="filters"><select id="respRecPick" style="flex:1;min-width:240px"><option value="">— เลือกเลขข้อเสนอแนะ —</option></select></div>
       <div class="filters">
-        <select id="respRecPick" style="flex:1;min-width:240px"><option value="">— เลือกเลขข้อเสนอแนะ —</option></select>
-      </div>
-      <div class="filters">
-        <select id="respDecision" style="padding:9px;border:1px solid var(--line);border-radius:8px">
+        <select id="respDecision">
           <option value="แก้ไข">✅ แก้ไข — ต้องแนบหลักฐานการแก้ไข</option>
           <option value="ไม่แก้ไข">⛔ ไม่แก้ไข — ต้องใส่เหตุผล + ผู้รับผิดชอบ</option>
         </select>
       </div>
-      <div class="filters">
-        <input id="respEvidence" placeholder="ลิงก์หลักฐานการแก้ไข (Drive/เอกสาร/ภาพ)" style="flex:1;min-width:280px">
-      </div>
+      <div class="filters"><input id="respEvidence" placeholder="ลิงก์หลักฐานการแก้ไข (Drive/เอกสาร/ภาพ)" style="flex:1;min-width:280px"></div>
       <div class="filters">
         <input id="respReason" placeholder="เหตุผลการไม่แก้ไข (บังคับเมื่อเลือกไม่แก้ไข)" style="flex:1;min-width:280px">
         <input id="respResponsible" placeholder="ชื่อผู้รับผิดชอบ (บังคับเมื่อเลือกไม่แก้ไข)" style="width:260px">
@@ -189,8 +313,11 @@ ol.manual li{margin-bottom:8px}
       </div>
     </div>
     <div class="card">
-      <h3>③ ทะเบียนข้อเสนอแนะ (รันเลขตามชีท BCT) <span id="recCount" style="font-size:12px;color:#64748b"></span></h3>
-      <div style="overflow:auto">
+      <div class="card-hd">
+        <h3>③ ทะเบียนข้อเสนอแนะ</h3>
+        <span id="recCount" style="font-size:12px;color:var(--muted)"></span>
+      </div>
+      <div class="tblwrap">
       <table class="tbl">
         <thead><tr><th>เลขที่</th><th>ระดับ</th><th>หัวข้อ</th><th>อ้างชีท+แถว</th><th>สถานะ</th><th>การตัดสิน BU</th><th>หลักฐาน/เหตุผล · ผู้รับผิดชอบ</th></tr></thead>
         <tbody id="recBody"></tbody>
@@ -202,30 +329,39 @@ ol.manual li{margin-bottom:8px}
   <!-- ============ UNIVERSE ============ -->
   <section class="tabpane" id="pane-universe"><div id="uniBody"></div></section>
 
-  <!-- ============ REPORT ============ -->
+  <!-- ============ SUMMARY ============ -->
   <section class="tabpane" id="pane-summary">
     <div class="card">
-      <h3>📋 สรุปผลงาน GAT — ตัวเลขจากข้อมูลจริงในระบบ</h3>
-      <div class="sub" style="color:#667;font-size:13px">อัปเดตอัตโนมัติทุกครั้งที่เปิดหน้า / นำเข้า BCT — กดคัดลอก/ดาวน์โหลดได้</div>
-      <div id="summaryBody" style="margin-top:12px"></div>
+      <div class="card-hd">
+        <h3>📋 สรุปผลงาน GAT</h3>
+        <span style="font-size:12px;color:var(--muted)">คำนวณสดจากข้อมูลจริงทุกครั้งที่เปิดหน้า / import BCT</span>
+      </div>
+      <div id="summaryBody" style="margin-top:6px"></div>
     </div>
   </section>
 
+  <!-- ============ PROCESS ============ -->
   <section class="tabpane" id="pane-process"><div id="procBody"></div></section>
 
+  <!-- ============ REPORT ============ -->
   <section class="tabpane" id="pane-report">
     <div class="card">
-      <h3>รายงานสรุปผู้บริหาร (Monthly Audit & Oversight Report — GAT)</h3>
-      <button onclick="GAT.buildReport()">📄 สร้างรายงานจากข้อมูลปัจจุบัน</button>
-      <textarea id="reportOut" readonly placeholder="กดปุ่มด้านบนเพื่อสร้างรายงาน — ตัวเลขทุกตัวมาจากข้อมูลจริงในหน้านี้"></textarea>
+      <div class="card-hd">
+        <h3>รายงานสรุปผู้บริหาร — Monthly Audit &amp; Oversight Report</h3>
+      </div>
+      <p class="desc">ตัวเลขทุกตัวมาจากข้อมูลจริงในระบบ ณ วินาทีที่กดสร้าง — ต่อยอดตาม QMS ข้อ KPI และโครงรายงานกำกับดูแลเสนอ OAC</p>
+      <button onclick="GAT.buildReport()" class="gold">📄 สร้างรายงานจากข้อมูลปัจจุบัน</button>
+      <div style="margin-top:12px"><textarea id="reportOut" readonly placeholder="กดปุ่มด้านบนเพื่อสร้างรายงาน"></textarea></div>
     </div>
   </section>
 </main>
+</div>
 
 <script src="app.js"></script>
 <script>
 document.getElementById('ver').textContent = window.GAT_CONFIG.VERSION;
 function GAT_STATUS_MSG(m){document.getElementById('statusBar').innerHTML='<span class="ok">'+m+'</span>';}
+setInterval(function(){var d=new Date();document.getElementById('clock').textContent=d.toLocaleTimeString('th-TH',{hour12:false});},1000);
 </script>
 </body>
 </html>
