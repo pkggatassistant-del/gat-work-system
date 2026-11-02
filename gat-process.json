@@ -7,6 +7,13 @@
       "Audit Charter v1.4 (gat-audit-terms.html) — วาทกรรมบังคับตามกฎบัตร",
       "Regulatory Submission Control 9 ขั้น — «No Review → No Sign → No Submission»",
       "Compliance Status 5 ระดับ (🟢🟡🟠🔴⚫) + การฝ่าฝืนร้ายแรง 7 ลักษณะ"
+    ],
+    "hierarchy": [
+      { "key": "PM", "title": "PM — Process Management", "sub": "กำหนดว่าต้องทำอะไร ใครรับผิดชอบ และทำเมื่อไร", "color": "#d6e6fb", "text": "#1a3f7a" },
+      { "key": "WI", "title": "WI — Work Instruction", "sub": "กำหนดว่าทำอย่างไรในแต่ละขั้นตอน", "color": "#dcf2e3", "text": "#1d6a3c" },
+      { "key": "SD", "title": "SD", "sub": "เลือกวิธีนำเสนอข้อมูลการทำงาน", "color": "#ead9f6", "text": "#5b2d84", "half": true },
+      { "key": "FM", "title": "FM", "sub": "แบบฟอร์มบันทึกผล", "color": "#fbe9d0", "text": "#8a4a09", "half": true },
+      { "key": "OUTPUT", "title": "Evidence / KPI / Audit", "sub": "มีหลักฐาน ตรวจสอบย้อนหลัง และวัดได้", "color": "#1d3557", "text": "#ffffff" }
     ]
   },
   "TEAM": [
