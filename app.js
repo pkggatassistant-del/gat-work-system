@@ -290,6 +290,7 @@ var GAT = (function () {
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (j) {
         if (!j) { box.innerHTML = '<div class="empty">โหลด gat-process.json ไม่ได้</div>'; return; }
+        state.process = j; // เก็บใน state — ใช้นับจำนวน PM/WI/SD/FM ในหน้าสรุป
         var h = [];
         h.push('<div class="hero"><div class="goldlbl">Team Process Framework · PM / WI / SD / FM</div><h2>⚙ ' + esc(j.meta.title) + ' — ' + esc(j.meta.version) + '</h2><p>' + esc(j.meta.owner) + ' · นิยามผูกกฎบัตร GAT v1.4 — SLA 3/5/7 วัน · อุทธรณ์ OAC · สถานะ 5 ระดับ 🟢🟡🟠🔴⚫ · เอกสารฉบับเต็ม: GAT-QMS-001 v1.0</p></div>');
         h.push('<div class="card"><h3>👥 ทีม GAT</h3><table class="tbl"><tr><th>สมาชิก</th><th>ด้านที่รับผิดชอบ</th><th>หมายเหตุ</th></tr>');
@@ -317,8 +318,18 @@ var GAT = (function () {
     var entries = state.entries || [];
     var byStat = { '🟢': 0, '🟡': 0, '🔴': 0 };
     regs.forEach(function (r) { var s = String(r.STATUS || '🟡 รอข้อมูลจริง').slice(0, 2); if (byStat[s] !== undefined) byStat[s]++; });
-    var byType = { PM: 0, WI: 0, SD: 0, FM: 0 };
-    regs.forEach(function (r) { if (byType[r.PROCESS_TYPE] !== undefined) byType[r.PROCESS_TYPE]++; });
+    // โครงสร้างกำกับ (ไม่ใช่ข้อมูลจริง): ขั้นนำส่ง 9 + ฝ่าฝืนร้ายแรง 7 + ประเภทเอกสาร 16
+    var CTRL = regs.filter(function (r) { var s = String(r.SOURCE || ''); return s.indexOf('9 ขั้น') >= 0 || s.indexOf('การฝ่าฝืน') >= 0 || s.indexOf('ประเภทเอกสาร') >= 0; }).length;
+    var TAX = regs.filter(function (r) { return String(r.SOURCE || '').indexOf('ListTAX_BU') >= 0; }).length;
+    var UNIV = regs.filter(function (r) { return String(r.SOURCE || '').indexOf('Step2') >= 0; }).length;
+    var SEEDR = regs.filter(function (r) { return String(r.SOURCE || '').indexOf('seed') >= 0; }).length;
+    var BCTR = state.registersBCT.length;
+    // นิยาม PM/WI/SD/FM (ตามที่พี่หนึ่งกำหนด 2 พ.ย. 69) = เอกสารกระบวนการทีม GAT เอง ไม่ใช่หมวดของข้อมูลตรวจ
+    var teamProc = { PM: 0, WI: 0, SD: 0, FM: 0 };
+    ['PM', 'WI', 'SD', 'FM'].forEach(function (k) {
+      var boxp = (state.process || {})[k];
+      if (boxp && boxp.items && boxp.items.length) teamProc[k] = boxp.items.length; else teamProc[k] = { PM: 6, WI: 7, SD: 6, FM: 5 }[k];
+    });
     var recOpen = recs.filter(function (x) { return String(x.STATUS).indexOf('ปิด') < 0; });
     var recRed = recs.filter(function (x) { return String(x.SEVERITY || '').indexOf('🔴') >= 0; });
     var recNoFix = recs.filter(function (x) { return String(x.BU_DECISION || '').indexOf('ไม่แก้') >= 0; });
@@ -328,16 +339,16 @@ var GAT = (function () {
     var h = [];
     h.push('<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:18px">');
     h.push(kpiHTML('รายการตรวจ (Registers)', fmt(regs.length), 'n'));
-    h.push(kpiHTML('PM / FM / WI / SD', byType.PM + ' · ' + byType.FM + ' · ' + byType.WI + ' · ' + byType.SD, 'v'));
-    h.push(kpiHTML('สถานะ 🟢 / 🟡 / 🔴', byStat['🟢'] + ' / ' + byStat['🟡'] + ' / ' + byStat['🔴'], byStat['🔴'] > 0 ? 'r' : 'g'));
+    h.push(kpiHTML('ข้อมูลจริง / รอเก็บข้อมูล', (byStat['🟢'] + byStat['🔴']) + ' / ' + byStat['🟡'], byStat['🔴'] > 0 ? 'r' : 'g'));
+    h.push(kpiHTML('โครงสร้างกำกับ (9 ขั้น + 7 ข้อ + เอกสาร 16)', fmt(CTRL), 'v'));
     h.push(kpiHTML('ข้อเสนอแนะ GAT-REC', fmt(recs.length) + '<div style="font-size:12px;color:#7d93b2;font-weight:600">เปิด ' + recOpen.length + ' · ปิด ' + recClosed.length + '</div>', 'a'));
     h.push('</div>');
 
     h.push('<h3>1) ทะเบียนงานตรวจ (Registers)</h3>');
     h.push('<div style="font-size:14px;line-height:1.7">' +
-      '• รวม <b>' + regs.length + '</b> รายการ จาก PKG_Compliance_plan_2026-30 (26 ชีท) — PM ' + byType.PM + ' / WI ' + byType.WI + ' / SD ' + byType.SD + ' / FM ' + byType.FM + '<br>' +
-      '• สถานะ: 🟢 ' + byStat['🟢'] + ' · 🟡 ' + byStat['🟡'] + ' · 🔴 ' + byStat['🔴'] + '<br>' +
-      '• โครง 9 ขั้น (No Review → No Sign → No Submission) + 7 ข้อห้ามฝ่าฝืนร้ายแรง อยู่ในระบบครบ<br>' +
+      '• รวม <b>' + regs.length + '</b> รายการ (seed ' + SEEDR + ' + live BCT ' + BCTR + ') — เป็นข้อมูล "ที่ต้องตรวจ" แยกจากเอกสาร PM/WI/SD/FM ของทีม (หมายเลข 3 ด้านล่าง)<br>' +
+      '&nbsp;&nbsp;◦ ข้อมูลจริงรายบริษัท/หน่วยงาน: <b>' + fmt(TAX + UNIV) + '</b> (รายการภาษี TAX_BU ' + fmt(TAX) + ' + Regulatory Universe ' + fmt(UNIV) + ') · สถานะจริง: 🟢 ' + byStat['🟢'] + ' · 🟡 รอข้อมูล ' + byStat['🟡'] + ' · 🔴 ยังไม่มีข้อมูล TG ' + byStat['🔴'] + '<br>' +
+      '&nbsp;&nbsp;◦ โครงสร้างกำกับ: ' + fmt(CTRL) + ' (ขั้นนำส่ง 9 · ฝ่าฝืนร้ายแรง 7 · ประเภทเอกสาร 16)<br>' +
       '• บันทึกผลจาก BU (GAT_Entries): <b>' + entries.length + '</b> รายการ</div>');
 
     h.push('<h3>2) ข้อเสนอแนะรันเลข (GAT-REC)</h3>');
@@ -347,7 +358,12 @@ var GAT = (function () {
       '• BU ตอบ: แก้แล้ว ' + recFixed.length + ' · ไม่แก้ (มีเหตุผล+ผู้รับผิดชอบ) ' + recNoFix.length + ' · ยังไม่ตอบ ' + (recOpen.length - recFixed.length - recNoFix.length) + '<br>' +
       '• ปิดสมบูรณ์ (GAT ยืนยัน): <b>' + recClosed.length + '</b> ใบ — ทั้งวงจรอยู่ในชีท GAT_Issues + GAT_AuditLog</div>');
 
-    h.push('<h3>3) ระบบ/โครงสร้างที่สร้างเสร็จ</h3>');
+    h.push('<h3>3) เอกสารกระบวนการทีม GAT — นิยาม PM/WI/SD/FM (ตามที่พี่หนึ่งกำหนด)</h3>');
+    h.push('<div style="font-size:14px;line-height:1.7">' +
+      '• PM (นโยบายทีม) <b>' + teamProc.PM + '</b> หัวข้อ · WI (ขั้นตอนลงมือ) <b>' + teamProc.WI + '</b> · SD (เกณฑ์กลาง) <b>' + teamProc.SD + '</b> · FM (ฟอร์มใช้จริง) <b>' + teamProc.FM + '</b> — รวม <b>' + (teamProc.PM + teamProc.WI + teamProc.SD + teamProc.FM) + ' หัวข้อ</b><br>' +
+      '• แหล่ง: แท็บ "⚙ กระบวนการทีม GAT" + gat-process.json v1.2 (ผูกกฎบัตร GAT v1.4 — SLA 3ว/5ว/7ว · อุทธรณ์ OAC · สถานะ 5 ระดับ) · เอกสาร QMS ฉบับเต็ม GAT-QMS-001 v1.0 ครบ 8 ส่วน</div>');
+
+    h.push('<h3>4) ระบบ/โครงสร้างที่สร้างเสร็จ</h3>');
     h.push('<div style="font-size:14px;line-height:1.7">' +
       '• เว็บ: 7 แท็บ (Dashboard / Registers / BCT / ข้อเสนอแนะ / สรุป / Universe / รายงาน)<br>' +
       '• ชีท BCT กลาง: GAT_Registers + GAT_Entries + GAT_Issues + GAT_AuditLog (GAS ทำงานจริง — ทดสอบวงจร open→respond→close ผ่าน)<br>' +
@@ -355,7 +371,7 @@ var GAT = (function () {
       '• เอกสาร QMS: <b>GAT-QMS-001 v1.0</b> ครบ 8 ส่วน (แม่แบบของพี่หนึ่ง) + gat-process.json v1.2 ผูกกฎบัตร v1.4<br>' +
       '• ความปลอดภัย: รันเลขอยู่ฝั่งชีท (LockService) · POST text/plain เลี่ยง CORS · ไฟล์ต้นฉบับ BU ไม่ถูกแก้</div>');
 
-    h.push('<h3>4) งานค้าง/ถัดไป (roadmap)</h3>');
+    h.push('<h3>5) งานค้าง/ถัดไป (roadmap)</h3>');
     h.push('<div style="font-size:14px;line-height:1.7">' +
       '• ล้างแถวทดสอบ REC-0016–0019 ในชีท<br>' +
       '• v1.2: โครง 2 ฐาน (BCT กลาง + BCT บริษัท) <br>' +
@@ -383,8 +399,16 @@ var GAT = (function () {
     var regs = state.registers || [], recs = state.recs || [], entries = state.entries || [];
     var byStat = { '🟢': 0, '🟡': 0, '🔴': 0 };
     regs.forEach(function (r) { var s = String(r.STATUS || '🟡 รอข้อมูลจริง').slice(0, 2); if (byStat[s] !== undefined) byStat[s]++; });
-    var byType = { PM: 0, WI: 0, SD: 0, FM: 0 };
-    regs.forEach(function (r) { if (byType[r.PROCESS_TYPE] !== undefined) byType[r.PROCESS_TYPE]++; });
+    var CTRL = regs.filter(function (r) { var s = String(r.SOURCE || ''); return s.indexOf('9 ขั้น') >= 0 || s.indexOf('การฝ่าฝืน') >= 0 || s.indexOf('ประเภทเอกสาร') >= 0; }).length;
+    var TAX = regs.filter(function (r) { return String(r.SOURCE || '').indexOf('ListTAX_BU') >= 0; }).length;
+    var UNIV = regs.filter(function (r) { return String(r.SOURCE || '').indexOf('Step2') >= 0; }).length;
+    var SEEDR = regs.filter(function (r) { return String(r.SOURCE || '').indexOf('seed') >= 0; }).length;
+    var BCTR = state.registersBCT.length;
+    var teamProc = { PM: 0, WI: 0, SD: 0, FM: 0 };
+    ['PM', 'WI', 'SD', 'FM'].forEach(function (k) {
+      var boxp = (state.process || {})[k];
+      if (boxp && boxp.items && boxp.items.length) teamProc[k] = boxp.items.length; else teamProc[k] = { PM: 6, WI: 7, SD: 6, FM: 5 }[k];
+    });
     var recOpen = recs.filter(function (x) { return String(x.STATUS).indexOf('ปิด') < 0; });
     var recRed = recs.filter(function (x) { return String(x.SEVERITY || '').indexOf('🔴') >= 0; });
     var recNoFix = recs.filter(function (x) { return String(x.BU_DECISION || '').indexOf('ไม่แก้') >= 0; });
@@ -392,9 +416,9 @@ var GAT = (function () {
     var L = [];
     L.push('# สรุปผลงาน GAT — ' + new Date().toLocaleString('th-TH'));
     L.push('');
-    L.push('## 1) ทะเบียนงานตรวจ');
-    L.push('- Registers ' + regs.length + ' รายการ (PM ' + byType.PM + ' / WI ' + byType.WI + ' / SD ' + byType.SD + ' / FM ' + byType.FM + ')');
-    L.push('- สถานะ: 🟢 ' + byStat['🟢'] + ' · 🟡 ' + byStat['🟡'] + ' · 🔴 ' + byStat['🔴']);
+    L.push('## 1) ทะเบียนงานตรวจ (ข้อมูลที่ต้องตรวจ — ต่างจากเอกสาร PM/WI/SD/FM ของทีม)');
+    L.push('- Registers ' + regs.length + ' รายการ (seed ' + SEEDR + ' + BCT ' + BCTR + ') — ข้อมูลจริง ' + (TAX + UNIV) + ' + โครงสร้างกำกับ ' + CTRL + ' (นำส่ง 9 ขั้น/ฝ่าฝืน 7 ข้อ/ประเภทเอกสาร 16)');
+    L.push('- สถานะ: 🟢 ' + byStat['🟢'] + ' · 🟡 ' + byStat['🟡'] + ' · 🔴 ' + byStat['🔴'] + ' (🔴 = ยังไม่มีข้อมูล TG)');
     L.push('- บันทึกผลจาก BU: ' + entries.length + ' รายการ');
     L.push('');
     L.push('## 2) ข้อเสนอแนะรันเลข');
@@ -402,13 +426,15 @@ var GAT = (function () {
     L.push('- 🔴 ' + recRed.length + ' · 🟢 ' + (recs.length - recRed.length) + ' · เปิดอยู่ ' + recOpen.length + ' · ปิด ' + recClosed.length + ' · ไม่แก้ ' + recNoFix.length);
     L.push('- วงจร: ออกใบ (รันเลขในชีท) → BU ตอบ (แก้=หลักฐาน / ไม่แก้=เหตุผล+ผู้รับผิดชอบ) → GAT ยืนยัน/ปิด');
     L.push('');
-    L.push('## 3) โครงสร้างที่สร้างเสร็จ');
+    L.push('## 3) เอกสารกระบวนการทีม GAT (PM/WI/SD/FM)');
+    L.push('- PM ' + teamProc.PM + ' · WI ' + teamProc.WI + ' · SD ' + teamProc.SD + ' · FM ' + teamProc.FM + ' (รวม ' + (teamProc.PM + teamProc.WI + teamProc.SD + teamProc.FM) + ' หัวข้อ) — gat-process.json v1.2 ผูกกฎบัตร GAT v1.4 · QMS: GAT-QMS-001 v1.0 ครบ 8 ส่วน');
+    L.push('');
+    L.push('## 4) โครงสร้างที่สร้างเสร็จ');
     L.push('- แท็บ 8 (Dashboard/Registers/BCT/ข้อเสนอแนะ/สรุป/Universe/กระบวนการ/รายงาน) — UI Enterprise v1.2');
-    L.push('- QMS: GAT-QMS-001 v1.0 ครบ 8 ส่วน (แม่แบบของพี่หนึ่ง) + gat-process.json v1.2 ผูกกฎบัตร GAT v1.4');
     L.push('- ชีท BCT: GAT_Registers/GAT_Entries/GAT_Issues/GAT_AuditLog + GAS (LockService รันเลข)');
     L.push('- เทมเพลต bct-template.xlsx ติดตั้งฐานใหม่ 4 ขั้น');
     L.push('');
-    L.push('## 4) ค้าง/ถัดไป');
+    L.push('## 5) ค้าง/ถัดไป');
     L.push('- ล้างแถวทดสอบ REC-0016–0019 · v1.2 โครง 2 ฐาน · v1.3 Google Form + แจ้งเตือน · v2.0 Calendar + รายงานรายเดือน');
     return L.join('\n');
   }
@@ -435,21 +461,43 @@ var GAT = (function () {
     var byType = { PM: 0, WI: 0, SD: 0, FM: 0 };
     regs.forEach(function (r) { if (byType[r.PROCESS_TYPE] !== undefined) byType[r.PROCESS_TYPE]++; });
     var buby = {};
+    var buby = {};
     regs.forEach(function (r) { buby[r.BU] = (buby[r.BU] || 0) + 1; });
     var buRows = Object.keys(buby).sort().map(function (bu) {
       return '<tr><td><a class="lnk" data-bu="' + esc(bu) + '">' + esc(bu) + '</a></td><td>' + buby[bu] + '</td></tr>';
     }).join('');
+    // นิยาม PM/WI/SD/FM = กระบวนการทีม GAT เอง (ตามนิยามใหม่) — ไม่ใช่หมวดของ 184
+    var teamCount = { PM: 6, WI: 7, SD: 6, FM: 5 };
+    ['PM', 'WI', 'SD', 'FM'].forEach(function (k) {
+      var p = (state.process || {})[k];
+      if (p && p.items && p.items.length) teamCount[k] = p.items.length;
+    });
+    var teamTotal = teamCount.PM + teamCount.WI + teamCount.SD + teamCount.FM;
     id('kpiRow').innerHTML =
-      kpi('รายการตรวจสอบ (Registers)', fmt(regs.length), 'จากทุกแหล่ง') +
+      kpi('รายการตรวจ (Registers)', fmt(regs.length), 'ข้อมูลจริง+โครงสร้าง') +
+      kpi('เอกสารกระบวนการทีม (PM/WI/SD/FM)', teamCount.PM + '·' + teamCount.WI + '·' + teamCount.SD + '·' + teamCount.FM, 'รวม ' + teamTotal + ' หัวข้อ — นิยามทีม GAT') +
       kpi('🟢 ปกติ', fmt(byStat['🟢']), 'มีข้อมูล/ผ่าน') +
       kpi('🟡 รอข้อมูลจริง', fmt(byStat['🟡']), 'ต้องติดตาม BU') +
       kpi('🔴 ช่องว่าง', fmt(byStat['🔴']), 'ยังไม่มีระบบ/ข้อมูล') +
       kpi('รายการบันทึก (BCT Entries)', fmt(state.entries.length), 'live จากชีท') +
       kpi('ข้อเสนอแนะเปิดอยู่', fmt(state.recs.filter(function (x) { return String(x.STATUS).indexOf('ปิด') < 0; }).length), 'รันเลข GAT-REC-xxxx') +
       kpi('BU ไม่แก้ไข (รอ GAT ยืนยัน)', fmt(state.recs.filter(function (x) { return String(x.STATUS || '').indexOf('ไม่แก้') >= 0 && String(x.STATUS).indexOf('ปิด') < 0; }).length), 'ต้องยืนยันกลับตาม SOP ⑤');
+    // แยกแหล่งข้อมูล (นิยามใหม่: 184 = ข้อมูลที่ต้องตรวจ — PM/WI/SD/FM เป็นเอกสารกระบวนการทีม ไม่ใช่หมวดนับข้อมูล)
+    var bySrc = {};
+    regs.forEach(function (r) { var s = String(r.SOURCE || 'อื่น ๆ'); var key = s.indexOf('Step2') >= 0 ? 'universe' : s.indexOf('ListTAX') >= 0 ? 'taxbu' : s.indexOf('9 ขั้น') >= 0 ? 'wi9' : s.indexOf('การฝ่าฝืน') >= 0 ? 'fv7' : s.indexOf('ประเภทเอกสาร') >= 0 ? 'doc16' : s.indexOf('PMSG') >= 0 ? 'pmsgreg' : s.indexOf('BCT') >= 0 ? 'bct' : 'other'; bySrc[key] = (bySrc[key] || 0) + 1; });
+    var srcMeta = {
+      universe: { label: 'Regulatory Universe (ข้อกำกับหน่วยงาน)', color: '#175cd3' },
+      taxbu: { label: 'ภาษีรายบริษัท (TAX_BU)', color: '#0e8345' },
+      wi9: { label: 'ขั้นนำส่ง 9 ขั้น (Submission Control)', color: '#0c7d95' },
+      fv7: { label: 'ฝ่าฝืนร้ายแรง 7 ข้อ', color: '#c0231b' },
+      doc16: { label: 'ประเภทเอกสาร 16', color: '#6d3fc0' },
+      pmsgreg: { label: 'หน่วยงานกำกับ PMSG', color: '#c47c0a' },
+      bct: { label: 'Live จาก BCT', color: '#16304f' },
+      other: { label: 'อื่น ๆ', color: '#7d93b2' }
+    };
     id('dashBody').innerHTML =
       '<div class="cols2">' +
-      '<div class="card"><h3>ตามประเภทกระบวนการ</h3>' + barChart(byType, window.GAT_CONFIG.PROCESS_TYPES) + '</div>' +
+      '<div class="card"><h3>ตามแหล่งข้อมูล</h3>' + barChart(bySrc, srcMeta) + '</div>' +
       '<div class="card"><h3>ตาม BU (กดเพื่อกรอง)</h3><table class="tbl"><thead><tr><th>BU/กลุ่ม</th><th>รายการ</th></tr></thead><tbody>' + buRows + '</tbody></table></div>' +
       '</div>' +
       '<div class="card"><h3>กระบวนการ 9 ขั้น (Regulatory Submission Control)</h3>' +

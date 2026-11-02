@@ -1,6 +1,6 @@
 /* GAT Work System — shared config (โหลดก่อน app.js เสมอ) */
 window.GAT_CONFIG = {
-  VERSION: 'v1.2 (2 พ.ย. 2569) — Enterprise UI', // UI redesign: sidebar/pagination/copy-ID/toast + คงฟังก์ชัน v1.1 (วงจร open→respond→close ผ่าน live ครบ)
+  VERSION: 'v1.3 (2 พ.ย. 2569) — นิยาม PM/WI/SD/FM ใหม่', // สรุปผลงาน/Dashboard ใช้นิยามเอกสารกระบวนการทีม (6/7/6/5=24) แยกจากข้อมูลตรวจ 184; UI Enterprise จาก v1.2
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง — ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
   BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbwkiyWP4UzOGNt6Ly-XV1Rztz7gaW9V6GuKZ_hSpWmUu9QMjUmDS0RUjbej784ewTxVig/exec'), // BCT กลาง — deploy ใหม่ 2 พ.ย. 69 (localStorage ทับได้)
   SOURCES: {
