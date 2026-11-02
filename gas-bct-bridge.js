@@ -93,10 +93,10 @@ function setupSheets() {
     'ENTRY_ID', 'REG_ID', 'ENTRY_DATE', 'BU', 'PROCESS_CODE', 'PERIOD',
     'RESULT', 'SCORE', 'FINDINGS', 'EVIDENCE_URL', 'SUBMITTED_BY', 'SUBMITTED_AT', 'STATUS'
   ]);
-  // ข้อเสนอแนะ — รันเลข + การตัดสินของ BU + หลักฐาน/เหตุผล/ผู้รับผิดชอบ
+  // ข้อเสนอแนะ — รันเลข + การตัดสินของ BU + หลักฐาน/เหตุผล/ผู้รับผิดชอบ + FM มาตรฐาน 11 ช่อง (REF_PM_WI/ผู้อนุมัติ)
   ensureSheet(ss, CONFIG.SHEETS.RECS, [
     'REC_ID', 'REC_NO', 'CREATED_AT', 'CREATED_BY', 'REG_ID', 'PROCESS_TYPE',
-    'PROCESS_CODE', 'SEVERITY', 'TITLE', 'DETAIL', 'SHEET_REF', 'STATUS',
+    'PROCESS_CODE', 'SEVERITY', 'TITLE', 'DETAIL', 'SHEET_REF', 'REF_PM_WI', 'APPROVER', 'STATUS',
     'BU_DECISION', 'EVIDENCE_URL', 'NO_FIX_REASON', 'RESPONSIBLE',
     'BU_RESPONDED_AT', 'GAT_CONFIRMED_AT', 'CLOSED_AT'
   ]);
@@ -108,8 +108,8 @@ function setupSheets() {
 /* โยกย้ายชีทเก่า v1.0 → เพิ่มคอลัมน์ที่ขาดโดยไม่ทำข้อมูลหาย */
 function migrateSheets() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  addColumns_(ss, CONFIG.SHEETS.RECS, ['REC_NO', 'CREATED_BY', 'BU_DECISION', 'EVIDENCE_URL', 'NO_FIX_REASON', 'RESPONSIBLE']);
-  log_('system', 'migrate', CONFIG.SHEETS.RECS, 'เพิ่มคอลัมน์ v1.1 (ถ้ายังไม่มี)');
+  addColumns_(ss, CONFIG.SHEETS.RECS, ['REC_NO', 'CREATED_BY', 'BU_DECISION', 'EVIDENCE_URL', 'NO_FIX_REASON', 'RESPONSIBLE', 'REF_PM_WI', 'APPROVER']);
+  log_('system', 'migrate', CONFIG.SHEETS.RECS, 'เพิ่มคอลัมน์ v1.1 + FM 11 ช่อง: REF_PM_WI + APPROVER (ถ้ายังไม่มี)');
   return 'OK';
 }
 
@@ -213,7 +213,7 @@ function openIssue_(data) {
   var row = [
     recId, no, now, or_(data.BY, 'GAT'), or_(data.REG_ID), or_(data.PROCESS_TYPE),
     or_(data.PROCESS_CODE), or_(data.SEVERITY, '🟢 ข้อเสนอ'), or_(data.TITLE), or_(data.DETAIL),
-    or_(data.SHEET_REF), 'ส่งให้ BU แล้ว', '', '', '', '', '', '', ''
+    or_(data.SHEET_REF), or_(data.REF_PM_WI, 'P-04 ขั้น ④ (ตาม WI-02)'), or_(data.APPROVER), 'ส่งให้ BU แล้ว', '', '', '', '', '', '', ''
   ];
   sh.appendRow(row);
   return { REC_ID: recId, REC_NO: no };

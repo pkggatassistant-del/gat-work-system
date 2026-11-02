@@ -49,10 +49,10 @@ setTimeout(() => {
   ok('แผนภาพ: PM กำหนดว่าต้องทำอะไร ใครรับผิดชอบ', proc.includes('กำหนดว่าต้องทำอะไร ใครรับผิดชอบ และทำเมื่อไหร่'));
   ok('แผนภาพ: มีปลายทาง Evidence / KPI / Audit', proc.includes('Evidence / KPI / Audit'));
   ok('แผนภาพ: SD = เอกสารข้อกำหนดคุณลักษณะงาน', proc.includes('เอกสารข้อกำหนดคุณลักษณะงาน'));
-  ok('hero แสดง v2.7 (ตัดชื่อยาว)', proc.includes('v2.7'));
+  ok('hero แสดง v2.7 (ตัดชื่อยาว)', proc.includes('v2.8'));
 
   // 5) ข้อความคัดลอก (buildSummaryText ผ่าน export)
-  ok('แท็บครบหลัง render', d.querySelectorAll('.tabpane').length === 9);
+  ok('แท็บครบหลัง render', d.querySelectorAll('.tabpane').length === 10);
 
   // 6) Dashboard ยังแสดงแหล่งข้อมูล + BU chart (โดยไม่ crash)
   gat.showTab('dashboard');
@@ -88,7 +88,7 @@ setTimeout(() => {
 
   const runTxt = d.getElementById('runBody').textContent;
   // 13) Runner: แท็บใหม่ + การ์ด 10 ขั้น + checklist ติ๊กได้
-  ok('แท็บ runner อยู่ในระบบ (9 pane + nav)', d.querySelectorAll('.tabpane').length === 9 && d.getElementById('runBody') !== null);
+  ok('แท็บ runner อยู่ในระบบ (9 pane + nav)', d.querySelectorAll('.tabpane').length === 10 && d.getElementById('runBody') !== null);
   ok('Runner: hero CORE 10 + KPI ผ่านแล้ว', runTxt.includes('เดินกระบวนการ CORE 10') && runTxt.includes('ผ่านแล้ว'));
   ok('Runner: มี P-01..P-10 ครบ + ชี้จุด PM', runTxt.includes('P-01') && runTxt.includes('P-10') && runTxt.includes('PM:'));
   ok('Runner: มีปุ่มไปทำจริง (ออกใบ/บันทึกคำตอบ/ปิดรายการ)', runTxt.includes('ออกใบที่แท็บ') && runTxt.includes('บันทึกคำตอบที่แท็บ') && runTxt.includes('ปิดรายการ (GAT ยืนยัน)'));

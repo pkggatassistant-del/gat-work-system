@@ -191,6 +191,7 @@ ol.manual li{margin-bottom:8px}
     <div class="nav-hd">เอกสารระบบ</div>
     <a data-tab="process"><span class="ic">⚙</span> กระบวนการทีม GAT</a>
     <a data-tab="runner"><span class="ic">🚦</span> เดินกระบวนการ (Runner)</a>
+    <a data-tab="manual"><span class="ic">📖</span> คู่มือการใช้งาน</a>
     <a data-tab="report"><span class="ic">📤</span> รายงานผู้บริหาร</a>
     <a id="navQms" data-tab="qms" style="display:none"><span class="ic">📘</span> QMS Document</a>
   </nav>
@@ -289,6 +290,8 @@ ol.manual li{margin-bottom:8px}
       <div class="filters"><textarea id="recDetail" rows="4" placeholder="รายละเอียดสิ่งที่ตรวจพบ + ข้อเสนอแนะ (อ้างชีท+แถวต้นฉบับ — ห้ามเดา ตามกฎเหล็ก)" style="flex:1;min-width:280px;font-family:inherit"></textarea></div>
       <div class="filters">
         <input id="recBy" placeholder="ผู้ออกข้อเสนอแนะ (GAT)" value="GAT" style="width:240px">
+        <input id="recRefPmWi" placeholder="REF_PM_WI (เช่น P-04 ขั้น ④ / WI-02)" style="width:280px">
+        <input id="recApprover" placeholder="ผู้อนุมัติ (ถ้ามี — เช่น หัวหน้าสาย Audit)" style="width:260px">
         <button id="btnOpenRec" class="gold">🧾 รันเลข + ส่งเข้า BCT</button>
         <button class="button-lite" id="btnDraftRec">⬇ ดาวน์โหลดโครง .txt (สำรอง)</button>
       </div>
@@ -344,6 +347,7 @@ ol.manual li{margin-bottom:8px}
   <!-- ============ PROCESS ============ -->
   <section class="tabpane" id="pane-process"><div id="procBody"></div></section>
   <section class="tabpane" id="pane-runner"><div id="runBody"></div></section>
+  <section class="tabpane" id="pane-manual"><div id="manBody">กำลังโหลดคู่มือ…</div></section>
 
   <!-- ============ REPORT ============ -->
   <section class="tabpane" id="pane-report">

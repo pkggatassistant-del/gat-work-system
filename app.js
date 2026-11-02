@@ -379,9 +379,40 @@ var GAT = (function () {
           });
           h.push('</table><div class="note">SLA รวม: ข้อมูล 3ว (ด่วน LCT 24ชม.) · ชี้แจง 5ว · อุทธรณ์ 7ว · รายงานก่อนวันที่ 5 · ถดถอย 30/60/90ว — ทุกกระบวนการมี Evidence บน GAT_AuditLog</div></div>');
         }
+        if (j.meta.PM_DOCS && j.meta.PM_DOCS.length) { // เอกสาร PM ฉบับเต็ม 10 ชุด × 18 หัวข้อ (จาก add-docs)
+          h.push('<div id="pmdocs" class="card"><h3>📋 เอกสาร PM ฉบับเต็ม (10 กระบวนการ × 18 หัวข้อจากแม่แบบ)</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-bottom:10px">' +
+            j.meta.PM_DOCS.map(function (p, i) { return '<button class="rb-act" data-pmdoc="' + i + '" style="padding:8px 10px">' + esc(p.id) + ' ' + esc(p.name) + '</button>'; }).join('') + '</div><div id="pmdocBox"></div></div>');
+        }
+        if (j.meta.WI_DOCS && j.meta.WI_DOCS.length) { // WI ฉบับเต็ม 7 ใบ × 15 หัวข้อ
+          h.push('<div id="widocs" class="card"><h3>📎 เอกสาร WI ฉบับเต็ม (7 ใบ × 15 หัวข้อจากแม่แบบ — แตกจากขั้นของ PM ตาม WI_RULE)</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-bottom:10px">' +
+            j.meta.WI_DOCS.map(function (p, i) { return '<button class="rb-act" data-widoc="' + i + '" style="padding:8px 10px">' + esc(p.code) + ' ' + esc(p.name) + '</button>'; }).join('') + '</div><div id="widocBox"></div></div>');
+        }
         box.innerHTML = h.join('');
+        bindDocButtons(j);
       })
       .catch(function () { box.innerHTML = '<div class="empty">โหลดกระบวนการล้มเหลว</div>'; });
+  }
+  function renderPmDoc(j, i) {
+    var p = j.meta.PM_DOCS[i]; if (!p) return;
+    var rows = [['Process Code', p.id], ['Process Name', p.name], ['Objective', p.objective], ['Scope', p.scope], ['Process Owner', p.owner], ['Related Parties', p.related], ['Input', p.input], ['Trigger', p.trigger],
+      ['Process Flow', (p.flow || []).map(function (s) { return '· ' + s; }).join('<br>')], ['Responsibility', p.responsibility], ['Decision Point', p.decision], ['Output', p.output], ['SLA', p.sla], ['KPI', p.kpi], ['Risk', p.risk], ['Control', p.control], ['Related Documents', (p.docs || []).join(', ')], ['Records & Evidence', (p.records || []).join(', ')]];
+    var t = '<table class="tbl">' + rows.map(function (r, ix) { return '<tr><th style="width:160px;text-align:left">' + (ix + 1) + '. ' + esc(r[0]) + '</th><td style="font-size:13.5px">' + r[1] + '</td></tr>'; }).join('') + '</table>';
+    var b = id('pmdocBox'); if (b) b.innerHTML = '<div style="border:1px solid #dbe2ea;border-radius:10px;padding:12px;margin-top:6px"><b>' + esc(p.id) + ' — ' + esc(p.name) + '</b> <span style="font-size:12px;color:#8b4a12">18/18 หัวข้อ</span>' + t + '</div>';
+  }
+  function renderWiDoc(j, i) {
+    var p = j.meta.WI_DOCS[i]; if (!p) return;
+    var rows = [['WI Code', p.code], ['WI Name', p.name], ['Reference PM', p.ref_pm], ['Objective', p.objective], ['Scope', p.scope], ['Responsible Person', p.responsible], ['Preconditions', p.pre], ['Required Information / Tools', p.tools],
+      ['Step-by-Step Instructions', (p.steps || []).map(function (s) { return '· ' + s; }).join('<br>')], ['Quality Control Point', p.qc], ['Approval Requirements', p.approval], ['Exception Handling', p.exception], ['Error Correction', p.error], ['Evidence / Records', p.evidence], ['Completion Criteria', p.completion]];
+    var t = '<table class="tbl">' + rows.map(function (r, ix) { return '<tr><th style="width:180px;text-align:left">' + (ix + 1) + '. ' + esc(r[0]) + '</th><td style="font-size:13.5px">' + r[1] + '</td></tr>'; }).join('') + '</table>';
+    var b = id('widocBox'); if (b) b.innerHTML = '<div style="border:1px solid #dbe2ea;border-radius:10px;padding:12px;margin-top:6px"><b>' + esc(p.code) + ' — ' + esc(p.name) + '</b> <span style="font-size:12px;color:#8b4a12">15/15 หัวข้อ</span><div style="font-size:12.5px;color:#7c6a3c">PM ต้นทาง: ' + esc(p.ref_pm) + '</div>' + t + '</div>';
+  }
+  function bindDocButtons(j) {
+    document.querySelectorAll('[data-pmdoc]').forEach(function (btn) {
+      btn.addEventListener('click', function () { renderPmDoc(j, parseInt(btn.getAttribute('data-pmdoc'), 10)); });
+    });
+    document.querySelectorAll('[data-widoc]').forEach(function (btn) {
+      btn.addEventListener('click', function () { renderWiDoc(j, parseInt(btn.getAttribute('data-widoc'), 10)); });
+    });
   }
 
   /* ---------- แท็บสรุปผลงาน GAT (สร้างข้อความสดจาก state) ---------- */
@@ -730,12 +761,14 @@ var GAT = (function () {
       TITLE: title,
       DETAIL: detail,
       SHEET_REF: r ? (r.SOURCE || '') : '',
+      REF_PM_WI: id('recRefPmWi').value.trim() || 'P-04 ขั้น ④ (ตาม WI-02)',
+      APPROVER: id('recApprover').value.trim(),
       BY: id('recBy').value.trim() || 'GAT'
     };
     postToBCT('open_issue', payload, function (res) {
       if (res.ok) {
         status('✅ รันเลขแล้ว: ' + res.REC_ID + ' (#' + res.REC_NO + ') — ส่งเข้าชีท ' + (window.GAT_CONFIG.SHEETS ? window.GAT_CONFIG.SHEETS.RECS : 'GAT_Issues') + ' บน BCT เรียบร้อย');
-        id('recTitle').value = ''; id('recDetail').value = '';
+        id('recTitle').value = ''; id('recDetail').value = ''; id('recRefPmWi').value = ''; id('recApprover').value = '';
         importBCT(true);
       } else { status('❌ ' + (res.error || 'ส่งไม่สำเร็จ')); }
     });
@@ -781,6 +814,27 @@ var GAT = (function () {
       .catch(function (e) { status('❌ ผิดพลาด: ' + e); });
   }
 
+  /* ---------- แท็บคู่มือ (โหลด GAT-MANUAL.md) ---------- */
+  function mdLite(md) {
+    var t = esc(md);
+    t = t.replace(/^### (.*)$/gm, '<h4 style="margin:14px 0 6px;color:#1d3557">$1</h4>');
+    t = t.replace(/^## (.*)$/gm, '<h3 style="margin:18px 0 8px;color:#13294b">$1</h3>');
+    t = t.replace(/^# (.*)$/gm, '<h2 style="margin:8px 0 12px;color:#13294b">$1</h2>');
+    t = t.replace(/^---$/gm, '<hr style="border:none;border-top:1px solid #dbe2ea;margin:14px 0">');
+    t = t.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+    t = t.replace(/`([^`]+)`/g, '<code class="mono">$1</code>');
+    t = t.replace(/^> (.*)$/gm, '<div class="note">$1</div>');
+    t = t.replace(/^\| .*\|$/gm, function (row) { return '<span style="display:block;font-size:13px"><span class="mono">' + row.trim() + '</span></span>'; });
+    t = t.replace(/^- (.*)$/gm, '<div style="margin:3px 0 3px 14px">· $1</div>');
+    return t;
+  }
+  function loadManual() {
+    var box = id('manBody'); if (!box) return;
+    fetch('GAT-MANUAL.md?v=' + Date.now()).then(function (r) { return r.text(); }).then(function (md) {
+      box.innerHTML = '<div class="card"><div class="md-body">' + mdLite(md) + '</div></div>';
+    }).catch(function () { box.innerHTML = '<div class="empty">โหลดคู่มือไม่สำเร็จ — ดูไฟล์ GAT-MANUAL.md ใน repo</div>'; });
+  }
+
   /* ---------- events / boot ---------- */
   function boot() {
     loadRunState();
@@ -822,7 +876,7 @@ var GAT = (function () {
   }
   document.addEventListener('DOMContentLoaded', boot);
 
-  var TAB_NAMES = { dashboard: 'Dashboard', registers: 'Registers', bct: 'BCT Import/Export', recs: 'ข้อเสนอแนะ', universe: 'Regulatory Universe', summary: 'สรุปผลงาน GAT', process: 'กระบวนการทีม GAT', runner: 'เดินกระบวนการ (Runner)', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
+  var TAB_NAMES = { dashboard: 'Dashboard', registers: 'Registers', bct: 'BCT Import/Export', recs: 'ข้อเสนอแนะ', universe: 'Regulatory Universe', summary: 'สรุปผลงาน GAT', process: 'กระบวนการทีม GAT', runner: 'เดินกระบวนการ (Runner)', manual: 'คู่มือการใช้งาน', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
 
   /* ---------- แท็บเดินกระบวนการ (Process Runner) — ให้ทีมเดินตาม CORE ทีละขั้น ---------- */
   var RUN_STEPS = [
@@ -854,8 +908,9 @@ var GAT = (function () {
       var checks = prog[s.id] || [];
       var done = checks.length > 0 && s.check.every(function (_, i) { return checks[i]; });
       h.push('<div class="card" style="border-left:5px solid ' + (done ? '#0e8345' : '#b48a3c') + '">');
-      h.push('<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3 style="margin:0">' + (done ? '✅' : '▶️') + ' ขั้นที่ ' + (ix + 1) + ' — ' + esc(s.id) + ' ' + esc(meta.name || '') + (meta.sla ? ' <span style="font-size:12px;color:#b48a3c;font-weight:600">' + esc(meta.sla) + '</span>' : '') + '</h3>' +
-        (s.act ? '<button class="rb-act" data-runact="' + s.act + '" style="margin-bottom:6px">' + esc(s.actLabel || 'ไปทำจริง') + '</button>' : '') + '</div>');
+      h.push('<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3 style="margin:0">' + (done ? '✅' : '▶️') + ' ขั้นที่ ' + (ix + 1) + ' — ' + esc(s.id) + ' ' + esc(meta.name || '') + (meta.sla ? ' <span style="font-size:12px;color:#b48a3c;font-weight:600">' + esc(meta.sla) + '</span>' : '') + '</h3><div style="display:flex;gap:6px;flex-wrap:wrap">' +
+        '<button class="rb-act" data-rundoc="' + s.id + '" style="margin-bottom:6px">📄 เอกสาร PM เต็ม</button>' +
+        (s.act ? '<button class="rb-act" data-runact="' + s.act + '" style="margin-bottom:6px">' + esc(s.actLabel || 'ไปทำจริง') + '</button>' : '') + '</div></div>');
       h.push('<div style="font-size:13px;color:#51617a;margin-bottom:8px">PM: ' + esc(String(meta.pm || '').slice(0, 120)) + (String(meta.pm || '').length > 120 ? '…' : '') + '</div>');
       h.push('<table class="tbl">' + s.check.map(function (c, i) {
         return '<tr><td style="width:34px;text-align:center"><input type="checkbox" class="rb-chk" data-rstep="' + s.id + '" data-rchk="' + i + '"' + (checks[i] ? ' checked' : '') + '></td><td style="font-size:13.5px">' + esc(c) + '</td></tr>';
@@ -877,6 +932,8 @@ var GAT = (function () {
     document.querySelectorAll('nav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-tab') === name); });
     var c = id('crumbTab'); if (c) c.textContent = TAB_NAMES[name] || name;
     var sb = document.getElementById('sidebar'); if (sb && sb.classList) sb.classList.remove('open');
+    if (name === 'manual' && !showTab._manLoaded) { showTab._manLoaded = true; loadManual(); }
+    if (name === 'runner') { renderRunner(); }
   }
   document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('nav a');
@@ -885,15 +942,28 @@ var GAT = (function () {
     if (pp) { state.page = parseInt(pp, 10) || 1; renderRegisters(); return; }
     var cp = e.target.closest && e.target.closest('.copy-id');
     if (cp) { var ct = cp.getAttribute('data-rid') || cp.textContent; copyText(ct, '📋 คัดลอกรหัสแล้ว: ' + ct); }
-    var rc = e.target.getAttribute && e.target.getAttribute('data-rchk') !== null && e.target.classList.contains('rb-chk');
-    if (rc) { // Runner checklist ติ๊ก
+    if (e.target.classList && e.target.classList.contains('rb-chk')) { // Runner checklist ติ๊ก
       var rs = e.target.getAttribute('data-rstep'), ri = parseInt(e.target.getAttribute('data-rchk'), 10);
       state.runState = state.runState || {};
       var arr = state.runState[rs] || [];
       arr[ri] = e.target.checked; state.runState[rs] = arr; saveRunState(); renderRunner();
+      return;
     }
     var ra = e.target.getAttribute && e.target.getAttribute('data-runact');
-    if (ra) { showTab(ra === 'recs' ? 'recs' : ra); }
+    if (ra) { showTab(ra === 'recs' ? 'recs' : ra); return; }
+    var rd = e.target.getAttribute && e.target.getAttribute('data-rundoc');
+    if (rd) { // เปิดเอกสาร PM เต็มของขั้นนั้น (แท็บกระบวนการ → เลข index ใน PM_DOCS)
+      var pd = (state.process || {}).meta ? (state.process.meta.PM_DOCS || []) : [];
+      var ix = -1;
+      pd.forEach(function (p, i2) { if (p.id === rd) ix = i2; });
+      showTab('process');
+      setTimeout(function () {
+        var btn = document.querySelector('[data-pmdoc="' + ix + '"]');
+        if (btn) btn.click();
+        var card = id('pmdocs'); if (card) card.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
+      return;
+    }
   });
 
   /* export ชุด register ปัจจุบันกลับเข้ารูปแบบ BCT (CSV คอลัมน์ตรง GAT_Registers) */
