@@ -1,6 +1,6 @@
 /* GAT Work System — shared config (โหลดก่อน app.js เสมอ) */
 window.GAT_CONFIG = {
-  VERSION: 'v1.0 (2 พ.ย. 2569)',
+  VERSION: 'v1.1 (2 พ.ย. 2569)', // เว็บ+GAS วงจรข้อเสนอแนะรันเลข (open→respond→close) ผ่าน live ครบ
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง — ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
   BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbwkiyWP4UzOGNt6Ly-XV1Rztz7gaW9V6GuKZ_hSpWmUu9QMjUmDS0RUjbej784ewTxVig/exec'), // BCT กลาง — deploy ใหม่ 2 พ.ย. 69 (localStorage ทับได้)
   SOURCES: {
