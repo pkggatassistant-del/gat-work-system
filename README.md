@@ -6,6 +6,7 @@
 
 ## Changelog
 
+- **GAS v1.3 + ทดสอบ Round-trip (2 พ.ย. 69)** — ทดสอบจริงตามหลัก SSOT: ① POST open_issue (payload เดียวกับเว็บ) → ชีทได้ **GAT-REC-0029** (จริง, รันเลข LockService ทำงาน) ② GET list_recs อ่านกลับพบใบทันที (STATUS=ส่งให้ BU แล้ว) ③ พบคอลัมน์ REF_PM_WI/APPROVER ยังไม่มีบนชีทคลาวด์ (GAS deploy เก่า) → เพิ่ม action `migrate` + `ping` ใน doPost เพื่อรัน migrateSheets จากระยะไกลได้ (หลัง redeploy) — round-trip: เขียน ✅ / อ่านกลับ ✅ / คอลัมน์ใหม่ ⏳ รอ redeploy
 - **คู่มือ v1.1 (2 พ.ย. 69)** — เพิ่มหัว "6.ก ใช้ทีละแท็บ — กดปุ่มไหน ช่องไหน": อธิบายระดับปุ่ม/ช่องทุกแท็บ (Registers 3 กรอบกรอง / BCT import / ออกใบ-REF_PM_WI+ผู้อนุมัติ / Runner checklist) ตามคำถามจริงจากหนึ่ง
 - **v1.6 (2 พ.ย. 69)** — เอกสารกระบวนการฉบับเต็มในเว็บ: PM 10 ชุด × 18 หัวข้อ (P-01..P-10 ครบทุกหัวข้อแม่แบบ) + WI 7 ใบ × 15 หัวข้อ (แตกจากขั้น PM ตาม WI_RULE, ref_pm ชัด) · Runner มีปุ่ม "เอกสาร PM เต็ม" ต่อขั้น · ชีท GAT_Issues เพิ่มคอลัมน์ REF_PM_WI + APPROVER (FM ครบ 11/11 บน FM-01) · แท็บใหม่ "📖 คู่มือการใช้งาน" (โหลดจาก GAT-MANUAL.md) · (gat-process.json v2.8)
 

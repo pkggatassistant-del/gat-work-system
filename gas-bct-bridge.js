@@ -21,6 +21,7 @@
  */
 
 var CONFIG = {
+  VERSION: 'v1.3 (2 พ.ย. 69) — FM 11 ช่อง (REF_PM_WI + APPROVER) + action migrate/ping',
   SHEETS: {
     REGISTERS: 'GAT_Registers',   // Master Register: รายการตรวจสอบ/ภาระต้องส่ง
     ENTRIES: 'GAT_Entries',       // รายการบันทึกผลตรวจสอบรายครั้ง (BU กรอก)
@@ -188,6 +189,10 @@ function doPost(e) {
         log_(data.BY || 'GAT', 'close_issue', or_(data.REC_ID), 'ปิดรายการ');
         return json_({ ok: true });
       }
+      case 'migrate':
+        return json_({ ok: true, result: migrateSheets() });
+      case 'ping':
+        return json_({ ok: true, version: (typeof CONFIG !== 'undefined' && CONFIG.VERSION) || 'gas-v1.2+ping', actions: 'open_issue,respond_issue,close_issue,migrate,ping' });
       default:
         throw new Error('unknown action: ' + action);
     }
