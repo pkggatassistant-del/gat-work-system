@@ -1,6 +1,6 @@
 /* ============================================================
  * GAT Work System — แอปหลัก (Dashboard + Registers + BCT)
- * โครงสร้าง: 6 แท็บ
+ * โครงสร้าง: 7 แท็บ
  *  1) 📊 Dashboard   — ภาพรวม + KPI + overdue + ประเด็นร้อน
  *  2) 🗂 Registers   — Master Register (seed + BCT) กรองตาม BU/ประเภท
  *  3) 📥 BCT Import  — ดึงข้อมูลจาก Google Sheet BCT (GAS API) + เทียบ seed
@@ -274,7 +274,113 @@ var GAT = (function () {
   /* ---------- renders ---------- */
   function status(msg) { id('statusBar').innerHTML = '<span class="ok">' + esc(msg) + '</span>'; }
   function renderAll() {
-    renderDash(); renderRegisters(); renderUniverse(); renderRecs();
+    renderDash(); renderRegisters(); renderUniverse(); renderRecs(); renderSummary();
+  }
+
+  /* ---------- แท็บสรุปผลงาน GAT (สร้างข้อความสดจาก state) ---------- */
+  function renderSummary() {
+    var box = id('summaryBody'); if (!box) return;
+    var regs = state.registers || [];
+    var recs = state.recs || [];
+    var entries = state.entries || [];
+    var byStat = { '🟢': 0, '🟡': 0, '🔴': 0 };
+    regs.forEach(function (r) { var s = String(r.STATUS || '🟡 รอข้อมูลจริง').slice(0, 2); if (byStat[s] !== undefined) byStat[s]++; });
+    var byType = { PM: 0, WI: 0, SD: 0, FM: 0 };
+    regs.forEach(function (r) { if (byType[r.PROCESS_TYPE] !== undefined) byType[r.PROCESS_TYPE]++; });
+    var recOpen = recs.filter(function (x) { return String(x.STATUS).indexOf('ปิด') < 0; });
+    var recRed = recs.filter(function (x) { return String(x.SEVERITY || '').indexOf('🔴') >= 0; });
+    var recNoFix = recs.filter(function (x) { return String(x.BU_DECISION || '').indexOf('ไม่แก้') >= 0; });
+    var recFixed = recs.filter(function (x) { return String(x.BU_DECISION || '').indexOf('แก้') >= 0 && String(x.BU_DECISION).indexOf('ไม่') < 0; });
+    var recClosed = recs.filter(function (x) { return String(x.STATUS).indexOf('ปิด') >= 0; });
+
+    var h = [];
+    h.push('<div class="cards">');
+    h.push(kpiHTML('รายการตรวจ (Registers)', regs.length));
+    h.push(kpiHTML('PM/FM/WI/SD', byType.PM + ' · ' + byType.FM + ' · ' + byType.WI + ' · ' + byType.SD));
+    h.push(kpiHTML('สถานะ 🟢/🟡/🔴', byStat['🟢'] + ' / ' + byStat['🟡'] + ' / ' + byStat['🔴']));
+    h.push(kpiHTML('ข้อเสนอแนะ', recs.length + ' (เปิด ' + recOpen.length + ' · ปิด ' + recClosed.length + ')'));
+    h.push('</div>');
+
+    h.push('<h3>1) ทะเบียนงานตรวจ (Registers)</h3>');
+    h.push('<div style="font-size:14px;line-height:1.7">' +
+      '• รวม <b>' + regs.length + '</b> รายการ จาก PKG_Compliance_plan_2026-30 (26 ชีท) — PM ' + byType.PM + ' / WI ' + byType.WI + ' / SD ' + byType.SD + ' / FM ' + byType.FM + '<br>' +
+      '• สถานะ: 🟢 ' + byStat['🟢'] + ' · 🟡 ' + byStat['🟡'] + ' · 🔴 ' + byStat['🔴'] + '<br>' +
+      '• โครง 9 ขั้น (No Review → No Sign → No Submission) + 7 ข้อห้ามฝ่าฝืนร้ายแรง อยู่ในระบบครบ<br>' +
+      '• บันทึกผลจาก BU (GAT_Entries): <b>' + entries.length + '</b> รายการ</div>');
+
+    h.push('<h3>2) ข้อเสนอแนะรันเลข (GAT-REC)</h3>');
+    h.push('<div style="font-size:14px;line-height:1.7">' +
+      '• รวม <b>' + recs.length + '</b> ใบ (ชุดแรก F-01–F-15 ตรวจไฟล์สวัสดิการ 29 ต.ค. 69)<br>' +
+      '• 🔴 ขัดกฎหมาย/จำเป็นจริง: <b>' + recRed.length + '</b> ใบ · 🟢 ข้อเสนอ: ' + (recs.length - recRed.length) + ' ใบ<br>' +
+      '• BU ตอบ: แก้แล้ว ' + recFixed.length + ' · ไม่แก้ (มีเหตุผล+ผู้รับผิดชอบ) ' + recNoFix.length + ' · ยังไม่ตอบ ' + (recOpen.length - recFixed.length - recNoFix.length) + '<br>' +
+      '• ปิดสมบูรณ์ (GAT ยืนยัน): <b>' + recClosed.length + '</b> ใบ — ทั้งวงจรอยู่ในชีท GAT_Issues + GAT_AuditLog</div>');
+
+    h.push('<h3>3) ระบบ/โครงสร้างที่สร้างเสร็จ</h3>');
+    h.push('<div style="font-size:14px;line-height:1.7">' +
+      '• เว็บ: 7 แท็บ (Dashboard / Registers / BCT / ข้อเสนอแนะ / สรุป / Universe / รายงาน)<br>' +
+      '• ชีท BCT กลาง: GAT_Registers + GAT_Entries + GAT_Issues + GAT_AuditLog (GAS ทำงานจริง — ทดสอบวงจร open→respond→close ผ่าน)<br>' +
+      '• เทมเพลต bct-template.xlsx: ติดตั้งฐานใหม่ได้ใน 4 ขั้น<br>' +
+      '• ความปลอดภัย: รันเลขอยู่ฝั่งชีท (LockService) · POST text/plain เลี่ยง CORS · ไฟล์ต้นฉบับ BU ไม่ถูกแก้</div>');
+
+    h.push('<h3>4) งานค้าง/ถัดไป (roadmap)</h3>');
+    h.push('<div style="font-size:14px;line-height:1.7">' +
+      '• ล้างแถวทดสอบ REC-0016–0019 ในชีท<br>' +
+      '• v1.2: โครง 2 ฐาน (BCT กลาง + BCT บริษัท) <br>' +
+      '• v1.3: Google Form ให้ BU + แจ้งเตือนเลยกำหนด (Telegram)<br>' +
+      '• v2.0: Compliance Calendar "วันนี้มีอะไรต้องส่ง" + รายงานรายเดือนอัตโนมัติ</div>');
+
+    box.innerHTML = h.join('');
+
+    // ปุ่มคัดลอก/ดาวน์โหลด
+    var txt = buildSummaryText();
+    var act = document.createElement('div');
+    act.style.marginTop = '14px';
+    var b1 = document.createElement('button'); b1.textContent = '📄 คัดลอกเป็นข้อความ';
+    b1.onclick = function () {
+      var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); status('คัดลอกสรุปแล้ว'); } catch (e) { prompt('คัดลอกด้วยตัวเอง:', txt); }
+      document.body.removeChild(ta);
+    };
+    var b2 = document.createElement('button'); b2.textContent = '⬇ ดาวน์โหลด .md'; b2.style.marginLeft = '8px';
+    b2.onclick = function () { download('GAT-สรุปผลงาน-' + new Date().toISOString().slice(0, 10) + '.md', txt); };
+    act.appendChild(b1); act.appendChild(b2); box.appendChild(act);
+  }
+
+  function kpiHTML(label, val) {
+    return '<div class="kpi card" style="min-width:170px"><div style="color:#667;font-size:12px">' + label + '</div><div style="font-size:22px;font-weight:700;margin-top:2px">' + val + '</div></div>';
+  }
+
+  function buildSummaryText() {
+    var regs = state.registers || [], recs = state.recs || [], entries = state.entries || [];
+    var byStat = { '🟢': 0, '🟡': 0, '🔴': 0 };
+    regs.forEach(function (r) { var s = String(r.STATUS || '🟡 รอข้อมูลจริง').slice(0, 2); if (byStat[s] !== undefined) byStat[s]++; });
+    var byType = { PM: 0, WI: 0, SD: 0, FM: 0 };
+    regs.forEach(function (r) { if (byType[r.PROCESS_TYPE] !== undefined) byType[r.PROCESS_TYPE]++; });
+    var recOpen = recs.filter(function (x) { return String(x.STATUS).indexOf('ปิด') < 0; });
+    var recRed = recs.filter(function (x) { return String(x.SEVERITY || '').indexOf('🔴') >= 0; });
+    var recNoFix = recs.filter(function (x) { return String(x.BU_DECISION || '').indexOf('ไม่แก้') >= 0; });
+    var recClosed = recs.filter(function (x) { return String(x.STATUS).indexOf('ปิด') >= 0; });
+    var L = [];
+    L.push('# สรุปผลงาน GAT — ' + new Date().toLocaleString('th-TH'));
+    L.push('');
+    L.push('## 1) ทะเบียนงานตรวจ');
+    L.push('- Registers ' + regs.length + ' รายการ (PM ' + byType.PM + ' / WI ' + byType.WI + ' / SD ' + byType.SD + ' / FM ' + byType.FM + ')');
+    L.push('- สถานะ: 🟢 ' + byStat['🟢'] + ' · 🟡 ' + byStat['🟡'] + ' · 🔴 ' + byStat['🔴']);
+    L.push('- บันทึกผลจาก BU: ' + entries.length + ' รายการ');
+    L.push('');
+    L.push('## 2) ข้อเสนอแนะรันเลข');
+    L.push('- รวม ' + recs.length + ' ใบ (ชุดแรก F-01–F-15 สวัสดิการ 29 ต.ค. 69)');
+    L.push('- 🔴 ' + recRed.length + ' · 🟢 ' + (recs.length - recRed.length) + ' · เปิดอยู่ ' + recOpen.length + ' · ปิด ' + recClosed.length + ' · ไม่แแ้ ' + recNoFix.length);
+    L.push('- วงจร: ออกใบ (รันเลขในชีท) → BU ตอบ (แก้=หลักฐาน / ไม่แก้=เหตุผล+ผู้รับผิดชอบ) → GAT ยืนยัน/ปิด');
+    L.push('');
+    L.push('## 3) โครงสร้างที่สร้างเสร็จ');
+    L.push('- แท็บ 7 (Dashboard/Registers/BCT/ข้อเสนอแนะ/สรุป/Universe/รายงาน)');
+    L.push('- ชีท BCT: GAT_Registers/GAT_Entries/GAT_Issues/GAT_AuditLog + GAS (LockService รันเลข)');
+    L.push('- เทมเพลต bct-template.xlsx ติดตั้งฐานใหม่ 4 ขั้น');
+    L.push('');
+    L.push('## 4) ค้าง/ถัดไป');
+    L.push('- ล้างแถวทดสอบ REC-0016–0019 · v1.2 โครง 2 ฐาน · v1.3 Google Form + แจ้งเตือน · v2.0 Calendar + รายงานรายเดือน');
+    return L.join('\n');
   }
 
   function filtered() {
@@ -560,5 +666,5 @@ var GAT = (function () {
     status('ส่งออก CSV สำหรับวางลงชีท GAT_Registers บน BCT แล้ว (' + regs.length + ' รายการ)');
   }
 
-  return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, state: function () { return state; }, _draft: draftIssue };
+  return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary };
 })();
