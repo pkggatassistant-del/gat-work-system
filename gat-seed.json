@@ -1,0 +1,2775 @@
+{
+ "meta": {
+  "source": "PKG_Compliance_plan_2026-30_GDOC (xlsx 26 sheets)",
+  "extractedAt": "2026-11-02",
+  "note": "Seed data for GAT work system (PM/WI/SD/FM + BCT bridge)",
+  "sourceVersion": "2026-11-02 (md5 ตรงกับชุด 23 ต.ค. 69)"
+ },
+ "counts": {
+  "companies": 57,
+  "regulators": 20,
+  "docTypes": 16,
+  "universeBUs": 5
+ },
+ "companies": [
+  {
+   "code": "CO-101",
+   "name": "บริษัท  ประชากิจมอเตอร์เซลส์ จำกัด",
+   "group": "PMSG",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "พฤษภาคม",
+   "boj5": "",
+   "auditor": "บูรพาการบัญชี",
+   "owner": "วนิดา/กรกต/ขวัญฤทัย",
+   "taxes": [
+    "WHT2",
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-102",
+   "name": "บริษัท พีเอ็มเอส ออโต้การันตี จำกัด",
+   "group": "PMSG",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "พฤษภาคม",
+   "boj5": "",
+   "auditor": "บูรพาการบัญชี",
+   "owner": "ราตรี",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-103",
+   "name": "เอ็นวิรอน",
+   "group": "PMSG",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "พฤษภาคม",
+   "boj5": "",
+   "auditor": "บูรพาการบัญชี",
+   "owner": "ราตรี",
+   "taxes": [],
+   "extras": []
+  },
+  {
+   "code": "CO-104",
+   "name": "EV.ออน",
+   "group": "PMSG",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "พฤษภาคม",
+   "boj5": "",
+   "auditor": "พี่นุช (นายภาณพ เขมาวาศน์",
+   "owner": "ราตรี",
+   "taxes": [],
+   "extras": []
+  },
+  {
+   "code": "CO-201",
+   "name": "บริษัท แอจจิลซอฟท์ คอร์ปอเรชั่น จำกัด",
+   "group": "CPDG",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "พฤษภาคม",
+   "boj5": "",
+   "auditor": "บูรพาการบัญชี",
+   "owner": "วรรณวิภา",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-202",
+   "name": "บริษัท ไซฟินเวสท์  ดิจิตอล  โบรคเกอร์ จำกัด",
+   "group": "CPDG",
+   "accountingStart": "มีนาคม",
+   "accountingEnd": "กุมภาพันธ์",
+   "cit50DueMonth": "กรกฎาคม",
+   "boj5": "",
+   "auditor": "บูรพาการบัญชี",
+   "owner": "คุณรัชนี",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-203",
+   "name": "บริษัท  ศูนย์พัฒนาผู้นำ จำกัด",
+   "group": "CPDG",
+   "accountingStart": "กันยายน",
+   "accountingEnd": "สิงหาคม",
+   "cit50DueMonth": "มกราคม",
+   "boj5": "",
+   "auditor": "บูรพาการบัญชี",
+   "owner": "วรรณวิภา",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-204",
+   "name": "บริษัท เล็นเอกซ์  จำกัด",
+   "group": "CPDG",
+   "accountingStart": "ธันวาคม",
+   "accountingEnd": "พฤศจิกายน",
+   "cit50DueMonth": "เมษายน",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "รัชนี",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-205",
+   "name": "21 CT",
+   "group": "CPDG",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "พฤษภาคม",
+   "boj5": "",
+   "auditor": "ชัยสิทธิ์",
+   "owner": "วรรณวิภา",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-206",
+   "name": "บริษัท  แอสเซท แมเนจเมนท์ โฮลดิ้งส์ จำกัด",
+   "group": "CPDG",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "พฤษภาคม",
+   "boj5": "",
+   "auditor": "ชัยสิทธิ์",
+   "owner": "รัชนี",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-207",
+   "name": "21 RT",
+   "group": "CPDG",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "พฤษภาคม",
+   "boj5": "",
+   "auditor": "พี่นุช (นายภาณพ เขมาวาศน์",
+   "owner": "วรรณวิภา",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-208",
+   "name": "21HT",
+   "group": "CPDG",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "พฤษภาคม",
+   "boj5": "",
+   "auditor": "พี่นุช (นายภาณพ เขมาวาศน์",
+   "owner": "รัชนี",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-301",
+   "name": "บริษัท คลองตาคงการเกษตร จำกัด",
+   "group": "TNRG",
+   "accountingStart": "มิถุนายน",
+   "accountingEnd": "พฤษภาคม",
+   "cit50DueMonth": "ตุลาคม",
+   "boj5": "",
+   "auditor": "บูรพาการบัญชี",
+   "owner": "รัชนี",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-302",
+   "name": "บริษัท  ไทยพนา  แนชเชอรัล  รีซอร์สเซส   จำกัด",
+   "group": "TNRG",
+   "accountingStart": "พฤศจิกายน",
+   "accountingEnd": "ตุลาคม",
+   "cit50DueMonth": "มีนาคม",
+   "boj5": "",
+   "auditor": "บูรพาการบัญชี",
+   "owner": "ราตรี",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-401",
+   "name": "บริษัท  เอเอเอ็ม แคปปิตอล เซอร์วิส อรัญประเทศ  จำกัด",
+   "group": "AAMG",
+   "accountingStart": "กุมภาพันธ์",
+   "accountingEnd": "มกราคม",
+   "cit50DueMonth": "มิถุนายน",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "วิลาวัลย์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-402",
+   "name": "บริษัท  เอเอเอ็ม แคปปิตอล เซอร์วิส ปากช่อง  จำกัด",
+   "group": "AAMG",
+   "accountingStart": "กุมภาพันธ์",
+   "accountingEnd": "มกราคม",
+   "cit50DueMonth": "มิถุนายน",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "อรกัญญา",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-403",
+   "name": "บริษัท  เอเอเอ็ม แคปปิตอล เซอร์วิส สอยดาว  จำกัด",
+   "group": "AAMG",
+   "accountingStart": "มีนาคม",
+   "accountingEnd": "กุมภาพันธ์",
+   "cit50DueMonth": "กรกฎาคม",
+   "boj5": "",
+   "auditor": "พี่นุช (นายภาณพ เขมาวาศน์",
+   "owner": "วิลาวัลย์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-404",
+   "name": "เอเอเอ็ม ลพบุรี  จำกัด",
+   "group": "AAMG",
+   "accountingStart": "มีนาคม",
+   "accountingEnd": "กุมภาพันธ์",
+   "cit50DueMonth": "กรกฎาคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "อรกัญญา",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-405",
+   "name": "เอเอเอ็ม องค์รักษ์  จำกัด",
+   "group": "AAMG",
+   "accountingStart": "มีนาคม",
+   "accountingEnd": "กุมภาพันธ์",
+   "cit50DueMonth": "กรกฎาคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "อรกัญญา",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-406",
+   "name": "เอเอเอ็ม สุภาพงษ์  จำกัด",
+   "group": "AAMG",
+   "accountingStart": "มีนาคม",
+   "accountingEnd": "กุมภาพันธ์",
+   "cit50DueMonth": "กรกฎาคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "วิลาวัลย์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-407",
+   "name": "บริษัท  เอเอเอ็ม แคปปิตอล เซอร์วิส จำกัด  AAM CAP",
+   "group": "AAMG",
+   "accountingStart": "เมษายน",
+   "accountingEnd": "มีนาคม",
+   "cit50DueMonth": "สิงหาคม",
+   "boj5": "",
+   "auditor": "บูรพาการบัญชี",
+   "owner": "นิตยา/ราตรี",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-408",
+   "name": "บริษัท  พีซีที แคปปิตอล เซอร์วิส จำกัด",
+   "group": "AAMG",
+   "accountingStart": "เมษายน",
+   "accountingEnd": "มีนาคม",
+   "cit50DueMonth": "สิงหาคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "เอกสิทธิ์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-409",
+   "name": "บริษัท  เกษตรไทย ลิสซิ่ง บึงกาฬ จำกัด",
+   "group": "AAMG",
+   "accountingStart": "เมษายน",
+   "accountingEnd": "มีนาคม",
+   "cit50DueMonth": "สิงหาคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "อรกัญญา",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-410",
+   "name": "บริษัท อีเอซี กาญจนบุรี จำกัด",
+   "group": "AAMG",
+   "accountingStart": "เมษายน",
+   "accountingEnd": "มีนาคม",
+   "cit50DueMonth": "สิงหาคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "เอกสิทธิ์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-411",
+   "name": "บริษัท  พีซีแอล แคปปิตอล เซอร์วิส จำกัด",
+   "group": "AAMG",
+   "accountingStart": "พฤษภาคม",
+   "accountingEnd": "เมษายน",
+   "cit50DueMonth": "กันยายน",
+   "boj5": "",
+   "auditor": "พี่นุช (นายภาณพ เขมาวาศน์",
+   "owner": "จันทกานต์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-412",
+   "name": "บริษัท  ทีวายเค แคปปิตอล เซอร์วิส จำกัด",
+   "group": "AAMG",
+   "accountingStart": "พฤษภาคม",
+   "accountingEnd": "เมษายน",
+   "cit50DueMonth": "กันยายน",
+   "boj5": "",
+   "auditor": "พี่นุช (นายภาณพ เขมาวาศน์",
+   "owner": "อรกัญญา",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-413",
+   "name": "บริษัท  เอเอเอ็ม แคปปิตอล เซอร์วิส อุดรดุฎดี  จำกัด",
+   "group": "AAMG",
+   "accountingStart": "พฤษภาคม",
+   "accountingEnd": "เมษายน",
+   "cit50DueMonth": "กันยายน",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "จันทกานต์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-414",
+   "name": "บริษัท  เอเอเอ็ม แคปปิตอล เซอร์วิส พระยาสัจจา  จำกัด",
+   "group": "AAMG",
+   "accountingStart": "พฤษภาคม",
+   "accountingEnd": "เมษายน",
+   "cit50DueMonth": "กันยายน",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "วิลาวัลย์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-415",
+   "name": "บริษัท  พีเอ็มเอส แคปปิตอล เซอร์วิส จำกัด PCS Cap",
+   "group": "AAMG",
+   "accountingStart": "มิถุนายน",
+   "accountingEnd": "พฤษภาคม",
+   "cit50DueMonth": "ตุลาคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "จันทกานต์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-416",
+   "name": "บริษัท เอเอเอ็ม แคปปิตอล นนทบุรี จำกัด",
+   "group": "AAMG",
+   "accountingStart": "มิถุนายน",
+   "accountingEnd": "พฤษภาคม",
+   "cit50DueMonth": "ตุลาคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "จันทกานต์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-417",
+   "name": "บริษัท เอเอ็ม บุรีรัมย์ จำกัด",
+   "group": "AAMG",
+   "accountingStart": "มิถุนายน",
+   "accountingEnd": "พฤษภาคม",
+   "cit50DueMonth": "ตุลาคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "อรกัญญา",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-418",
+   "name": "บริษัท  อาร์วายแอล แคปปิตอล เซอร์วิส จำกัด(ระยอง)",
+   "group": "AAMG",
+   "accountingStart": "สิงหาคม",
+   "accountingEnd": "กรกฎาคม",
+   "cit50DueMonth": "ธันวาคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "อรกัญญา",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-419",
+   "name": "บริษัท  เอเอเอ็ม ตะเคียนคู่  จำกัด   8/58",
+   "group": "AAMG",
+   "accountingStart": "สิงหาคม",
+   "accountingEnd": "กรกฎาคม",
+   "cit50DueMonth": "ธันวาคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "จันทกานต์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-420",
+   "name": "บริษัท  เอเอเอ็ม ฉะเชิงเทรา จำกัด",
+   "group": "AAMG",
+   "accountingStart": "สิงหาคม",
+   "accountingEnd": "กรกฎาคม",
+   "cit50DueMonth": "ธันวาคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "สรินญา",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-421",
+   "name": "บริษัท  เอเอเอ็มสกลนคร  จำกัด",
+   "group": "AAMG",
+   "accountingStart": "สิงหาคม",
+   "accountingEnd": "กรกฎาคม",
+   "cit50DueMonth": "ธันวาคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "นิตยา",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-422",
+   "name": "บริษัท  เอเอ็นเอฟเทรดดิ้ง จำกัด (ANT)",
+   "group": "AAMG",
+   "accountingStart": "กันยายน",
+   "accountingEnd": "สิงหาคม",
+   "cit50DueMonth": "มกราคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "จันทกานต์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-423",
+   "name": "บริษัท  สระแก้วลิสซิ่ง จำกัด",
+   "group": "AAMG",
+   "accountingStart": "กันยายน",
+   "accountingEnd": "สิงหาคม",
+   "cit50DueMonth": "มกราคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "เอกสิทธิ์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-424",
+   "name": "บริษัท  เอเอเอ็ม แคปปิตอล มอเตอร์ไซค์เคิล จำกัด",
+   "group": "AAMG",
+   "accountingStart": "กันยายน",
+   "accountingEnd": "สิงหาคม",
+   "cit50DueMonth": "มกราคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "นิตยา",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-425",
+   "name": "บริษัท เอเอเอ็มสุรินทร์ จำกัด",
+   "group": "AAMG",
+   "accountingStart": "กันยายน",
+   "accountingEnd": "สิงหาคม",
+   "cit50DueMonth": "มกราคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "อรกัญญา",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-426",
+   "name": "บริษัท  เอเอเอ็ม แคปปิตอล เซอร์วิส พัทยา จำกัด",
+   "group": "AAMG",
+   "accountingStart": "ตุลาคม",
+   "accountingEnd": "กันยายน",
+   "cit50DueMonth": "กุมภาพันธ์",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "เอกสิทธิ์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-427",
+   "name": "บริษัท เกษตรไทย ลิซซิ่ง จำกัด",
+   "group": "AAMG",
+   "accountingStart": "ธันวาคม",
+   "accountingEnd": "พฤศจิกายน",
+   "cit50DueMonth": "เมษายน",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "จันทกานต์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-428",
+   "name": "บริษัท  พีเอ็มเอส ออโตโมบิล จำกัด",
+   "group": "AAMG",
+   "accountingStart": "ธันวาคม",
+   "accountingEnd": "พฤศจิกายน",
+   "cit50DueMonth": "เมษายน",
+   "boj5": "",
+   "auditor": "บูรพาการบัญชี",
+   "owner": "เอกสิทธิ์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-429",
+   "name": "บริษัท เอเอเอ็ม มุกดาหาร",
+   "group": "AAMG",
+   "accountingStart": "ธันวาคม",
+   "accountingEnd": "พฤศจิกายน",
+   "cit50DueMonth": "เมษายน",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "อรกัญญา",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-430",
+   "name": "บริษัท  ประชาเทรดดิ้ง (2529) จำกัด",
+   "group": "AAMG",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "พฤษภาคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "เอกสิทธิ์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-431",
+   "name": "บริษัท  พีเอ็มเอส คัสตอมเมอร์ เซอร์วิส จำกัด",
+   "group": "AAMG",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "พฤษภาคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "จันทกานต์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-432",
+   "name": "บริษัท โพนพิสัย แคปปิตอล เซอร์วิส จำกัด",
+   "group": "AAMG",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "พฤษภาคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "จันทกานต์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-433",
+   "name": "บริษัท อีเอซี โฮลดิ้ง จำกัด",
+   "group": "AAMG",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "พฤษภาคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "เอกสิทธิ์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-434",
+   "name": "บริษัท อีเอซี ราชบุรี จำกัด",
+   "group": "AAMG",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "พฤษภาคม",
+   "boj5": "",
+   "auditor": "รักษ์สอบบัญชี",
+   "owner": "เอกสิทธิ์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-435",
+   "name": "บริษัท พรีเชียสสโตน แอสเซท แมเนจเม้นท์ จำกัด(แพมโค)",
+   "group": "AAMG",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "พฤษภาคม",
+   "boj5": "",
+   "auditor": "บูรพาการบัญชี",
+   "owner": "วิลาวัลย์",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "SBT40",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-501",
+   "name": "ບໍລິສັດ ຮ່ວມພັດທະນາເຊົ່າສິນເຊື່ອ ຈຳກັດ",
+   "group": "RPLC",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "มีนาคม",
+   "boj5": "",
+   "auditor": "อ.วันไช",
+   "owner": "จันทรรัตน์",
+   "taxes": [
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-502",
+   "name": "ສກຈບ ຣາຟໂຄ ໄຟແນ້ນຊຽວ ລາວ ຈຳກັດຜູ້ດຽວ",
+   "group": "RPLC",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "มีนาคม",
+   "boj5": "",
+   "auditor": "อ.วันไช",
+   "owner": "จันทรรัตน์",
+   "taxes": [
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-503",
+   "name": "ບໍລິສັດ ເພັດຈະເລີນບໍລິການ ຈໍາກັດຜູ້ດຽວ",
+   "group": "RPLC",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "มีนาคม",
+   "boj5": "",
+   "auditor": "อ.วันไช",
+   "owner": "จันทรรัตน์",
+   "taxes": [
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-601",
+   "name": "RAFCO FINANCIAL (CAMBODIA) PLC.",
+   "group": "RAFCO",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "เมษายน",
+   "boj5": "",
+   "auditor": "Kreston",
+   "owner": "สรินญา",
+   "taxes": [
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-701",
+   "name": "บริษัทเอส 3 พี อินเตอร์เนเชอรัล จำกัด",
+   "group": "FUNDS",
+   "accountingStart": "ธันวาคม",
+   "accountingEnd": "พฤศจิกายน",
+   "cit50DueMonth": "เมษายน",
+   "boj5": "",
+   "auditor": "บูรพาการบัญชี",
+   "owner": "อรุณี",
+   "taxes": [],
+   "extras": []
+  },
+  {
+   "code": "CO-702",
+   "name": "บริษัท  พีบีพี โฮลดิ้ง จำกัด",
+   "group": "FUNDS",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "พฤษภาคม",
+   "boj5": "",
+   "auditor": "บูรพาการบัญชี",
+   "owner": "อรุณี",
+   "taxes": [],
+   "extras": []
+  },
+  {
+   "code": "CO-703",
+   "name": "บริษัท จีทีซี แคปปิตอล",
+   "group": "FUNDS",
+   "accountingStart": "มกราคม",
+   "accountingEnd": "ธันวาคม",
+   "cit50DueMonth": "พฤษภาคม",
+   "boj5": "",
+   "auditor": "พี่นุช (นายภาณพ เขมาวาศน์",
+   "owner": "วนิดา",
+   "taxes": [
+    "WHT3",
+    "WHT53",
+    "VAT30",
+    "CIT51",
+    "CIT50",
+    "DBD",
+    "BANK"
+   ],
+   "extras": []
+  },
+  {
+   "code": "CO-704",
+   "name": "บริษัท แกลงลิสซิ่ง (2534) จำกัด",
+   "group": "FUNDS",
+   "accountingStart": "ตุลาคม",
+   "accountingEnd": "กันยายน",
+   "cit50DueMonth": "กุมภาพันธ์",
+   "boj5": "",
+   "auditor": "บูรพาการบัญชี",
+   "owner": "อรุณี",
+   "taxes": [],
+   "extras": []
+  }
+ ],
+ "regulators": [
+  {
+   "no": 1,
+   "agency": "กรมสรรพากร (RD)",
+   "domain": "ภาษีทั้งหมด",
+   "actions": [
+    {
+     "action": "ภ.ง.ด.1, 3, 53, 54 / ภ.พ.30, 36 / ภ.ง.ด.50, 51 / ภ.ง.ด.1ก (ค่านายหน้า)",
+     "frequency": "รายเดือน/รายปี/ตามเหตุการณ์"
+    },
+    {
+     "action": "ภงด.1 ก. (สมาชิก)",
+     "frequency": "รายเดือน/รายปี/ตามเหตุการณ์"
+    }
+   ],
+   "owners": [
+    "ทีมบัญชี",
+    "ทีม PAO"
+   ],
+   "auditPoints": [
+    "ยอดภาษีตรงกับ GL และรายงานต้นทางหรือไม่"
+   ],
+   "docs": [
+    "แบบภาษี + ใบเสร็จ + Working Paper"
+   ]
+  },
+  {
+   "no": 2,
+   "agency": "กรมพัฒนาธุรกิจการค้า (DBD)",
+   "domain": "นิติบุคคล/บัญชี/งบการเงิน",
+   "actions": [
+    {
+     "action": "ยื่นงบการเงิน, บัญชีรายชื่อผู้ถือหุ้น",
+     "frequency": "รายปี/เมื่อมีการเปลี่ยนแปลง"
+    },
+    {
+     "action": "เปลี่ยนแปลงกรรมการ/ที่ตั้ง/ทุน ฯลฯ",
+     "frequency": "รายปี/เมื่อมีการเปลี่ยนแปลง"
+    }
+   ],
+   "owners": [
+    "ทีมบัญชี",
+    "ทีมกฏหมาย"
+   ],
+   "auditPoints": [
+    "งบที่ยื่น DBD ตรงกับงบที่ผู้บริหารอนุมัติและข้อมูลบัญชีหรือไม่"
+   ],
+   "docs": [
+    "งบการเงิน, บอจ., รายชื่อผู้ถือหุ้น"
+   ]
+  },
+  {
+   "no": 3,
+   "agency": "สำนักงานสรรพากรพื้นที่",
+   "domain": "ภาษีในพื้นที่",
+   "actions": [
+    {
+     "action": "ติดต่อเรื่อง VAT, WHT, CIT, Tax Audit",
+     "frequency": "ตามกำหนด/เมื่อถูกตรวจ"
+    }
+   ],
+   "owners": [
+    "ทีมบัญชี"
+   ],
+   "auditPoints": [
+    "หนังสือแจ้ง/ผลตรวจ/ภาษีค้าง"
+   ],
+   "docs": [
+    "หนังสือราชการ/ใบเสร็จ"
+   ]
+  },
+  {
+   "no": 4,
+   "agency": "สำนักงานประกันสังคม (สปส.)",
+   "domain": "ประกันสังคม/กองทุนเงินทดแทน",
+   "actions": [
+    {
+     "action": "นำส่งเงินสมทบ แจ้งเข้า-ออกพนักงาน/เปลี่ยนแปลงข้อมูล",
+     "frequency": "รายเดือน/ตามเหตุการณ์"
+    }
+   ],
+   "owners": [
+    "ทีม PAO"
+   ],
+   "auditPoints": [
+    "Payroll ↔ ประกันสังคม ↔ GL"
+   ],
+   "docs": [
+    "สปส.1-10 และหลักฐานชำระ"
+   ]
+  },
+  {
+   "no": 5,
+   "agency": "กรมสวัสดิการและคุ้มครองแรงงาน",
+   "domain": "กฎหมายแรงงาน",
+   "actions": [
+    {
+     "action": "รายงาน/เอกสารตามกฎหมายแรงงาน, ข้อบังคับ, เวลาทำงาน, ค่าจ้าง ฯลฯ",
+     "frequency": "รายปี/ตามเหตุการณ์"
+    }
+   ],
+   "owners": [
+    "ทีม PAO"
+   ],
+   "auditPoints": [
+    "พนักงานจริงตรงกับ Payroll และเอกสาร HR หรือไม่"
+   ],
+   "docs": [
+    "Payroll, Time Attendance, ข้อบังคับ"
+   ]
+  },
+  {
+   "no": 6,
+   "agency": "กรมการขนส่งทางบก (DLT)",
+   "domain": "รถยนต์/ทะเบียน/ป้ายแดง",
+   "actions": [
+    {
+     "action": "จดทะเบียน โอนรถ ภาษีรถ ใบอนุญาต/งานทะเบียนที่เกี่ยวข้อง",
+     "frequency": "ตามรถ/รายปี"
+    }
+   ],
+   "owners": [
+    "ทีมกำกับงานขาย"
+   ],
+   "auditPoints": [
+    "Stock รถ ↔ เลขตัวถัง ↔ ทะเบียน ↔ GL"
+   ],
+   "docs": [
+    "เล่มทะเบียน, ใบคู่มือจดทะเบียน, เอกสารโอน"
+   ]
+  },
+  {
+   "no": 7,
+   "agency": "สำนักงาน คปภ. (OIC)",
+   "domain": "ธุรกิจประกันภัย",
+   "actions": [
+    {
+     "action": "ใบอนุญาตตัวแทน/นายหน้า และการปฏิบัติตามกฎหมายประกันภัย",
+     "frequency": "ตามใบอนุญาต/เหตุการณ์"
+    }
+   ],
+   "owners": [
+    "ทีมกำกับงานขาย"
+   ],
+   "auditPoints": [
+    "เบี้ยประกันที่รับ ↔ เงินนำส่ง ↔ Commission"
+   ],
+   "docs": [
+    "License, Policy, Commission Report"
+   ]
+  },
+  {
+   "no": 8,
+   "agency": "สำนักงาน ปปง. (AMLO)",
+   "domain": "ป้องกันการฟอกเงิน",
+   "actions": [
+    {
+     "action": "KYC/CDD และรายงานธุรกรรมที่เข้าเกณฑ์สำหรับธุรกิจที่อยู่ในข่าย",
+     "frequency": "ตามธุรกรรม/ตามกำหนด"
+    }
+   ],
+   "owners": [
+    "-"
+   ],
+   "auditPoints": [
+    "เงินสด/ธุรกรรมรถยนต์มูลค่าสูง/ข้อมูลลูกค้า"
+   ],
+   "docs": [
+    "KYC, Transaction Report"
+   ]
+  },
+  {
+   "no": 9,
+   "agency": "กรมการปกครอง",
+   "domain": "ใบอนุญาตค้าของเก่า",
+   "actions": [
+    {
+     "action": "กรณีธุรกิจรถมือสองเข้าข่ายค้าของเก่า",
+     "frequency": "ต่ออายุ/ตามกำหนด"
+    }
+   ],
+   "owners": [
+    "ทีม FAM"
+   ],
+   "auditPoints": [
+    "รถมือสองทุกคันมีเอกสารที่มาครบหรือไม่"
+   ],
+   "docs": [
+    "ใบอนุญาต + สมุด/ทะเบียนที่เกี่ยวข้อง"
+   ]
+  },
+  {
+   "no": 10,
+   "agency": "กรมศุลกากร",
+   "domain": "นำเข้า",
+   "actions": [
+    {
+     "action": "ภาษีศุลกากร/Import VAT/พิธีการนำเข้า หากมีการนำเข้า",
+     "frequency": "ตามการนำเข้า"
+    }
+   ],
+   "owners": [
+    "-"
+   ],
+   "auditPoints": [
+    "Cost รถ/อะไหล่นำเข้า ↔ Customs ↔ GL"
+   ],
+   "docs": [
+    "ใบขนสินค้า, ใบเสร็จ, Import VAT"
+   ]
+  },
+  {
+   "no": 11,
+   "agency": "กรมโรงงานอุตสาหกรรม (DIW)",
+   "domain": "โรงงาน/สารเคมี/ของเสีย",
+   "actions": [
+    {
+     "action": "ใบอนุญาตหรือการแจ้งตามประเภทกิจการ เครื่องจักร สารเคมี ของเสีย",
+     "frequency": "ตามกิจกรรม"
+    }
+   ],
+   "owners": [
+    "ทีม FAM / ทีมศบก."
+   ],
+   "auditPoints": [
+    "น้ำมันใช้แล้ว/ของเสีย/สารเคมีมีการควบคุมหรือไม่"
+   ],
+   "docs": [
+    "ใบอนุญาต/Manifest/สัญญาผู้รับกำจัด"
+   ]
+  },
+  {
+   "no": 12,
+   "agency": "องค์กรปกครองส่วนท้องถิ่น",
+   "domain": "ภาษี/ใบอนุญาตท้องถิ่น",
+   "actions": [
+    {
+     "action": "ภาษีป้าย, ภาษีที่ดินและสิ่งปลูกสร้าง, ใบอนุญาตกิจการบางประเภท",
+     "frequency": "รายปี/ตามเหตุการณ์"
+    }
+   ],
+   "owners": [
+    "ทีม FAM / BU"
+   ],
+   "auditPoints": [
+    "ป้าย/ที่ดิน/อาคารตรงกับทะเบียนสินทรัพย์หรือไม่"
+   ],
+   "docs": [
+    "แบบภาษี + ใบเสร็จ"
+   ]
+  },
+  {
+   "no": 13,
+   "agency": "สำนักงานที่ดิน",
+   "domain": "ที่ดิน/อาคาร",
+   "actions": [
+    {
+     "action": "โอนกรรมสิทธิ์ จำนอง เช่า ฯลฯ",
+     "frequency": "ตามธุรกรรม"
+    }
+   ],
+   "owners": [
+    "ทีม FAM"
+   ],
+   "auditPoints": [
+    "ที่ดินในทะเบียนสินทรัพย์ตรงกับโฉนดหรือไม่"
+   ],
+   "docs": [
+    "โฉนด, สัญญา, ใบเสร็จค่าธรรมเนียม"
+   ]
+  },
+  {
+   "no": 14,
+   "agency": "สำนักงานคณะกรรมการคุ้มครองผู้บริโภค (สคบ.)",
+   "domain": "สิทธิผู้บริโภค/สัญญา",
+   "actions": [
+    {
+     "action": "สัญญาซื้อขาย/เงื่อนไขการขาย/การโฆษณา",
+     "frequency": "ต่อเนื่อง"
+    }
+   ],
+   "owners": [
+    "ทีมกำกับงานขาย / บริการ"
+   ],
+   "auditPoints": [
+    "ราคา/โปรโมชั่น/ส่วนลดตรงกับเอกสารขายและบัญชีหรือไม่"
+   ],
+   "docs": [
+    "ใบจอง, สัญญา, Promotion"
+   ]
+  },
+  {
+   "no": 15,
+   "agency": "สำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล (PDPC)",
+   "domain": "PDPA",
+   "actions": [
+    {
+     "action": "Privacy Notice, Consent, การเก็บ/ใช้ข้อมูลลูกค้าและพนักงาน",
+     "frequency": "ต่อเนื่อง"
+    }
+   ],
+   "owners": [
+    "-"
+   ],
+   "auditPoints": [
+    "ข้อมูลลูกค้า/บัตรประชาชน/ทะเบียนรถถูกจัดเก็บและส่งต่ออย่างถูกต้องหรือไม่"
+   ],
+   "docs": [
+    "Privacy Notice, Consent, Data Map"
+   ]
+  },
+  {
+   "no": 16,
+   "agency": "กรมสรรพสามิต",
+   "domain": "ภาษีสรรพสามิต",
+   "actions": [
+    {
+     "action": "โดยเฉพาะกรณีที่บริษัทมีธุรกรรม/กิจกรรมที่เข้าข่ายสรรพสามิต",
+     "frequency": "ตามกิจกรรม"
+    }
+   ],
+   "owners": [
+    "-"
+   ],
+   "auditPoints": [
+    "ตรวจว่าภาษีสรรพสามิตเป็นหน้าที่ของบริษัทหรือผู้จำหน่ายต้นทาง"
+   ],
+   "docs": [
+    "เอกสารซื้อ/นำเข้า"
+   ]
+  },
+  {
+   "no": 17,
+   "agency": "ธนาคาร/สถาบันการเงิน",
+   "domain": "เงินกู้/หลักประกัน/ธุรกรรม",
+   "actions": [
+    {
+     "action": "Loan, OD, Leasing, Bank Guarantee ฯลฯ",
+     "frequency": "รายเดือน/ตามสัญญา"
+    }
+   ],
+   "owners": [
+    "ทีม FIM / FIN"
+   ],
+   "auditPoints": [
+    "Bank ↔ GL ↔ Loan confirmation"
+   ],
+   "docs": [
+    "Bank Statement/Confirmation"
+   ]
+  },
+  {
+   "no": 18,
+   "agency": "ผู้สอบบัญชีรับอนุญาต (CPA)",
+   "domain": "งบการเงิน",
+   "actions": [
+    {
+     "action": "ตรวจสอบและแสดงความเห็นต่องบการเงิน",
+     "frequency": "รายปี"
+    }
+   ],
+   "owners": [
+    "ทีมบัญชี"
+   ],
+   "auditPoints": [
+    "รายการสำคัญ/ความเสี่ยง/หลักฐาน"
+   ],
+   "docs": [
+    "Audit Working Paper / Auditor Report"
+   ]
+  },
+  {
+   "no": 19,
+   "agency": "สภาวิชาชีพบัญชี (TFAC)",
+   "domain": "มาตรฐานบัญชี",
+   "actions": [
+    {
+     "action": "TFRS / TFRS for NPAEs / จรรยาบรรณ",
+     "frequency": "ต่อเนื่อง"
+    }
+   ],
+   "owners": [
+    "ทีมบัญชี"
+   ],
+   "auditPoints": [
+    "Accounting Policy ตรงตามมาตรฐานหรือไม่"
+   ],
+   "docs": [
+    "Accounting Policy / TFRS"
+   ]
+  },
+  {
+   "no": 20,
+   "agency": "หน่วยงานราชการ/เทศบาลด้านสาธารณสุข",
+   "domain": "อู่/ศูนย์บริการ",
+   "actions": [
+    {
+     "action": "ใบอนุญาตกิจการที่เป็นอันตรายต่อสุขภาพ หากท้องถิ่นกำหนด",
+     "frequency": "ต่ออายุ/ตามข้อบัญญัติท้องถิ่น"
+    }
+   ],
+   "owners": [
+    "ทีม FAM / ทีมศบก."
+   ],
+   "auditPoints": [
+    "อู่ซ่อม/พ่นสีมีใบอนุญาตหรือไม่"
+   ],
+   "docs": []
+  }
+ ],
+ "docTypes": [
+  {
+   "no": 1,
+   "type": "รายงานตามกฎหมาย/Regulatory Report",
+   "preparer": "BU Owner",
+   "reviewer": "BU + Compliance",
+   "approver": "ผู้มีอำนาจตามกฎหมาย/DOA",
+   "signer": "กรรมการ/ผู้มีอำนาจ",
+   "submitter": "BU / ผู้ได้รับมอบหมาย",
+   "mode": "Monitor"
+  },
+  {
+   "no": 2,
+   "type": "แบบคำขอใบอนุญาต",
+   "preparer": "BU Owner",
+   "reviewer": "BU + Compliance + Legal",
+   "approver": "ผู้มีอำนาจ",
+   "signer": "กรรมการ/ผู้มีอำนาจ",
+   "submitter": "BU / ผู้ได้รับมอบหมาย",
+   "mode": "Review"
+  },
+  {
+   "no": 3,
+   "type": "การต่ออายุใบอนุญาต",
+   "preparer": "BU Owner",
+   "reviewer": "BU + Compliance",
+   "approver": "ผู้มีอำนาจ",
+   "signer": "กรรมการ/ผู้มีอำนาจ",
+   "submitter": "BU",
+   "mode": "Monitor"
+  },
+  {
+   "no": 4,
+   "type": "หนังสือแจ้ง/รายงานการเปลี่ยนแปลงข้อมูลบริษัท",
+   "preparer": "Corporate / BU / FIN",
+   "reviewer": "Compliance + Legal",
+   "approver": "ผู้มีอำนาจ",
+   "signer": "กรรมการ/ผู้มีอำนาจ",
+   "submitter": "Corporate / BU",
+   "mode": "Monitor"
+  },
+  {
+   "no": 5,
+   "type": "หนังสือชี้แจงหน่วยงานกำกับ",
+   "preparer": "BU Owner",
+   "reviewer": "BU + Compliance + Legal",
+   "approver": "ผู้บริหาร/ผู้มีอำนาจ",
+   "signer": "กรรมการ/ผู้มีอำนาจ",
+   "submitter": "Compliance / BU ตามที่กำหนด",
+   "mode": "Review"
+  },
+  {
+   "no": 6,
+   "type": "เอกสารตอบข้อซักถามจาก Regulator",
+   "preparer": "BU Owner",
+   "reviewer": "Compliance + Legal",
+   "approver": "ผู้บริหาร/ผู้มีอำนาจ",
+   "signer": "ผู้มีอำนาจ",
+   "submitter": "BU / Compliance",
+   "mode": "Monitor"
+  },
+  {
+   "no": 7,
+   "type": "รายงานเหตุการณ์ผิดปกติ / Incident Report",
+   "preparer": "BU Owner",
+   "reviewer": "Compliance + Legal / InfoSec ตามเรื่อง",
+   "approver": "ผู้บริหารที่เกี่ยวข้อง",
+   "signer": "ผู้มีอำนาจ",
+   "submitter": "Compliance / BU",
+   "mode": "Escalate"
+  },
+  {
+   "no": 8,
+   "type": "รายงานด้าน AML/KYC",
+   "preparer": "BU Owner",
+   "reviewer": "Compliance / AML Officer",
+   "approver": "ผู้มีอำนาจตามกฎหมาย",
+   "signer": "ผู้มีอำนาจ",
+   "submitter": "Compliance / BU",
+   "mode": "Monitor"
+  },
+  {
+   "no": 9,
+   "type": "เอกสารด้านภาษี",
+   "preparer": "OBF",
+   "reviewer": "Finance + Tax / Legal ตามกรณี",
+   "approver": "ผู้มีอำนาจ",
+   "signer": "ผู้มีอำนาจ",
+   "submitter": "Finance / ผู้ได้รับมอบหมาย",
+   "mode": "Monitor"
+  },
+  {
+   "no": 10,
+   "type": "เอกสารด้านแรงงาน/ประกันสังคม",
+   "preparer": "PAO",
+   "reviewer": "HR + Legal ตามกรณี",
+   "approver": "ผู้มีอำนาจ",
+   "signer": "ผู้มีอำนาจ",
+   "submitter": "HR",
+   "mode": "Monitor"
+  },
+  {
+   "no": 11,
+   "type": "เอกสารด้าน PDPA / Privacy",
+   "preparer": "DPO / ผู้รับผิดชอบข้อมูล",
+   "reviewer": "DPO + Legal + Compliance ตามกรณี",
+   "approver": "ผู้มีอำนาจ",
+   "signer": "ผู้มีอำนาจ",
+   "submitter": "DPO / ผู้ได้รับมอบหมาย",
+   "mode": "Monitor"
+  },
+  {
+   "no": 12,
+   "type": "เอกสารด้าน Cybersecurity / Information Security",
+   "preparer": "AGS",
+   "reviewer": "InfoSec + Compliance",
+   "approver": "ผู้มีอำนาจ",
+   "signer": "ผู้มีอำนาจ",
+   "submitter": "InfoSec / ผู้ได้รับมอบหมาย",
+   "mode": "Monitor"
+  },
+  {
+   "no": 13,
+   "type": "เอกสารเกี่ยวกับการตรวจสอบของ Regulator",
+   "preparer": "BU Owner",
+   "reviewer": "Compliance + Legal + Internal Audit ตามกรณี",
+   "approver": "ผู้บริหาร/ผู้มีอำนาจ",
+   "signer": "ผู้มีอำนาจ",
+   "submitter": "Compliance / BU",
+   "mode": "Coordinate"
+  },
+  {
+   "no": 14,
+   "type": "เอกสารขออนุมัติจากหน่วยงานราชการ",
+   "preparer": "BU Owner",
+   "reviewer": "BU + Compliance + Legal",
+   "approver": "ผู้มีอำนาจ",
+   "signer": "กรรมการ/ผู้มีอำนาจ",
+   "submitter": "BU",
+   "mode": "Review"
+  },
+  {
+   "no": 15,
+   "type": "หนังสือร้องเรียน/คำชี้แจงทางการ",
+   "preparer": "BU Owner",
+   "reviewer": "Legal + Compliance",
+   "approver": "ผู้บริหาร/ผู้มีอำนาจ",
+   "signer": "ผู้มีอำนาจ",
+   "submitter": "Legal / BU",
+   "mode": "Monitor"
+  },
+  {
+   "no": 16,
+   "type": "เอกสารอื่นที่กฎหมายกำหนดให้ยื่นต่อ Regulator",
+   "preparer": "BU Owner",
+   "reviewer": "BU + Compliance",
+   "approver": "ผู้มีอำนาจตามกฎหมาย/DOA",
+   "signer": "ผู้มีอำนาจ",
+   "submitter": "BU / ผู้ได้รับมอบหมาย",
+   "mode": "Monitor"
+  }
+ ],
+ "universe": [
+  {
+   "bu": "AAMG",
+   "biz": "สินเชื่อไทย",
+   "entities": [
+    {
+     "entity": "AAM Capital",
+     "biz": "สินเชื่อไทย",
+     "place": "",
+     "requirements": [
+      {
+       "req": "ใบอนุญาตและเงื่อนไขผู้กำกับ",
+       "regulator": "ธปท",
+       "license": "",
+       "law": "...",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "กรรมการ",
+       "frequency": "รายเดือน"
+      }
+     ]
+    },
+    {
+     "entity": "PICO",
+     "biz": "สินเชื่อไทย",
+     "place": "",
+     "requirements": [
+      {
+       "req": "การให้สินเชื่อและเปิดเผยข้อมูล",
+       "regulator": "เครดิตบูโร",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    },
+    {
+     "entity": "PAMCO",
+     "biz": "สินเชื่อไทย",
+     "place": "",
+     "requirements": [
+      {
+       "req": "การติดตามหนี้/ข้อร้องเรียน",
+       "regulator": "ปปง",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    },
+    {
+     "entity": "PCS CUS",
+     "biz": "สินเชื่อไทย",
+     "place": "",
+     "requirements": [
+      {
+       "req": "CDD/KYC",
+       "regulator": "กระทรวงการคลัง",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    },
+    {
+     "entity": "ANT",
+     "biz": "สินเชื่อไทย",
+     "place": "",
+     "requirements": [
+      {
+       "req": "AML",
+       "regulator": "กรมการปกครอง",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    },
+    {
+     "entity": "PCS",
+     "biz": "สินเชื่อไทย",
+     "place": "",
+     "requirements": [
+      {
+       "req": "Sanction List",
+       "regulator": "ทนาย",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "PDPA",
+       "regulator": "ที่ปรึกษา",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "รายงานตามกำหนด",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "ระเบียบธปท",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    },
+    {
+     "entity": "RPLC",
+     "biz": "สินเชื่อลาว",
+     "place": "",
+     "requirements": [
+      {
+       "req": "ใบอนุญาต/ขอบเขตธุรกิจ",
+       "regulator": "BOL",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    },
+    {
+     "entity": "RAFL",
+     "biz": "สินเชื่อไทย",
+     "place": "",
+     "requirements": [
+      {
+       "req": "กฎBOL",
+       "regulator": "เครดิตบูโร",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "AML/CFT",
+       "regulator": "ปปง",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "CDD",
+       "regulator": "กระทรวงการคลัง",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "การคุ้มครองลูกค้า",
+       "regulator": "สนง.ขนส่ง",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "การรายงาน",
+       "regulator": "สนง.ที่ดิน",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "ภาษี",
+       "regulator": "ทนาย",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "แรงงาน",
+       "regulator": "ที่ปรึกษา",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "ข้อมูลส่วนบุคคล",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    },
+    {
+     "entity": "RAFCO",
+     "biz": "สินเชื่อกัมพูชา",
+     "place": "",
+     "requirements": [
+      {
+       "req": "ใบอนุญาต/ขอบเขตธุรกิจ",
+       "regulator": "NBC",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    },
+    {
+     "entity": "Money Buddy",
+     "biz": "สินเชื่อไทย",
+     "place": "",
+     "requirements": [
+      {
+       "req": "ข้อกำหนด NBC",
+       "regulator": "เครดิตบูโร",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    },
+    {
+     "entity": "AIIL",
+     "biz": "สินเชื่อไทย",
+     "place": "",
+     "requirements": [
+      {
+       "req": "AML/CFT",
+       "regulator": "ปปง",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "CDD",
+       "regulator": "กระทรวงการคลัง",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "การคุ้มครองลูกค้า",
+       "regulator": "สนง.ขนส่ง",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "การรายงาน",
+       "regulator": "สนง.ที่ดิน",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "ภาษี",
+       "regulator": "ทนาย",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "แรงงาน",
+       "regulator": "ที่ปรึกษา",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "ข้อมูลส่วนบุคคล",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "bu": "PMSG",
+   "biz": "ตัวแทนจำหน่ายรถยนต์",
+   "entities": [
+    {
+     "entity": "PMS",
+     "biz": "ตัวแทนจำหน่ายรถยนต์",
+     "place": "",
+     "requirements": [
+      {
+       "req": "ใบอนุญาต",
+       "regulator": "...",
+       "license": "",
+       "law": "...",
+       "reports": "",
+       "owner": "",
+       "resp": "Operation",
+       "signatory": "กรรมการ",
+       "frequency": "รายปี"
+      },
+      {
+       "req": "สัญญาตัวแทน",
+       "regulator": "ธนาคาร",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "การข้ายและการคุ้มครองผู้บริโภค",
+       "regulator": "สรรพากร",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "การรับประกัน",
+       "regulator": "สนง.ขนส่ง",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "การขายอะไหล่",
+       "regulator": "สนง.ที่ดิน",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "ความปลอดภัย",
+       "regulator": "ทนาย",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "ภาษี",
+       "regulator": "ที่ปรึกษา",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "แรงงาน",
+       "regulator": "อุตสาหกรรม",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    },
+    {
+     "entity": "PMG",
+     "biz": "ศูนย์ซ่อมตัวถังและสี",
+     "place": "",
+     "requirements": [
+      {
+       "req": "การใช้และจัดเก็บสี/สารเคมี",
+       "regulator": "เทศบาล",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "อากาศเสีย/ของเสีย",
+       "regulator": "อบต",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "อัคคีภัย",
+       "regulator": "ผังเมือง",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "ความปลอดภัย",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "การเคลมประกันภัย",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "คุณภาพงานซ่อม",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    },
+    {
+     "entity": "PMGI",
+     "biz": "ศูนย์ซ่อมรถยนต์ทุกยี่ห้อ",
+     "place": "",
+     "requirements": [
+      {
+       "req": "มาตรฐานงานซ่อม",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "ความปลอดภัย",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "อะไหล่",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "สารเคมี/น้ำมันใช้แล้ว",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "ของเสีย",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "การรับประกันและข้อร้องเรียน",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    },
+    {
+     "entity": "ENVR",
+     "biz": "สถานที่กลั่นน้ำมันใช้แล้ว",
+     "place": "",
+     "requirements": [
+      {
+       "req": "ประเภท/ใบอนุญาตโรงงาน",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "การรับและขนส่งวัตถุดิบ",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "การจัดการของเสีย",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "มลพิษ น้ำเสีย/อากาศ",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "ความปลอดภัย",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "การตรวจวัดและรายงาน",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "bu": "CPDG",
+   "biz": "Technology",
+   "entities": [
+    {
+     "entity": "AGS",
+     "biz": "Technology",
+     "place": "",
+     "requirements": [
+      {
+       "req": "PDPA",
+       "regulator": "",
+       "license": "",
+       "law": "...",
+       "reports": "",
+       "owner": "",
+       "resp": "IT",
+       "signatory": "กรรมการ",
+       "frequency": "ตามเหตุการณ์"
+      }
+     ]
+    },
+    {
+     "entity": "21CT",
+     "biz": "Technology",
+     "place": "",
+     "requirements": [
+      {
+       "req": "Privacy",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    },
+    {
+     "entity": "AMH",
+     "biz": "Technology",
+     "place": "",
+     "requirements": [
+      {
+       "req": "Cybersecurity",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "การโอนข้อมูลข้ามประเทศ",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "สัญญาลูกค้า",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "SLA",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "สิทธิในซอฟต์แวร์และทรัพย์สินทางปัญญา",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "การเข้าถึงข้อมูล",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "Incident/Breach",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "bu": "LDC",
+   "biz": "",
+   "entities": [
+    {
+     "entity": "LDC",
+     "biz": "",
+     "place": "",
+     "requirements": [
+      {
+       "req": "กฎหมายแรงงาน",
+       "regulator": "กรมพัฒนาฝีมือแรงงาน",
+       "license": "",
+       "law": "",
+       "reports": "สัญญาจ้าง ค่าจ้าง เวลาทำงาน วันลา การประเมิน และการเลิกจ้าง ตามกฎหมายที่ใช้บังคับ",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "ข้อมูลพนักงานและผู้เข้าอบรม",
+       "regulator": "ประกันสังคม",
+       "license": "",
+       "law": "",
+       "reports": "ประวัติพนักงาน ผลประเมิน ผลทดสอบ ความสามารถ ภาพถ่าย/วิดีโอ ข้อมูลผู้เข้าอบรม หลักฐานการเข้าอบรม ผลการเรียนรู้ ใบรับรอง และการเก็บรักษาข้อมูล",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "สัญญาวิทยากร/ผู้ให้บริการ",
+       "regulator": "ทะเบียน",
+       "license": "",
+       "law": "",
+       "reports": "การคัดเลือกวิทยากร สัญญา ค่าตอบแทน ภาษีหัก ณ ที่จ่าย และผลประโยชน์ทับซ้อน",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "ลิขสิทธิ์สื่อการเรียนรู้",
+       "regulator": "สวัสดิการคุ้มครองแรงงาน",
+       "license": "",
+       "law": "",
+       "reports": "ลิขสิทธิ์หนังสือ แบบทดสอบ ภาพ วิดีโอ สไลด์ และหลักสูตรที่ซื้อหรือพัฒนาขึ้นเอง",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "การเงินและการจัดซื้อ",
+       "regulator": "สถานพยาบาล",
+       "license": "",
+       "law": "",
+       "reports": "การอนุมัติงบประมาณ การจัดซื้อ การจ่ายค่าฝึกอบรม และการเบิกค่าใช้จ่าย",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "ข้อกำหนดด้านการฝึกอบรมที่เกี่ยวข้อง",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "ความปลอดภัยของสถานที่ กิจกรรมกลุ่ม กิจกรรมกลางแจ้ง การเดินทาง และการจัดการเหตุฉุกเฉิน",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "bu": "TNR",
+   "biz": "",
+   "entities": [
+    {
+     "entity": "TNR",
+     "biz": "",
+     "place": "",
+     "requirements": [
+      {
+       "req": "การใช้สารเคมี/วัตถุอันตราย",
+       "regulator": "สำนักงานที่ดิน",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    },
+    {
+     "entity": "สวน",
+     "biz": "",
+     "place": "",
+     "requirements": [
+      {
+       "req": "ความปลอดภัยแรงงาน",
+       "regulator": "สปก",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "น้ำและสิ่งแวดล้อม",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "การใช้ที่ดิน/สิทธิในที่ดิน",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "มาตรฐานการผลิตและการตรวจสอบย้อนกลับ",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "ภาษี",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      },
+      {
+       "req": "เครื่องจักร",
+       "regulator": "",
+       "license": "",
+       "law": "",
+       "reports": "",
+       "owner": "",
+       "resp": "",
+       "signatory": "",
+       "frequency": ""
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
