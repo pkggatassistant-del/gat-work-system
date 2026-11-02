@@ -48,7 +48,7 @@ setTimeout(() => {
   ok('แท็บกระบวนการ: มีหัว "ความสัมพันธ์ของเครื่องมือคิด"', proc.includes('ความสัมพันธ์ของเครื่องมือคิด'));
   ok('แผนภาพ: PM กำหนดว่าต้องทำอะไร ใครรับผิดชอบ', proc.includes('กำหนดว่าต้องทำอะไร ใครรับผิดชอบ และทำเมื่อไร'));
   ok('แผนภาพ: มีปลายทาง Evidence / KPI / Audit', proc.includes('Evidence / KPI / Audit'));
-  ok('hero แสดง v2.1 (ตัดชื่อยาว)', proc.includes('v2.1'));
+  ok('hero แสดง v2.2 (ตัดชื่อยาว)', proc.includes('v2.2'));
 
   // 5) ข้อความคัดลอก (buildSummaryText ผ่าน export)
   ok('แท็บครบหลัง render', d.querySelectorAll('.tabpane').length === 8);
@@ -63,6 +63,10 @@ setTimeout(() => {
   ok('CORE: มีตาราง "กระบวนการที่จำเป็น 10"', proc.includes('กระบวนการที่จำเป็น 10'));
   ok('CORE: มี P-01 ถึง P-10', proc.includes('P-01') && proc.includes('P-10'));
   ok('CORE: อ้าง FM-01 ใน P-04', proc.includes('FM-01'));
+
+  // 8) หลักการแบ่งหน้าที่ 7 หน่วยงาน
+  ok('ROLES: มีตาราง 7 หน่วยงาน + OAC/BMC/Process Owner', proc.includes('7 หน่วยงาน') && proc.includes('OAC') && proc.includes('BMC') && proc.includes('Process Owner') && proc.includes('GAT Coordinator'));
+  ok('ROLES: มีข้อสำคัญ เจ้าของกระบวนการรับผิดชอบจริง', proc.includes('เจ้าของกระบวนการ (Process Owner) ต้องเป็นผู้จัดทำ'));
 
   console.log('\n══ RESULT: ' + pass + ' pass / ' + fail + ' fail ══');
   process.exit(fail ? 1 : 0);
