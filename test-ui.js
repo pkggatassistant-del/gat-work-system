@@ -48,7 +48,7 @@ setTimeout(() => {
   ok('แท็บกระบวนการ: มีหัว "ความสัมพันธ์ของเครื่องมือคิด"', proc.includes('ความสัมพันธ์ของเครื่องมือคิด'));
   ok('แผนภาพ: PM กำหนดว่าต้องทำอะไร ใครรับผิดชอบ', proc.includes('กำหนดว่าต้องทำอะไร ใครรับผิดชอบ และทำเมื่อไร'));
   ok('แผนภาพ: มีปลายทาง Evidence / KPI / Audit', proc.includes('Evidence / KPI / Audit'));
-  ok('hero แสดง v2.0 (ตัดชื่อยาว)', proc.includes('v2.0'));
+  ok('hero แสดง v2.1 (ตัดชื่อยาว)', proc.includes('v2.1'));
 
   // 5) ข้อความคัดลอก (buildSummaryText ผ่าน export)
   ok('แท็บครบหลัง render', d.querySelectorAll('.tabpane').length === 8);
@@ -58,6 +58,11 @@ setTimeout(() => {
   const dash = d.getElementById('dashBody').textContent;
   ok('Dashboard: มี "ตามแหล่งข้อมูล"', dash.includes('ตามแหล่งข้อมูล'));
   ok('Dashboard: ไม่มี "ตามประเภทกระบวนการ"', !dash.includes('ตามประเภทกระบวนการ'));
+
+  // 7) CORE 10 กระบวนการ แสดงในแท็บกระบวนการ
+  ok('CORE: มีตาราง "กระบวนการที่จำเป็น 10"', proc.includes('กระบวนการที่จำเป็น 10'));
+  ok('CORE: มี P-01 ถึง P-10', proc.includes('P-01') && proc.includes('P-10'));
+  ok('CORE: อ้าง FM-01 ใน P-04', proc.includes('FM-01'));
 
   console.log('\n══ RESULT: ' + pass + ' pass / ' + fail + ' fail ══');
   process.exit(fail ? 1 : 0);
