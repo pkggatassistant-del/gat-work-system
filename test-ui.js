@@ -39,7 +39,7 @@ setTimeout(() => {
   gat.showTab('summary');
   const sumTxt = d.getElementById('summaryBody').textContent;
   ok('สรุป: ไม่มี "จาก PKG_Compliance_plan ... PM 100"', !sumTxt.includes('PM 100 / WI 9'));
-  ok('สรุป: มีหัวข้อ "เอกสารกระบวนการทีม GAT"', sumTxt.includes('กระบวนการทีม GAT'));
+  ok('สรุป: มีหัวข้อ "ระบบเอกสาร 4 ประเภท"', sumTxt.includes('ระบบเอกสาร 4 ประเภท'));
   ok('สรุป: มีบล็อก 24 หัวข้อ', sumTxt.includes('รวม 24 หัวข้อ'));
 
   // 4) ข้อความคัดลอก (buildSummaryText ผ่าน export)

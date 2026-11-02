@@ -1,6 +1,6 @@
 /* GAT Work System — shared config (โหลดก่อน app.js เสมอ) */
 window.GAT_CONFIG = {
-  VERSION: 'v1.3 (2 พ.ย. 2569) — นิยาม PM/WI/SD/FM ใหม่', // สรุปผลงาน/Dashboard ใช้นิยามเอกสารกระบวนการทีม (6/7/6/5=24) แยกจากข้อมูลตรวจ 184; UI Enterprise จาก v1.2
+  VERSION: 'v1.4 (2 พ.ย. 2569) — ระบบเอกสาร 4 ประเภท (เริ่มทำกระบวนการใหม่)', // นิยาม PM=Process Management · WI=Work Instruction · SD=Supporting Document · FM=Form/Format ตามตารางที่พี่หนึ่งให้ 2 พ.ย. 69; v1.3 = แยกข้อมูลตรวจ/เอกสารทีม
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง — ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
   BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbwkiyWP4UzOGNt6Ly-XV1Rztz7gaW9V6GuKZ_hSpWmUu9QMjUmDS0RUjbej784ewTxVig/exec'), // BCT กลาง — deploy ใหม่ 2 พ.ย. 69 (localStorage ทับได้)
   SOURCES: {
@@ -11,10 +11,10 @@ window.GAT_CONFIG = {
     BCT: 'BCT (Google Sheet บอร์ด BU)'    // live ผ่าน BCT_API
   },
   PROCESS_TYPES: {
-    PM: { label: 'PM — การจัดการแผนงาน', color: '#2563eb' },
-    WI: { label: 'WI — แนวปฏิบัติงาน', color: '#0891b2' },
-    SD: { label: 'SD — มาตรฐาน/เอกสาร', color: '#7c3aed' },
-    FM: { label: 'FM — แบบฟอร์ม/รายงาน', color: '#b45309' }
+    PM: { label: 'PM — Process Management (ภาพการไหลของงาน)', color: '#2563eb' },
+    WI: { label: 'WI — Work Instruction (คำสั่งติดตำแหน่ง)', color: '#0891b2' },
+    SD: { label: 'SD — Supporting Document (เอกสารสนับสนุน)', color: '#7c3aed' },
+    FM: { label: 'FM — Form/Format (แบบฟอร์มบันทึกผล)', color: '#b45309' }
   },
   // กติกากลาง (gat-workflow-sop.md + xlsx การฝ่าฝืน 7 ข้อ)
   RULES: {

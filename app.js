@@ -292,7 +292,7 @@ var GAT = (function () {
         if (!j) { box.innerHTML = '<div class="empty">โหลด gat-process.json ไม่ได้</div>'; return; }
         state.process = j; // เก็บใน state — ใช้นับจำนวน PM/WI/SD/FM ในหน้าสรุป
         var h = [];
-        h.push('<div class="hero"><div class="goldlbl">Team Process Framework · PM / WI / SD / FM</div><h2>⚙ ' + esc(j.meta.title) + ' — ' + esc(j.meta.version) + '</h2><p>' + esc(j.meta.owner) + ' · นิยามผูกกฎบัตร GAT v1.4 — SLA 3/5/7 วัน · อุทธรณ์ OAC · สถานะ 5 ระดับ 🟢🟡🟠🔴⚫ · เอกสารฉบับเต็ม: GAT-QMS-001 v1.0</p></div>');
+        h.push('<div class="hero"><div class="goldlbl">ระบบเอกสาร 4 ประเภท · PM / WI / SD / FM</div><h2>⚙ ' + esc(j.meta.title) + ' — ' + esc(j.meta.version) + '</h2><p>' + esc(j.meta.owner) + ' · PM=ภาพการไหลของงาน · WI=คำสั่งติดตำแหน่ง · SD=เอกสารสนับสนุน · FM=แบบฟอร์มบันทึกผล — ผูกกฎบัตร GAT v1.4 — SLA 3/5/7 วัน · อุทธรณ์ OAC · สถานะ 5 ระดับ 🟢🟡🟠🔴⚫ · เอกสารฉบับเต็ม: GAT-QMS-001 v1.0</p></div>');
         h.push('<div class="card"><h3>👥 ทีม GAT</h3><table class="tbl"><tr><th>สมาชิก</th><th>ด้านที่รับผิดชอบ</th><th>หมายเหตุ</th></tr>');
         (j.TEAM || []).forEach(function (t) { h.push('<tr><td><b>' + t.who + '</b></td><td>' + t.side + '</td><td>' + (t.note || '') + '</td></tr>'); });
         h.push('</table></div>');
@@ -324,7 +324,7 @@ var GAT = (function () {
     var UNIV = regs.filter(function (r) { return String(r.SOURCE || '').indexOf('Step2') >= 0; }).length;
     var SEEDR = regs.filter(function (r) { return String(r.SOURCE || '').indexOf('seed') >= 0; }).length;
     var BCTR = state.registersBCT.length;
-    // นิยาม PM/WI/SD/FM (ตามที่พี่หนึ่งกำหนด 2 พ.ย. 69) = เอกสารกระบวนการทีม GAT เอง ไม่ใช่หมวดของข้อมูลตรวจ
+    // ระบบเอกสาร 4 ประเภท (นิยามพี่หนึ่ง 2 พ.ย. 69): PM=Process Management · WI=Work Instruction · SD=Supporting Document · FM=Form/Format
     var teamProc = { PM: 0, WI: 0, SD: 0, FM: 0 };
     ['PM', 'WI', 'SD', 'FM'].forEach(function (k) {
       var boxp = (state.process || {})[k];
@@ -358,17 +358,17 @@ var GAT = (function () {
       '• BU ตอบ: แก้แล้ว ' + recFixed.length + ' · ไม่แก้ (มีเหตุผล+ผู้รับผิดชอบ) ' + recNoFix.length + ' · ยังไม่ตอบ ' + (recOpen.length - recFixed.length - recNoFix.length) + '<br>' +
       '• ปิดสมบูรณ์ (GAT ยืนยัน): <b>' + recClosed.length + '</b> ใบ — ทั้งวงจรอยู่ในชีท GAT_Issues + GAT_AuditLog</div>');
 
-    h.push('<h3>3) เอกสารกระบวนการทีม GAT — นิยาม PM/WI/SD/FM (ตามที่พี่หนึ่งกำหนด)</h3>');
+    h.push('<h3>3) ระบบเอกสาร 4 ประเภท (PM/WI/SD/FM — นิยามของพี่หนึ่ง)</h3>');
     h.push('<div style="font-size:14px;line-height:1.7">' +
-      '• PM (นโยบายทีม) <b>' + teamProc.PM + '</b> หัวข้อ · WI (ขั้นตอนลงมือ) <b>' + teamProc.WI + '</b> · SD (เกณฑ์กลาง) <b>' + teamProc.SD + '</b> · FM (ฟอร์มใช้จริง) <b>' + teamProc.FM + '</b> — รวม <b>' + (teamProc.PM + teamProc.WI + teamProc.SD + teamProc.FM) + ' หัวข้อ</b><br>' +
-      '• แหล่ง: แท็บ "⚙ กระบวนการทีม GAT" + gat-process.json v1.2 (ผูกกฎบัตร GAT v1.4 — SLA 3ว/5ว/7ว · อุทธรณ์ OAC · สถานะ 5 ระดับ) · เอกสาร QMS ฉบับเต็ม GAT-QMS-001 v1.0 ครบ 8 ส่วน</div>');
+      '• PM Process Management (ภาพการไหลของงาน) <b>' + teamProc.PM + '</b> หัวข้อ · WI Work Instruction (คำสั่งติดตำแหน่ง) <b>' + teamProc.WI + '</b> · SD Supporting Document (เอกสารสนับสนุน) <b>' + teamProc.SD + '</b> · FM Form/Format (แบบฟอร์มบันทึกผล) <b>' + teamProc.FM + '</b> — รวม <b>' + (teamProc.PM + teamProc.WI + teamProc.SD + teamProc.FM) + ' หัวข้อ</b><br>' +
+      '• แหล่ง: แท็บ "⚙ กระบวนการทีม GAT" + gat-process.json v2.0 (ผูกกฎบัตร GAT v1.4 — SLA 3ว/5ว/7ว · อุทธรณ์ OAC · สถานะ 5 ระดับ) · เอกสาร QMS ฉบับเต็ม GAT-QMS-001 v1.0 ครบ 8 ส่วน</div>');
 
     h.push('<h3>4) ระบบ/โครงสร้างที่สร้างเสร็จ</h3>');
     h.push('<div style="font-size:14px;line-height:1.7">' +
       '• เว็บ: 7 แท็บ (Dashboard / Registers / BCT / ข้อเสนอแนะ / สรุป / Universe / รายงาน)<br>' +
       '• ชีท BCT กลาง: GAT_Registers + GAT_Entries + GAT_Issues + GAT_AuditLog (GAS ทำงานจริง — ทดสอบวงจร open→respond→close ผ่าน)<br>' +
       '• เทมเพลต bct-template.xlsx: ติดตั้งฐานใหม่ได้ใน 4 ขั้น<br>' +
-      '• เอกสาร QMS: <b>GAT-QMS-001 v1.0</b> ครบ 8 ส่วน (แม่แบบของพี่หนึ่ง) + gat-process.json v1.2 ผูกกฎบัตร v1.4<br>' +
+      '• เอกสาร QMS: <b>GAT-QMS-001 v1.0</b> ครบ 8 ส่วน (แม่แบบของพี่หนึ่ง) + gat-process.json v2.0 ผูกกฎบัตร v1.4<br>' +
       '• ความปลอดภัย: รันเลขอยู่ฝั่งชีท (LockService) · POST text/plain เลี่ยง CORS · ไฟล์ต้นฉบับ BU ไม่ถูกแก้</div>');
 
     h.push('<h3>5) งานค้าง/ถัดไป (roadmap)</h3>');
@@ -426,8 +426,8 @@ var GAT = (function () {
     L.push('- 🔴 ' + recRed.length + ' · 🟢 ' + (recs.length - recRed.length) + ' · เปิดอยู่ ' + recOpen.length + ' · ปิด ' + recClosed.length + ' · ไม่แก้ ' + recNoFix.length);
     L.push('- วงจร: ออกใบ (รันเลขในชีท) → BU ตอบ (แก้=หลักฐาน / ไม่แก้=เหตุผล+ผู้รับผิดชอบ) → GAT ยืนยัน/ปิด');
     L.push('');
-    L.push('## 3) เอกสารกระบวนการทีม GAT (PM/WI/SD/FM)');
-    L.push('- PM ' + teamProc.PM + ' · WI ' + teamProc.WI + ' · SD ' + teamProc.SD + ' · FM ' + teamProc.FM + ' (รวม ' + (teamProc.PM + teamProc.WI + teamProc.SD + teamProc.FM) + ' หัวข้อ) — gat-process.json v1.2 ผูกกฎบัตร GAT v1.4 · QMS: GAT-QMS-001 v1.0 ครบ 8 ส่วน');
+    L.push('## 3) ระบบเอกสาร 4 ประเภท (PM/WI/SD/FM)');
+    L.push('- PM ' + teamProc.PM + ' · WI ' + teamProc.WI + ' · SD ' + teamProc.SD + ' · FM ' + teamProc.FM + ' (รวม ' + (teamProc.PM + teamProc.WI + teamProc.SD + teamProc.FM) + ' หัวข้อ) — gat-process.json v2.0 ผูกกฎบัตร GAT v1.4 · QMS: GAT-QMS-001 v1.0 ครบ 8 ส่วน');
     L.push('');
     L.push('## 4) โครงสร้างที่สร้างเสร็จ');
     L.push('- แท็บ 8 (Dashboard/Registers/BCT/ข้อเสนอแนะ/สรุป/Universe/กระบวนการ/รายงาน) — UI Enterprise v1.2');
@@ -466,7 +466,7 @@ var GAT = (function () {
     var buRows = Object.keys(buby).sort().map(function (bu) {
       return '<tr><td><a class="lnk" data-bu="' + esc(bu) + '">' + esc(bu) + '</a></td><td>' + buby[bu] + '</td></tr>';
     }).join('');
-    // นิยาม PM/WI/SD/FM = กระบวนการทีม GAT เอง (ตามนิยามใหม่) — ไม่ใช่หมวดของ 184
+    // ระบบเอกสาร 4 ประเภท (นิยามใหม่) — แยกจากทะเบียนข้อมูลตรวจ 184
     var teamCount = { PM: 6, WI: 7, SD: 6, FM: 5 };
     ['PM', 'WI', 'SD', 'FM'].forEach(function (k) {
       var p = (state.process || {})[k];
@@ -475,7 +475,7 @@ var GAT = (function () {
     var teamTotal = teamCount.PM + teamCount.WI + teamCount.SD + teamCount.FM;
     id('kpiRow').innerHTML =
       kpi('รายการตรวจ (Registers)', fmt(regs.length), 'ข้อมูลจริง+โครงสร้าง') +
-      kpi('เอกสารกระบวนการทีม (PM/WI/SD/FM)', teamCount.PM + '·' + teamCount.WI + '·' + teamCount.SD + '·' + teamCount.FM, 'รวม ' + teamTotal + ' หัวข้อ — นิยามทีม GAT') +
+      kpi('ระบบเอกสาร (PM/WI/SD/FM)', teamCount.PM + '·' + teamCount.WI + '·' + teamCount.SD + '·' + teamCount.FM, 'รวม ' + teamTotal + ' หัวข้อ — แยกจากทะเบียนตรวจ') +
       kpi('🟢 ปกติ', fmt(byStat['🟢']), 'มีข้อมูล/ผ่าน') +
       kpi('🟡 รอข้อมูลจริง', fmt(byStat['🟡']), 'ต้องติดตาม BU') +
       kpi('🔴 ช่องว่าง', fmt(byStat['🔴']), 'ยังไม่มีระบบ/ข้อมูล') +
