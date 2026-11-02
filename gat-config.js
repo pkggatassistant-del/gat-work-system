@@ -2,7 +2,7 @@
 window.GAT_CONFIG = {
   VERSION: 'v1.0 (2 พ.ย. 2569)',
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง — ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
-  BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbw-R9GpWKraNLagP3GTsa5ff8TxAmbt89JUkNP9ROX-xVfBy8lIpvFWmBiefMKpOXmCgg/exec'), // BCT กลาง — deploy จริง 2 พ.ย. 69 (localStorage ทับได้)
+  BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbwkiyWP4UzOGNt6Ly-XV1Rztz7gaW9V6GuKZ_hSpWmUu9QMjUmDS0RUjbej784ewTxVig/exec'), // BCT กลาง — deploy ใหม่ 2 พ.ย. 69 (localStorage ทับได้)
   SOURCES: {
     // อ้างไฟล์เทียบตำแหน่ง index.html (ทำงานได้ทั้งบน GitHub Pages และ local)
     SEED: 'gat-seed.json',            // ข้อมูลตั้งต้นจาก PKG_Compliance_plan_2026-30.xlsx
