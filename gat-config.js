@@ -7,6 +7,7 @@ window.GAT_CONFIG = {
     // อ้างไฟล์เทียบตำแหน่ง index.html (ทำงานได้ทั้งบน GitHub Pages และ local)
     SEED: 'gat-seed.json',            // ข้อมูลตั้งต้นจาก PKG_Compliance_plan_2026-30.xlsx
     REC_SEED: 'gat-rec-migration.json', // ข้อเสนอแนะชุดแรก F-01–F-15 (สวัสดิการ 29 ต.ค. 69)
+    PROCESS_SEED: 'gat-process.json', // กระบวนการทำงานภายในทีม GAT (PM/WI/SD/FM ของทีมเอง)
     BCT: 'BCT (Google Sheet บอร์ด BU)'    // live ผ่าน BCT_API
   },
   PROCESS_TYPES: {

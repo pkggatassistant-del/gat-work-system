@@ -61,7 +61,7 @@ URL Web GAT: `https://pakonchotbuncha-netizen.github.io/web-pp7/gat/index.html` 
 
 | ไฟล์ | หน้าที่ |
 |---|---|
-| `index.html` | หน้าเว็บ 6 แท็บ |
+| `index.html` | หน้าเว็บ 8 แท็บ (รวม สรุปผลงาน + กระบวนการทีม GAT) |
 | `app.js` | ตรรกะหลัก (seed→register, import, กรอง, รายงาน) |
 | `gat-config.js` | ตั้งค่า + URL GAS + นิยาม PM/WI/SD/FM |
 | `gat-seed.json` | ข้อมูลตั้งต้นจาก xlsx (57 บริษัท / 20 หน่วยงาน / 5 BU-universe / 16 ประเภทเอกสาร) |

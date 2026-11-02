@@ -274,7 +274,34 @@ var GAT = (function () {
   /* ---------- renders ---------- */
   function status(msg) { id('statusBar').innerHTML = '<span class="ok">' + esc(msg) + '</span>'; }
   function renderAll() {
-    renderDash(); renderRegisters(); renderUniverse(); renderRecs(); renderSummary();
+    renderDash(); renderRegisters(); renderUniverse(); renderRecs(); renderSummary(); loadProcess();
+  }
+
+  /* ---------- แท็บกระบวนการทีม GAT (PM/WI/SD/FM ของทีมเอง) ---------- */
+  function loadProcess() {
+    var box = id('procBody'); if (!box) return;
+    fetch(window.GAT_CONFIG.SOURCES.PROCESS_SEED + '?v=' + Date.now())
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        if (!j) { box.innerHTML = '<div class="empty">โหลด gat-process.json ไม่ได้</div>'; return; }
+        var h = [];
+        h.push('<div class="card"><h3>⚙ ' + j.meta.title + ' — ' + j.meta.version + '</h3>');
+        h.push('<div style="font-size:13px;color:#667">' + j.meta.owner + '</div>');
+        h.push('<h4 style="margin-top:14px">👥 ทีม GAT</h4><table class="tbl"><tr><th>สมาชิก</th><th>ด้านที่รับผิดชอบ</th><th>หมายเหตุ</th></tr>');
+        (j.TEAM || []).forEach(function (t) { h.push('<tr><td><b>' + t.who + '</b></td><td>' + t.side + '</td><td>' + (t.note || '') + '</td></tr>'); });
+        h.push('</table></div>');
+        ['PM', 'WI', 'SD', 'FM'].forEach(function (k) {
+          var p = j[k]; if (!p) return;
+          h.push('<div class="card"><h3>' + p.code + ' — ' + p.name + ' (' + p.items.length + ' หัวข้อ)</h3><table class="tbl">');
+          h.push('<tr><th style="width:90px">รหัส</th><th>หัวข้อ</th><th>เนื้อหา</th></tr>');
+          p.items.forEach(function (it) {
+            h.push('<tr><td><b>' + it.id + '</b></td><td>' + it.title + '</td><td style="font-size:13px">' + it.detail + '</td></tr>');
+          });
+          h.push('</table></div>');
+        });
+        box.innerHTML = h.join('');
+      })
+      .catch(function () { box.innerHTML = '<div class="empty">โหลดกระบวนการล้มเหลว</div>'; });
   }
 
   /* ---------- แท็บสรุปผลงาน GAT (สร้างข้อความสดจาก state) ---------- */
@@ -666,5 +693,5 @@ var GAT = (function () {
     status('ส่งออก CSV สำหรับวางลงชีท GAT_Registers บน BCT แล้ว (' + regs.length + ' รายการ)');
   }
 
-  return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary };
+  return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess };
 })();
