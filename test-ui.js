@@ -52,7 +52,7 @@ setTimeout(() => {
   ok('hero แสดง v2.7 (ตัดชื่อยาว)', proc.includes('v2.7'));
 
   // 5) ข้อความคัดลอก (buildSummaryText ผ่าน export)
-  ok('แท็บครบหลัง render', d.querySelectorAll('.tabpane').length === 8);
+  ok('แท็บครบหลัง render', d.querySelectorAll('.tabpane').length === 9);
 
   // 6) Dashboard ยังแสดงแหล่งข้อมูล + BU chart (โดยไม่ crash)
   gat.showTab('dashboard');
@@ -85,6 +85,21 @@ setTimeout(() => {
   // 12) มาตรฐาน FM 11 ช่อง
   ok('FM_FIELDS: 11 ช่อง + Reference PM/WI + ผู้อนุมัติ', proc.includes('แบบฟอร์มบันทึกผล 11 ช่อง') && proc.includes('Reference PM / WI') && proc.includes('ผู้อนุมัติ (ถ้ามี)'));
   ok('FM_PRINCIPLE: ไม่สร้างฟอร์มเกินจำเป็น', proc.includes('ไม่ควรสร้างแบบฟอร์มมากเกินความจำเป็น'));
+
+  const runTxt = d.getElementById('runBody').textContent;
+  // 13) Runner: แท็บใหม่ + การ์ด 10 ขั้น + checklist ติ๊กได้
+  ok('แท็บ runner อยู่ในระบบ (9 pane + nav)', d.querySelectorAll('.tabpane').length === 9 && d.getElementById('runBody') !== null);
+  ok('Runner: hero CORE 10 + KPI ผ่านแล้ว', runTxt.includes('เดินกระบวนการ CORE 10') && runTxt.includes('ผ่านแล้ว'));
+  ok('Runner: มี P-01..P-10 ครบ + ชี้จุด PM', runTxt.includes('P-01') && runTxt.includes('P-10') && runTxt.includes('PM:'));
+  ok('Runner: มีปุ่มไปทำจริง (ออกใบ/บันทึกคำตอบ/ปิดรายการ)', runTxt.includes('ออกใบที่แท็บ') && runTxt.includes('บันทึกคำตอบที่แท็บ') && runTxt.includes('ปิดรายการ (GAT ยืนยัน)'));
+  // ติ๊ก checklist ขั้นแรก แล้วเลขผ่านต้องขยับ
+  var cb1 = d.querySelector('.rb-chk');
+  w.localStorage.removeItem('gat_run_state');
+  cb1.checked = true; cb1.dispatchEvent(new w.Event('click', { bubbles: true }));
+  var after = w.GAT.state().runState || {};
+  var saved = null;
+  try { saved = JSON.parse(w.localStorage.getItem('gat_run_state') || 'null'); } catch (e) {}
+  ok('Runner: ติ๊ก checklist บันทึกความคืบหน้า (runState + localStorage)', (after['P-01'] || [])[0] === true && !!saved && (saved['P-01'] || [])[0] === true);
 
   console.log('\n══ RESULT: ' + pass + ' pass / ' + fail + ' fail ══');
   process.exit(fail ? 1 : 0);

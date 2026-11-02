@@ -1,6 +1,6 @@
 /* GAT Work System — shared config (โหลดก่อน app.js เสมอ) */
 window.GAT_CONFIG = {
-  VERSION: 'v1.4 (2 พ.ย. 2569) — ระบบเอกสาร 4 ประเภท (เริ่มทำกระบวนการใหม่)', // นิยาม PM=Process Management · WI=Work Instruction · SD=Supporting Document · FM=Form/Format ตามตารางที่พี่หนึ่งให้ 2 พ.ย. 69; v1.3 = แยกข้อมูลตรวจ/เอกสารทีม
+  VERSION: 'v1.5 (2 พ.ย. 69) — แท็บ "เดินกระบวนการ (Runner)" CORE 10 ขั้น + checklist + ปุ่มไปทำจริง', // นิยาม PM=Process Management · WI=Work Instruction · SD=Supporting Document · FM=Form/Format ตามตารางที่พี่หนึ่งให้ 2 พ.ย. 69; v1.3 = แยกข้อมูลตรวจ/เอกสารทีม
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง — ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
   BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbwkiyWP4UzOGNt6Ly-XV1Rztz7gaW9V6GuKZ_hSpWmUu9QMjUmDS0RUjbej784ewTxVig/exec'), // BCT กลาง — deploy ใหม่ 2 พ.ย. 69 (localStorage ทับได้)
   SOURCES: {

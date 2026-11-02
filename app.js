@@ -275,7 +275,7 @@ var GAT = (function () {
   /* ---------- renders ---------- */
   function status(msg) { id('statusBar').innerHTML = '<span class="ok">' + esc(msg) + '</span>'; }
   function renderAll() {
-    renderDash(); renderRegisters(); renderUniverse(); renderRecs(); renderSummary(); renderBctStatus(); loadProcess();
+    renderDash(); renderRegisters(); renderUniverse(); renderRecs(); renderSummary(); renderBctStatus(); loadProcess(); renderRunner();
   }
   function copyText(t, msg) {
     var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select();
@@ -783,6 +783,7 @@ var GAT = (function () {
 
   /* ---------- events / boot ---------- */
   function boot() {
+    loadRunState();
     id('btnImport').addEventListener('click', importBCT);
     id('btnSeed').addEventListener('click', function () { status('โหลด seed…'); loadSeed().then(function () { status('✅ seed (xlsx) โหลดแล้ว ' + state.registers.length + ' รายการ'); }); });
     id('buFilter').addEventListener('change', function () { state.filter.bu = this.value; state.page = 1; renderAll(); });
@@ -821,7 +822,54 @@ var GAT = (function () {
   }
   document.addEventListener('DOMContentLoaded', boot);
 
-  var TAB_NAMES = { dashboard: 'Dashboard', registers: 'Registers', bct: 'BCT Import/Export', recs: 'ข้อเสนอแนะ', universe: 'Regulatory Universe', summary: 'สรุปผลงาน GAT', process: 'กระบวนการทีม GAT', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
+  var TAB_NAMES = { dashboard: 'Dashboard', registers: 'Registers', bct: 'BCT Import/Export', recs: 'ข้อเสนอแนะ', universe: 'Regulatory Universe', summary: 'สรุปผลงาน GAT', process: 'กระบวนการทีม GAT', runner: 'เดินกระบวนการ (Runner)', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
+
+  /* ---------- แท็บเดินกระบวนการ (Process Runner) — ให้ทีมเดินตาม CORE ทีละขั้น ---------- */
+  var RUN_STEPS = [
+    { id: 'P-01', check: ['เลือกขอบเขตจาก 3 แหล่ง (ปฏิทิน / ทะเบียน 🟡🔴 / เหตุเร่งด่วน) แล้ว', 'ระบุเจ้าของด้าน (คน/ลูกค้า/การเงิน) ครบทุกหัวข้อ', 'รอหัวหน้าสาย Audit อนุมัติแผนแล้ว'], act: null, actLabel: null },
+    { id: 'P-02', check: ['แจ้งแผน + รายการขอข้อมูลให้ BU แล้ว (ล่วงหน้า 14 วัน)', 'ระบุกำหนดส่ง (SLA 3 วันทำการ / ด่วน LCT 24 ชม.) ในหนังสือทุกครั้ง'], act: null, actLabel: null },
+    { id: 'P-03', check: ['BU ส่งสำเนาไฟล์เข้าระบบแล้ว (ห้ามแก้ต้นฉบับ)', 'จด «ชีท+แถว» ที่อ่านครบทุกไฟล์', 'บันทึกรอบส่งลง GAT_Entries แล้ว'], act: 'bct', actLabel: 'บันทึกที่แท็บ BCT → ชีท GAT_Entries' },
+    { id: 'P-04', check: ['ตรวจตาม Checklist ของขอบเขตนั้นแล้ว', 'ข้อพบมี หลักฐาน + เกณฑ์อ้างอิง + แนวทางบรรเทา ครบทุกใบ', 'อ้างกฎหมาย = ฉบับจริง + วันบังคับใช้ (ไม่พบ = เขียน «ไม่พบในไฟล์»)'], act: 'recs', actLabel: 'ออกใบที่แท็บ ข้อเสนอแนะ (รันเลข GAT-REC อัตโนมัติ)' },
+    { id: 'P-05', check: ['ส่งใบประเด็นให้ Process Owner/BU แล้ว', 'ติดตามคำตอบ (แก้=หลักฐาน / ไม่แก้=เหตุผล+ผู้รับผิดชอบ) ภายใน 5 วันทำการ', 'ช่องคำตอบครบทุกช่องแล้ว (ขาด = ยังไม่นับตอบ)'], act: 'recs', actLabel: 'บันทึกคำตอบที่แท็บ ข้อเสนอแนะ (ช่อง BU ตอบ)' },
+    { id: 'P-06', check: ['ตรวจหลักฐานการแก้แล้ว (พอ/ไม่พอ ชัดเจน)', '🔴 ที่ไม่แก้ = ยืนยันกลับเป็นทางการแล้ว', 'ติดตามรอบถัดไป / ถดถอย 30/60/90 วัน ลงระบบแล้ว'], act: 'recs', actLabel: 'ปิดรายการ (GAT ยืนยัน) ที่แท็บ ข้อเสนอแนะ' },
+    { id: 'P-07', check: ['BU อุทธรณ์ภายใน 7 วัน (ถ้ามี)', 'OAC ตัดสิน = จบที่การตัดสิน (บันทึก GAT_AuditLog แล้ว)', 'High ระหว่างอุทธรณ์: มีมาตรการป้องกันชั่วคราวแล้ว'], act: null, actLabel: null },
+    { id: 'P-08', check: ['รายงานฉบับสมบูรณ์ก่อนวันที่ 5 ของเดือนถัดไป', 'คุมถดถอย 30/60/90 วัน ลงระบบแล้ว', 'ส่งผู้มีอำนาจ/OAC + นัดประชุมทบทวน 🔴 ค้าง'], act: 'summary', actLabel: 'สรุปที่แท็บ สรุปผลงาน (คัดลอก/ดาวน์โหลด .md)' },
+    { id: 'P-09', check: ['อัปเดตสถานะ 5 ระดับ (🟢🟡🟠🔴⚫) ให้ทะเบียนล่าสุดแล้ว', 'นำเข้าข้อมูล live จาก BCT แล้ว', 'ตรวจว่าไม่มีรายการสถานะตกยุค'], act: 'dashboard', actLabel: 'ตรวจที่แท็บ Dashboard (KPI สด)' },
+    { id: 'P-10', check: ['คัดลอก bct-template.xlsx แล้ว', 'ติดตั้ง GAS bridge + วาง Web App URL แล้ว', 'เว็บเชื่อม live ตรวจแล้ว (import สำเร็จ)'], act: 'bct', actLabel: 'ตั้งค่าที่แท็บ BCT Import/Export' }
+  ];
+  function renderRunner() {
+    var box = id('runBody'); if (!box) return;
+    var j = state.process || {};
+    var core = j.CORE || [];
+    var prog = state.runState || {}; // { 'P-01': [true,true,false], ... }
+    var totalChk = 0, doneChk = 0;
+    RUN_STEPS.forEach(function (s) { (prog[s.id] || []).forEach(function (v) { totalChk++; if (v) doneChk++; }); });
+    var h = [];
+    h.push('<div class="hero"><div class="goldlbl">Process Runner · เดินตามกระบวนการทุกขั้น</div><h2>🚦 เดินกระบวนการ CORE 10 (P-01 → P-10)</h2><p>แต่ละขั้นมี Checklist ให้ติ๊ก — ครบทุกข้อ = ผ่านขั้น · ปุ่มข้างการ์ดกระโดไปทำจริงในแท็บนั้นทันที · ความคืบหน้าบันทึกในเครื่องนี้ (localStorage)</p></div>');
+    h.push('<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px">');
+    h.push(kpi('ผ่านแล้ว', fmt(doneChk) + ' / ' + fmt(totalChk), 'ข้อที่ติ๊กครบ') + kpi('ขั้นที่ผ่านหมด', fmt(RUN_STEPS.filter(function (s) { var c = prog[s.id] || []; return c.length && c.every(function (v) { return v; }); }).length) + ' / 10', 'ครบทุก checklist') + kpi('ขั้นถัดไป', (RUN_STEPS.filter(function (s) { var c = prog[s.id] || []; return !c.length || !c.every(function (v) { return v; }); })[0] || {}).id || 'ครบทุกขั้น 🎉', 'ทำต่อจากนี้'));
+    h.push('</div>');
+    RUN_STEPS.forEach(function (s, ix) {
+      var meta = core.filter(function (c) { return c.id === s.id; })[0] || {};
+      var checks = prog[s.id] || [];
+      var done = checks.length > 0 && s.check.every(function (_, i) { return checks[i]; });
+      h.push('<div class="card" style="border-left:5px solid ' + (done ? '#0e8345' : '#b48a3c') + '">');
+      h.push('<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3 style="margin:0">' + (done ? '✅' : '▶️') + ' ขั้นที่ ' + (ix + 1) + ' — ' + esc(s.id) + ' ' + esc(meta.name || '') + (meta.sla ? ' <span style="font-size:12px;color:#b48a3c;font-weight:600">' + esc(meta.sla) + '</span>' : '') + '</h3>' +
+        (s.act ? '<button class="rb-act" data-runact="' + s.act + '" style="margin-bottom:6px">' + esc(s.actLabel || 'ไปทำจริง') + '</button>' : '') + '</div>');
+      h.push('<div style="font-size:13px;color:#51617a;margin-bottom:8px">PM: ' + esc(String(meta.pm || '').slice(0, 120)) + (String(meta.pm || '').length > 120 ? '…' : '') + '</div>');
+      h.push('<table class="tbl">' + s.check.map(function (c, i) {
+        return '<tr><td style="width:34px;text-align:center"><input type="checkbox" class="rb-chk" data-rstep="' + s.id + '" data-rchk="' + i + '"' + (checks[i] ? ' checked' : '') + '></td><td style="font-size:13.5px">' + esc(c) + '</td></tr>';
+      }).join('') + '</table></div>');
+    });
+    h.push('<div class="note">การทำจริงยังเกิดในแท็บปลายทาง (BCT / ข้อเสนอแนะ / สรุปผลงาน / Dashboard) — Runner ช่วยลำดับ+ไม่พลาดขั้น+ไม่พลาดหลักฐาน ตามหลัก «ผู้ปฏิบัติต้องอ่านแล้วทำตามได้จริง» ของ WI</div>');
+    box.innerHTML = h.join('');
+  }
+  function saveRunState() {
+    try { localStorage.setItem('gat_run_state', JSON.stringify(state.runState || {})); } catch (e) {}
+  }
+  function loadRunState() {
+    try { state.runState = JSON.parse(localStorage.getItem('gat_run_state') || '{}'); } catch (e) { state.runState = {}; }
+  }
   function showTab(name) {
     document.querySelectorAll('.tabpane').forEach(function (p) { p.classList.remove('on'); p.style.display = 'none'; });
     var t = id('pane-' + name);
@@ -837,6 +885,15 @@ var GAT = (function () {
     if (pp) { state.page = parseInt(pp, 10) || 1; renderRegisters(); return; }
     var cp = e.target.closest && e.target.closest('.copy-id');
     if (cp) { var ct = cp.getAttribute('data-rid') || cp.textContent; copyText(ct, '📋 คัดลอกรหัสแล้ว: ' + ct); }
+    var rc = e.target.getAttribute && e.target.getAttribute('data-rchk') !== null && e.target.classList.contains('rb-chk');
+    if (rc) { // Runner checklist ติ๊ก
+      var rs = e.target.getAttribute('data-rstep'), ri = parseInt(e.target.getAttribute('data-rchk'), 10);
+      state.runState = state.runState || {};
+      var arr = state.runState[rs] || [];
+      arr[ri] = e.target.checked; state.runState[rs] = arr; saveRunState(); renderRunner();
+    }
+    var ra = e.target.getAttribute && e.target.getAttribute('data-runact');
+    if (ra) { showTab(ra === 'recs' ? 'recs' : ra); }
   });
 
   /* export ชุด register ปัจจุบันกลับเข้ารูปแบบ BCT (CSV คอลัมน์ตรง GAT_Registers) */
@@ -850,5 +907,5 @@ var GAT = (function () {
     status('ส่งออก CSV สำหรับวางลงชีท GAT_Registers บน BCT แล้ว (' + regs.length + ' รายการ)');
   }
 
-  return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess };
+  return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess, renderRunner: renderRunner };
 })();
