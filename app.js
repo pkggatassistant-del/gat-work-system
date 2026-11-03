@@ -415,7 +415,31 @@ var GAT = (function () {
     });
   }
 
-  /* ---------- แท็บสรุปผลงาน GAT (สร้างข้อความสดจาก state) ---------- */
+  /* group ใบ REC เป็นชุดตามรหัสหน้า TITLE (F-xx = สวัสดิการ, FIN-Rx = ระเบียบการเงิน, ที่เหลือ = อื่นๆ) — v1.7 */
+  function escHtml(t) {
+    return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function recGroups() {
+    var recs = state.recs || [];
+    var g = { wel: [], fin: [], other: [] };
+    recs.forEach(function (x) {
+      var t = String(x.TITLE || '');
+      var rid = String(x.REC_ID || '');
+      // ใบทดสอบ (ปิดแล้ว) ไม่แสดงหัวข้อรายใบ
+      var isTest = t.indexOf('ทดสอบ') >= 0 || t.indexOf('RT-') >= 0;
+      if (isTest) return;
+      if (t.indexOf('F-') === 0 || t.indexOf(' F-') >= 0 && rid <= 'GAT-REC-0015') g.wel.push(x);
+      else if (t.indexOf('FIN-R') >= 0) g.fin.push(x);
+      else g.other.push(x);
+    });
+    var out = [];
+    if (g.wel.length) out.push({ label: '🏥 ชุด 1: สวัสดิการพื้นฐาน (F-01–F-15 — ตรวจ 29 ต.ค. 69)', items: g.wel });
+    if (g.fin.length) out.push({ label: '💰 ชุด 2: ระเบียบการเงิน PKG 2567 (FIN-R1–R7 — ตรวจ 3 พ.ย. 69)', items: g.fin });
+    if (g.other.length) out.push({ label: '📌 ชุดอื่นๆ', items: g.other });
+    return out;
+  }
+
+/* ---------- แท็บสรุปผลงาน GAT (สร้างข้อความสดจาก state) ---------- */
   function renderSummary() {
     var box = id('summaryBody'); if (!box) return;
     var regs = state.registers || [];
@@ -458,10 +482,20 @@ var GAT = (function () {
 
     h.push('<h3>2) ข้อเสนอแนะรันเลข (GAT-REC)</h3>');
     h.push('<div style="font-size:14px;line-height:1.7">' +
-      '• รวม <b>' + recs.length + '</b> ใบ (ชุดแรก F-01–F-15 ตรวจไฟล์สวัสดิการ 29 ต.ค. 69)<br>' +
-      '• 🔴 ขัดกฎหมาย/จำเป็นจริง: <b>' + recRed.length + '</b> ใบ · 🟢 ข้อเสนอ: ' + (recs.length - recRed.length) + ' ใบ<br>' +
-      '• BU ตอบ: แก้แล้ว ' + recFixed.length + ' · ไม่แก้ (มีเหตุผล+ผู้รับผิดชอบ) ' + recNoFix.length + ' · ยังไม่ตอบ ' + (recOpen.length - recFixed.length - recNoFix.length) + '<br>' +
-      '• ปิดสมบูรณ์ (GAT ยืนยัน): <b>' + recClosed.length + '</b> ใบ — ทั้งวงจรอยู่ในชีท GAT_Issues + GAT_AuditLog</div>');
+      '• รวม <b>' + recs.length + '</b> ใบ — 🔴 ขัดกฎหมาย/จำเป็นจริง: <b>' + recRed.length + '</b> ใบ · 🟢 ข้อเสนอ: ' + (recs.length - recRed.length) + ' ใบ · ปิดสมบูรณ์: <b>' + recClosed.length + '</b> ใบ<br>' +
+      '• BU ตอบ: แก้แล้ว ' + recFixed.length + ' · ไม่แก้ ' + recNoFix.length + ' · ยังไม่ตอบ ' + (recOpen.length - recFixed.length - recNoFix.length) + ' — วงจรเต็มอยู่ในชีท GAT_Issues + GAT_AuditLog (GAS v1.4)</div>');
+    // แสดงรายใบแยกชุด (v1.7 ตามคำขอพี่หนึ่ง 3 พ.ย. 69)
+    var groups = recGroups();
+    groups.forEach(function (g) {
+      h.push('<div style="margin-top:10px"><b style="font-size:13.5px">' + g.label + '</b> <span style="color:#7d93b2;font-size:12px">(' + g.items.length + ' ใบ)</span></div>');
+      h.push('<table style="width:100%;border-collapse:collapse;font-size:12.5px;">');
+      h.push('<tr style="color:#7d93b2;text-align:left"><th style="padding:6px 8px">เลขใบ</th><th>ระดับ</th><th>หัวข้อ</th><th>สถานะ</th></tr>');
+      g.items.forEach(function (x) {
+        var sev = String(x.SEVERITY || ''); var mark = sev.indexOf('🔴') >= 0 ? '🔴' : '🟢';
+        h.push('<tr><td style="padding:5px 8px;white-space:nowrap"><b>' + (x.REC_ID || '-') + '</b></td><td>' + mark + '</td><td>' + escHtml(String(x.TITLE || '')) + ' <span style="color:#7d93b2">' + escHtml(String(x.SHEET_REF || '')) + '</span></td><td style="white-space:nowrap">' + escHtml(String(x.STATUS || '')) + '</td></tr>');
+      });
+      h.push('</table>');
+    });
 
     h.push('<h3>3) ระบบเอกสาร 4 ประเภท (PM/WI/SD/FM — นิยามของพี่หนึ่ง)</h3>');
     h.push('<div style="font-size:14px;line-height:1.7">' +
@@ -526,8 +560,16 @@ var GAT = (function () {
     L.push('- สถานะ: 🟢 ' + byStat['🟢'] + ' · 🟡 ' + byStat['🟡'] + ' · 🔴 ' + byStat['🔴'] + ' (🔴 = ยังไม่มีข้อมูล TG)');
     L.push('- บันทึกผลจาก BU: ' + entries.length + ' รายการ');
     L.push('');
-    L.push('## 2) ข้อเสนอแนะรันเลข');
-    L.push('- รวม ' + recs.length + ' ใบ (ชุดแรก F-01–F-15 สวัสดิการ 29 ต.ค. 69)');
+    L.push('## 2) ข้อเสนอแนะรันเลข — รายใบแยกชุด');
+    L.push('- รวม ' + recs.length + ' ใบ · ปิดสมบูรณ์ ' + recClosed.length + ' · เปิด ' + recOpen.length);
+    recGroups().forEach(function (g) {
+      L.push('');
+      L.push('### ' + g.label + ' — ' + g.items.length + ' ใบ');
+      g.items.forEach(function (x, i) {
+        var sev = String(x.SEVERITY || ''); var mark = sev.indexOf('🔴') >= 0 ? '🔴' : '🟢';
+        L.push((i + 1) + '. ' + mark + ' **' + (x.REC_ID || '-') + '** ' + String(x.TITLE || '') + ' — _' + String(x.STATUS || '') + '_' + (x.SHEET_REF ? ' (อ้าง: ' + x.SHEET_REF + ')' : ''));
+      });
+    });
     L.push('- 🔴 ' + recRed.length + ' · 🟢 ' + (recs.length - recRed.length) + ' · เปิดอยู่ ' + recOpen.length + ' · ปิด ' + recClosed.length + ' · ไม่แก้ ' + recNoFix.length);
     L.push('- วงจร: ออกใบ (รันเลขในชีท) → BU ตอบ (แก้=หลักฐาน / ไม่แก้=เหตุผล+ผู้รับผิดชอบ) → GAT ยืนยัน/ปิด');
     L.push('');
