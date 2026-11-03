@@ -426,6 +426,66 @@
       "SHEET_REF": "form BCT ขาดเกิน (Google Form active)",
       "STATUS": "ส่งให้ BU แล้ว",
       "REF_PM_WI": "P-04 ขั้น ④ (ตาม WI-02)"
+    },
+    {
+      "REC_ID": "GAT-REC-0038",
+      "REC_NO": 38,
+      "CREATED_AT": "2026-11-03 (ฉบับหนึ่ง — ด่วนจี๋)",
+      "CREATED_BY": "GAT(แดง)",
+      "REG_ID": "REG-FIN-CASHDRAWER-1",
+      "PROCESS_TYPE": "FM",
+      "PROCESS_CODE": "FIN-CASH-DRAWER-CAP",
+      "SEVERITY": "🔴 ขัดกฎหมาย/จำเป็นจริง",
+      "TITLE": "FIN-R8 เพดานเงินสดในลิ้นชักระหว่างวัน + จังหวะนำส่งธนาคาร (สั่งโดยหนึ่ง 3 พ.ย. 69)",
+      "DETAIL": "เงินสดรับหน้างานระหว่างวันไม่มีเพดานในลิ้นชัก + ไม่กำหนดจังหวะนำส่งธนาคารระหว่างวัน — เสี่ยงเงินสะสมในลิ้นชักถึงค่ำ ข้อเสนอ: เพดานต่อจุด 10,000-30,000 บาท เกิน = ส่งธนาคารทันที/รอบเที่ยง + ผูกรอบฝากเช้า-บ่าย-เย็นตามระเบียบ 2567",
+      "SHEET_REF": "รับ_รายรับประจำวัน#R9-R20",
+      "STATUS": "ส่งให้ BU แล้ว",
+      "REF_PM_WI": "P-04 ขั้น ④ (ตาม WI-02)"
+    },
+    {
+      "REC_ID": "GAT-REC-0039",
+      "REC_NO": 39,
+      "CREATED_AT": "2026-11-03 (ฉบับหนึ่ง — ด่วนปรี๊ด)",
+      "CREATED_BY": "GAT(แดง)",
+      "REG_ID": "REG-FIN-ACCESS-1",
+      "PROCESS_TYPE": "PM",
+      "PROCESS_CODE": "FIN-SOD-ACCESS-RIGHTS",
+      "SEVERITY": "🔴 ขัดกฎหมาย/จำเป็นจริง",
+      "TITLE": "FIN-R9 กำหนดสิทธิ์การเข้าถึงระบบตาม SoD 4 บทบาท (สั่งโดยหนึ่ง 3 พ.ย. 69)",
+      "DETAIL": "SoD ลงลึกถึงสิทธิ์ Login/Mirai/BCT/ระบบหลังบ้าน — 4 บทบาทต้องสิทธิ์คนละชุด ปิด shared login + audit log ทุกคีย์ ข้อเสนอ: ทะเบียนสิทธิ์ per-role",
+      "SHEET_REF": "เชื่อม GAT-REC-0034 (SoD)",
+      "STATUS": "ส่งให้ BU แล้ว",
+      "REF_PM_WI": "P-04 ขั้น ④ (ตาม WI-02)"
+    },
+    {
+      "REC_ID": "GAT-REC-0040",
+      "REC_NO": 40,
+      "CREATED_AT": "2026-11-03 (ฉบับหนึ่ง — ด่วนเหมือนกัน)",
+      "CREATED_BY": "GAT(แดง)",
+      "REG_ID": "REG-FIN-GATTEST-1",
+      "PROCESS_TYPE": "PM",
+      "PROCESS_CODE": "FIN-GAT-SAMPLING-PLAN",
+      "SEVERITY": "🟢 ข้อเสนอ",
+      "TITLE": "FIN-R10 แผน GAT ลงสุ่มตรวจ T1–T7 — เริ่มเส้า 5 (ยอดเข้าจริงแบงก์) ก่อน (สั่งโดยหนึ่ง 3 พ.ย. 69)",
+      "DETAIL": "แผนลงตรวจ 7 ชุด (T1 ตัดชำระ/T2 นำฝาก/T3 บิลมือ/T4 สดย่อย/T5 สำรอง/T6 เอกสาร 3/T7 Day Test) เริ่มเส้า 5 ก่อน = ฐานความจริงสุดท้าย — รอลิงก์/สิทธิ์ชีต BCT แกนรายจ่าย BU แรก",
+      "SHEET_REF": "บทวิเคราะห์ GAT 3 พ.ย. 69 (T1–T7)",
+      "STATUS": "ส่งให้ BU แล้ว",
+      "REF_PM_WI": "P-04 ขั้น ④ (ตาม WI-02)"
+    },
+    {
+      "REC_ID": "GAT-REC-0041",
+      "REC_NO": 41,
+      "CREATED_AT": "2026-11-03 (ฉบับหนึ่ง — ด่วนเหมือนกัน)",
+      "CREATED_BY": "GAT(แดง)",
+      "REG_ID": "REG-FIN-KPI-1",
+      "PROCESS_TYPE": "FM",
+      "PROCESS_CODE": "FIN-KPI-DASHBOARD",
+      "SEVERITY": "🟢 ข้อเสนอ",
+      "TITLE": "FIN-R11 ตั้ง KPI เงินรายวัน 4 ตัววัดทุก BU (สั่งโดยหนึ่ง 3 พ.ย. 69)",
+      "DETAIL": "KPI: ตัดชำระในวัน 100% / ฝากทันรอบ ≥98% / สำรองเกิน 7 วัน = 0 / ต่างแบงก์ = 0 — โชว์แท็บ Dashboard + รายงานก่อนวันที่ 5 (P-08)",
+      "SHEET_REF": "แท็บ Dashboard (KPI Row)",
+      "STATUS": "ส่งให้ BU แล้ว",
+      "REF_PM_WI": "P-08 ขั้น ⑦ (รายงาน+KPI)"
     }
   ]
 }
