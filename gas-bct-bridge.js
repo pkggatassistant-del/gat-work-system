@@ -21,7 +21,7 @@
  */
 
 var CONFIG = {
-  VERSION: 'v1.3 (2 พ.ย. 69) — FM 11 ช่อง (REF_PM_WI + APPROVER) + action migrate/ping',
+  VERSION: 'v1.4 (3 พ.ย. 69) — เพิ่ม action clean_recs + backfill_ref_pm_wi + fix_log_timestamps (โดย GAT(แดง))',
   SHEETS: {
     REGISTERS: 'GAT_Registers',   // Master Register: รายการตรวจสอบ/ภาระต้องส่ง
     ENTRIES: 'GAT_Entries',       // รายการบันทึกผลตรวจสอบรายครั้ง (BU กรอก)
@@ -189,10 +189,22 @@ function doPost(e) {
         log_(data.BY || 'GAT', 'close_issue', or_(data.REC_ID), 'ปิดรายการ');
         return json_({ ok: true });
       }
+      case 'clean_recs': {
+        var nDeleted = cleanRecRange_(CONFIG.REC_PREFIX + String(data.from), CONFIG.REC_PREFIX + String(data.to));
+        return json_({ ok: true, deleted: nDeleted });
+      }
+      case 'backfill_ref_pm_wi': {
+        var nFilled = backfillRefPmWi_(data.REF || 'P-04 ขั้น ④ (ตาม WI-02)');
+        return json_({ ok: true, filled: nFilled });
+      }
+      case 'fix_log_timestamps': {
+        var nFixed = fixLogTimestamps_(data.NOTE || '2 พ.ย. 69 (แก้ย้อนหลัง — ค่าเดิมเสียจากบั๊ก v1.2)');
+        return json_({ ok: true, fixed: nFixed });
+      }
       case 'migrate':
         return json_({ ok: true, result: migrateSheets() });
       case 'ping':
-        return json_({ ok: true, version: (typeof CONFIG !== 'undefined' && CONFIG.VERSION) || 'gas-v1.2+ping', actions: 'open_issue,respond_issue,close_issue,migrate,ping' });
+        return json_({ ok: true, version: (typeof CONFIG !== 'undefined' && CONFIG.VERSION) || 'gas-v1.2+ping', actions: 'open_issue,respond_issue,close_issue,migrate,ping,clean_recs,backfill_ref_pm_wi,fix_log_timestamps' });
       default:
         throw new Error('unknown action: ' + action);
     }
@@ -270,6 +282,47 @@ function closeIssue_(data) {
   sh.getRange(pos, headers.indexOf('GAT_CONFIRMED_AT') + 1).setValue(now_());
   sh.getRange(pos, headers.indexOf('CLOSED_AT') + 1).setValue(now_());
   return true;
+}
+
+/* ===== v1.4 (GAT(แดง) 3 พ.ย. 69): บำรุงรักษาทางไกล ===== */
+/* เติม REF_PM_WI ให้แถวเก่าที่ว่าง (หลัง migrate เพิ่มคอลัมน์) */
+function backfillRefPmWi_(ref) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(CONFIG.SHEETS.RECS);
+  if (!sh) throw new Error('ไม่พบชีท ' + CONFIG.SHEETS.RECS);
+  var headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  var ciRef = headers.indexOf('REF_PM_WI');
+  if (ciRef < 0) throw new Error('ยังไม่มีคอลัมน์ REF_PM_WI — รัน migrate ก่อน');
+  var lastRow = sh.getLastRow();
+  if (lastRow < 2) return 0;
+  var vals = sh.getRange(2, ciRef + 1, lastRow - 1, 1).getValues();
+  var filled = 0;
+  for (var i = 0; i < vals.length; i++) {
+    if (String(vals[i][0]).trim() === '') {
+      sh.getRange(i + 2, ciRef + 1).setValue(ref);
+      filled++;
+    }
+  }
+  log_('GAT(แดง)', 'backfill_ref_pm_wi', CONFIG.SHEETS.RECS, 'เติม REF_PM_WI ' + filled + ' แถว = ' + ref);
+  return filled;
+}
+
+/* แก้ TIMESTAMP ใน GAT_AuditLog ที่เสียจากบั๊ก v1.2 (ค่าเป็นข้อความโค้ด) — ระบุหมายเหตุ ไม่ปลอมเวลา */
+function fixLogTimestamps_(note) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(CONFIG.SHEETS.AUDIT_LOG);
+  if (!sh) return 0;
+  var rows = sh.getDataRange().getValues();
+  var fixed = 0;
+  for (var i = 1; i < rows.length; i++) {
+    var v = String(rows[i][1] || '');
+    if (v.indexOf('function now_') >= 0 || v.trim() === '') {
+      sh.getRange(i + 1, 2).setValue(note);
+      fixed++;
+    }
+  }
+  log_('GAT(แดง)', 'fix_log_timestamps', CONFIG.SHEETS.AUDIT_LOG, 'แก้ TIMESTAMP เสีย ' + fixed + ' แถว');
+  return fixed;
 }
 
 /* ================= HELPERS ================= */
