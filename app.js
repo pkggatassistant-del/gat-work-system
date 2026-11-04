@@ -277,7 +277,7 @@ var GAT = (function () {
   /* ---------- renders ---------- */
   function status(msg) { id('statusBar').innerHTML = '<span class="ok">' + esc(msg) + '</span>'; }
   function renderAll() {
-    renderDash(); renderRegisters(); renderUniverse(); renderRecs(); renderSummary(); renderBctStatus(); loadProcess(); // v1.12: renderRunner ถูกถอด
+    renderDash(); renderRegisters(); renderUniverse(); renderRecs(); renderSummary(); renderBctStatus(); renderPickTable(); renderSentTable(); renderFixTable(); loadProcess(); // v1.13 เพิ่ม render แท็บ 2/6/7
     try { renderPacks(); fillPackSelectors(); } catch (e) {}
   }
   function copyText(t, msg) {
@@ -427,6 +427,50 @@ function loadProcessDocs() {
     });
   }
 
+  /* ============ v1.13 — แท็บ 2 (เลือกหัวข้อ) / 6 (ส่งให้ BU + ติดตาม) / 7 (BU ดาวน์โหลด) — ตาม 10 ขั้นของหนึ่ง 4 พ.ย. 69 04:26 ============ */
+  function rowsPick() {
+    var packs = state.packs || [];
+    return packs.map(function (x) {
+      return '<tr><td style="text-align:center"><input type="checkbox" class="pick-chk" data-pack="' + escP(x.PACK_ID) + '"></td><td class="mono">' + escP(x.PACK_ID) + '</td><td>' + escP(x.BU || '') + '</td><td style="font-size:13px">' + escP(String(x.SCOPE || '').slice(0, 60)) + '</td><td style="font-size:13px">' + escP(String(x.TITLE || '').slice(0, 80)) + '</td><td style="font-size:12.5px">' + escP(String(x.STATUS || 'รอ GAT เลือกตรวจ')) + '</td></tr>';
+    }).join('') || '<tr><td colspan="6" class="empty">ยังไม่มีการส่งข้อมูล — กด รีเฟรชสถานะ</td></tr>';
+  }
+  function renderPickTable() {
+    var tb = document.getElementById('pickBody'); if (!tb) return;
+    tb.innerHTML = rowsPick();
+    var cnt = document.getElementById('pickCount');
+    if (cnt) cnt.textContent = 'รวม ' + (state.packs || []).length + ' การส่ง';
+  }
+  function renderSentTable() {
+    var tb = document.getElementById('recBodySent'); if (!tb) return;
+    var list = scopedRecs().filter(function (r) { return String(r.STATUS || '').indexOf('ส่งให้ BU') >= 0 || String(r.STATUS || '').indexOf('P-04') >= 0; });
+    var rows = list.map(function (r) {
+      return '<tr><td class="mono">' + escP(r.REC_ID) + '</td><td>' + escP(String(r.TITLE || '').slice(0, 70)) + '</td><td>' + escP(r.SEVERITY || '') + '</td><td style="font-size:12.5px">' + escP(String(r.STATUS || '')) + '</td></tr>';
+    }).join('') || '<tr><td colspan="4" class="empty">— ยังไม่มีใบที่ส่งแล้วในขอบเขตโชว์ —</td></tr>';
+    tb.innerHTML = rows;
+  }
+  function renderFixTable() {
+    var tb = document.getElementById('recBodyFix'); if (!tb) return;
+    var list = scopedRecs().filter(function (r) { return String(r.STATUS || '').indexOf('ส่งให้ BU') >= 0 || String(r.STATUS || '').indexOf('P-04') >= 0; });
+    var rows = list.map(function (r) {
+      return '<tr><td class="mono">' + escP(r.REC_ID) + '</td><td>' + escP(String(r.TITLE || '').slice(0, 70)) + '</td><td>' + escP(r.SEVERITY || '') + '</td><td style="font-size:12.5px">ตอบที่แท็บ 8 — แก้=แนบลิงก์หลักฐาน / ไม่แก้=เหตุผล+ผู้รับผิดชอบ (ไม่เกิน 5 วันทำการ)</td></tr>';
+    }).join('') || '<tr><td colspan="4" class="empty">— ยังไม่มีใบให้ทำ —</td></tr>';
+    tb.innerHTML = rows;
+  }
+  function downloadBufixList() {
+    var list = scopedRecs().filter(function (r) { return String(r.STATUS || '').indexOf('ส่งให้ BU') >= 0 || String(r.STATUS || '').indexOf('P-04') >= 0; });
+    if (!list.length) { status('⚠️ ยังไม่มีใบที่ส่งให้ BU ในขอบเขตโชว์'); return; }
+    var lines = ['# รายการข้อเสนอแนะที่ BU ต้องนำไปแก้ไข (' + list.length + ' ใบ)', 'อ้าง SLA: ตอบ/คัดค้านภายใน 5 วันทำการนับจากได้รับใบ',
+      '', 'แก้ไข → บันทึกที่แท็บ 8 (แนบลิงก์หลักฐาน)', 'ไม่แก้ไข → เหตุผล + ผู้รับผิดชอบ (บังคับ)', ''];
+    list.forEach(function (r, i) {
+      lines.push('[' + (i + 1) + '] ' + r.REC_ID + ' · ระดับ ' + (r.SEVERITY || '—'));
+      lines.push('    หัวข้อ: ' + (r.TITLE || ''));
+      lines.push('    รายละเอียด: ' + String(r.REC_TEXT || '').replace(/\n/g, ' ') || '—');
+      lines.push('');
+    });
+    download('gat-bu-action-list.md', lines.join('\n'), 'text/markdown;charset=utf-8');
+    status('⬇ ดาวน์โหลดรายการ ' + list.length + ' ใบแล้ว — ใส่ไฟล์จริงแนบหลักฐานที่แท็บ 8');
+  }
+
   /* ---------- Packs (BU ส่งข้อมูล) + AI Review — v1.8 ตามวงจร 10 ขั้นของพี่หนึ่ง 4 พ.ย. 69 ---------- */
   function escP(t){return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
   function renderPacks() {
@@ -449,7 +493,7 @@ function loadProcessDocs() {
   function loadPacks() {
     var st = document.getElementById('packStatus'); if (st) st.textContent = 'กำลังดึงสถานะจากชีต…';
     gasGet('list_packs').then(function (res) {
-      if (res.ok) { state.packs = res.data; renderPacks(); fillPackSelectors(); if (st) st.textContent = '✅ โหลด ' + res.data.length + ' รายการจากชีตจริง'; }
+      if (res.ok) { state.packs = res.data; renderPacks(); renderPickTable(); fillPackSelectors(); renderSentTable(); renderFixTable(); var ps = document.getElementById('pickStatus'); if (ps) ps.textContent = '✅ โหลด ' + res.data.length + ' การส่ง'; if (st) st.textContent = '✅ โหลด ' + res.data.length + ' รายการจากชีตจริง'; }
       else if (st) st.textContent = '❌ GAS ยังไม่รองรับ list_packs — ต้อง deploy โค้ด v1.5 (ส่งให้พี่หนึ่งแล้ว)';
     }).catch(function (e) { if (st) st.textContent = '❌ ' + e; });
   }
@@ -1127,6 +1171,14 @@ function loadProcessDocs() {
     var b4 = id('btnAiCopy'); if (b4) b4.addEventListener('click', function(){ var t=id('aiPrompt'); t.select(); try{document.execCommand('copy'); status('📋 คัดลอกชุดคำสั่ง AI แล้ว');}catch(e){} });
     var b5 = id('btnAiParse'); if (b5) b5.addEventListener('click', aiParse);
     var b6 = id('btnAiEmit'); if (b6) b6.addEventListener('click', aiEmit);
+    /* v1.13 — ปุ่มร้อยขั้น 1→10 (เชื่อมข้ามแท็บ) */
+    var g1 = id('btnGotoAi'); if (g1) g1.addEventListener('click', function () { var picked = Array.from(document.querySelectorAll('.pick-chk')).filter(function (c) { return c.checked; }).map(function (c) { return c.getAttribute('data-pack'); }); status(picked.length ? '🔍 เลือก ' + picked.length + ' หัวข้อ — ไปขั้น 3 (ตรวจด้วย AI) ต่อ' : '🔍 (ยังไม่ได้ติ๊กหัวข้อ — สามารถไปขั้น 3 ได้เลย)'); showTab('aiprompt'); });
+    var g2 = id('btnGotoAicand'); if (g2) g2.addEventListener('click', function () { showTab('aicand'); });
+    var g3 = id('btnGotoAisel'); if (g3) g3.addEventListener('click', function () { showTab('aisel'); });
+    var g4 = id('btnGotoAisend'); if (g4) g4.addEventListener('click', function () { showTab('aisend'); });
+    var g5 = id('btnBufixDl'); if (g5) g5.addEventListener('click', downloadBufixList);
+    /* btnLoadPacksPick — ปุ่ม "รีเฟรชสถานะ" ในแท็บ 2 (ใช้ loadPacks เดิม + render ทั้ง 2 ตาราง) */
+    var lp2 = id('btnLoadPacksPick'); if (lp2) lp2.addEventListener('click', function () { loadPacks(); });
     id('respDecision').addEventListener('change', function () {
       var noFix = this.value === 'ไม่แก้ไข';
       id('respReason').disabled = !noFix; id('respResponsible').disabled = !noFix;
@@ -1139,20 +1191,20 @@ function loadProcessDocs() {
   }
   document.addEventListener('DOMContentLoaded', boot);
 
-  var TAB_NAMES = { dashboard: 'P-09 คุมทะเบียน (Dashboard)', summary: 'P-08 รายงาน (สรุปผลงาน)', packs: 'P-03 BU ส่งข้อมูล (Pack)', aireview: 'P-04 ตรวจ+ออกใบ', buanswer: 'P-05 BU ตอบใบ', close: 'P-06 ปิดประเด็น', p01: 'P-01 วางแผนรอบตรวจ', p02: 'P-02 แจ้งแผน+ขอข้อมูล', p07: 'P-07 อุทธรณ์ OAC', recs: 'ทะเบียนข้อเสนอแนะ', registers: 'Registers', universe: 'Regulatory Universe', bct: 'BCT Import/Export', process: 'กระบวนการทีม GAT', runner: 'เดินกระบวนการ (Runner)', manual: 'คู่มือการใช้งาน', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
+  var TAB_NAMES = { packs: '1. BU ส่งข้อมูลที่จะตรวจ', p02pick: '2. GAT เลือกหัวข้อจากข้อมูลที่ส่ง', aiprompt: '3. GAT ตรวจด้วย AI', aicand: '4. AI ออกข้อเสนอแนะ', aisel: '5. GAT คัดเลือก', aisend: '6. GAT ส่งให้ BU', bufix: '7. BU นำไปแก้ไข', buanswer: '8. BU แก้/ไม่แก้ + หลักฐาน', close: '9. GAT พิจารณา+ปิดประเด็น', summary: '10. GAT สรุปรายงานผล', dashboard: 'Dashboard ภาพรวม', registers: 'Registers', universe: 'Regulatory Universe', recs: 'ทะเบียนข้อเสนอแนะ', manual: 'คู่มือการใช้งาน', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
 
   /* ---------- แกนกลาง 10 กระบวนการ (P-01..P-10) — RUN_STEPS = แหล่งเดียว: แท็บงานจริงแต่ละขั้นอ่านจากนี้ ---------- */
   var RUN_STEPS = [
-    { id: 'P-01', name: "วางแผนรอบตรวจรายเดือน", sla: "", check: ['เลือกขอบเขตจาก 3 แหล่ง (ปฏิทิน / ทะเบียน 🟡🔴 / เหตุเร่งด่วน) แล้ว', 'ระบุเจ้าของด้าน (คน/ลูกค้า/การเงิน) ครบทุกหัวข้อ', 'รอหัวหน้าสาย Audit อนุมัติแผนแล้ว'], tab: 'p01', tabNote: 'ทำที่แท็บ P-01 — จองเลข/กำหนดขอบเขต/ผู้รับผิดชอบ', act: null, actLabel: null },
-    { id: 'P-02', name: "แจ้งแผน + ขอข้อมูล BU", sla: "SLA: ส่งข้อมูล 3 วันทำการ / ด่วน LCT 24 ชม.", check: ['แจ้งแผน + รายการขอข้อมูลให้ BU แล้ว (ล่วงหน้า 14 วัน)', 'ระบุกำหนดส่ง (SLA 3 วันทำการ / ด่วน LCT 24 ชม.) ในหนังสือทุกครั้ง'], tab: 'p02', tabNote: 'ทำที่แท็บ P-02 — ร่างหนังสือแจ้ง (คัดลอกไปส่งตามช่องทางจริง)', act: null, actLabel: null },
-    { id: 'P-03', name: "รับ–เก็บข้อมูลจาก BU", sla: "", check: ['BU ส่งสำเนาไฟล์เข้าระบบแล้ว (ห้ามแก้ต้นฉบับ)', 'จด «ชีท+แถว» ที่อ่านครบทุกไฟล์', 'บันทึกรอบส่งลง GAT_Entries แล้ว'], tab: 'packs', tabNote: 'ทำที่แท็บ P-03 (Pack ของแต่ละ BU)', act: 'bct', actLabel: 'บันทึกที่แท็บ BCT → ชีท GAT_Entries' },
-    { id: 'P-04', name: "ตรวจ + ออกใบประเด็น", sla: "", check: ['ตรวจตาม Checklist ของขอบเขตนั้นแล้ว', 'ข้อพบมี หลักฐาน + เกณฑ์อ้างอิง + แนวทางบรรเทา ครบทุกใบ', 'อ้างกฎหมาย = ฉบับจริง + วันบังคับใช้ (ไม่พบ = เขียน «ไม่พบในไฟล์»)'], tab: 'aireview', tabNote: 'ทำที่แท็บ P-04 (AI Review / ออกใบ)', act: 'aireview', actLabel: 'ออกใบที่แท็บ P-04 ตรวจ+ออกใบ (รันเลข GAT-REC อัตโนมัติ)' },
-    { id: 'P-05', name: "สื่อสารกับ BU + BU ตัดสินใจ", sla: "SLA: ชี้แจง 5 วันทำการ", check: ['ส่งใบประเด็นให้ Process Owner/BU แล้ว', 'ติดตามคำตอบ (แก้=หลักฐาน / ไม่แก้=เหตุผล+ผู้รับผิดชอบ) ภายใน 5 วันทำการ', 'ช่องคำตอบครบทุกช่องแล้ว (ขาด = ยังไม่นับตอบ)'], tab: 'buanswer', tabNote: 'ทำที่แท็บ P-05 (BU ตอบใบ)', act: 'buanswer', actLabel: 'ตอบใบที่แท็บ P-05 BU ตอบใบ' },
-    { id: 'P-06', name: "ตรวจคำตอบ + ปิดประเด็น", sla: "", check: ['ตรวจหลักฐานการแก้แล้ว (พอ/ไม่พอ ชัดเจน)', '🔴 ที่ไม่แก้ = ยืนยันกลับเป็นทางการแล้ว', 'ติดตามรอบถัดไป / ถดถอย 30/60/90 วัน ลงระบบแล้ว'], tab: 'close', tabNote: 'ทำที่แท็บ P-06 (ปิดประเด็น)', act: 'close', actLabel: 'ปิดรายการ (GAT ยืนยัน) ที่แท็บ P-06 ปิดประเด็น' },
-    { id: 'P-07', name: "อุทธรณ์ต่อ OAC", sla: "SLA: อุทธรณ์ 7 วัน", check: ['BU อุทธรณ์ภายใน 7 วัน (ถ้ามี)', 'OAC ตัดสิน = จบที่การตัดสิน (บันทึก GAT_AuditLog แล้ว)', 'High ระหว่างอุทธรณ์: มีมาตรการป้องกันชั่วคราวแล้ว'], tab: 'p07', tabNote: 'ทำที่แท็บ P-07 — กรอกอุทธรณ์ (ส่ง OAC + แนบใบที่คัดค้าน)', act: null, actLabel: null },
-    { id: 'P-08', name: "รายงานรายเดือน + คุมถดถอย", sla: "กำหนด: ก่อนวันที่ 5 เดือนถัดไป", check: ['รายงานฉบับสมบูรณ์ก่อนวันที่ 5 ของเดือนถัดไป', 'คุมถดถอย 30/60/90 วัน ลงระบบแล้ว', 'ส่งผู้มีอำนาจ/OAC + นัดประชุมทบทวน 🔴 ค้าง'], tab: 'summary', tabNote: 'ทำที่แท็บ สรุปผลงาน GAT', act: 'summary', actLabel: 'สรุปที่แท็บ สรุปผลงาน (คัดลอก/ดาวน์โหลด .md)' },
-    { id: 'P-09', name: "คุมทะเบียน + แหล่งข้อมูลกลาง", sla: "", check: ['อัปเดตสถานะ 5 ระดับ (🟢🟡🟠🔴⚫) ให้ทะเบียนล่าสุดแล้ว', 'นำเข้าข้อมูล live จาก BCT แล้ว', 'ตรวจว่าไม่มีรายการสถานะตกยุค'], tab: 'dashboard', tabNote: 'ดูที่แท็บ Dashboard', act: 'dashboard', actLabel: 'ตรวจที่แท็บ Dashboard (KPI สด)' },
-    { id: 'P-10', name: "ติดตั้งฐานงานใหม่ (Onboarding)", sla: "", check: ['คัดลอก bct-template.xlsx แล้ว', 'ติดตั้ง GAS bridge + วาง Web App URL แล้ว', 'เว็บเชื่อม live ตรวจแล้ว (import สำเร็จ)'], tab: 'bct', tabNote: 'ทำที่แท็บ BCT Import/Export', act: 'bct', actLabel: 'ตั้งค่าที่แท็บ BCT Import/Export' }
+    { id: '1', name: 'BU ส่งข้อมูล ที่ทีม GAT แจ้งว่าจะตรวจ', sla: 'SLA: ส่งข้อมูล 3 วันทำการ / ด่วน LCT 24 ชม.', check: ['BU กรอกฟอร์มส่ง + แนบลิงก์หลักฐานแล้ว', 'ระบบรันเลข PACK ลงชีตกลางแล้ว', 'ห้ามแก้ไฟล์ต้นฉบับ — ส่งสำเนา'], tab: 'packs', tabNote: 'ทำที่แท็บ 1 (BU ส่งข้อมูล)', act: 'packs', actLabel: 'ไปแท็บ 1 — ส่งข้อมูล' },
+    { id: '2', name: 'ทีม GAT เข้าไปเลือกหัวข้อที่ BU ส่งข้อมูลมาให้', sla: '', check: ['รีเฟรชสถานะการส่งแล้ว', 'เลือกหัวข้อ/Pack ที่จะลงตรวจ ครบชุดนี้'], tab: 'p02pick', tabNote: 'ทำที่แท็บ 2 (เลือกหัวข้อ)', act: 'p02pick', actLabel: 'ไปแท็บ 2 — เลือกหัวข้อ' },
+    { id: '3', name: 'ทีม GAT เข้าไปตรวจ โดยใช้ AI ตรวจข้อมูลที่ BU ส่ง', sla: '', check: ['เลือก Pack แล้ว', 'สร้างชุดคำสั่ง AI (ครบกติกา GAT)', 'คัดลอกไปตรวจในโปรแกรม AI แล้ว'], tab: 'aiprompt', tabNote: 'ทำที่แท็บ 3 (ตรวจด้วย AI)', act: 'aiprompt', actLabel: 'ไปแท็บ 3 — ตรวจด้วย AI' },
+    { id: '4', name: 'AI ออกข้อเสนอแนะจากการตรวจ', sla: '', check: ['วางผล AI แล้ว', 'ตัดเป็นรายใบแล้ว (ตัดในขั้น 5)'], tab: 'aicand', tabNote: 'ทำที่แท็บ 4 (ผล AI)', act: 'aicand', actLabel: 'ไปแท็บ 4 — ผล AI' },
+    { id: '5', name: 'ทีม GAT คัดเลือกข้อเสนอแนะจาก AI', sla: 'WI-02: ทุกใบต้องครบ 3 อย่าง', check: ['ติ๊กเลือกเฉพาะใบที่จะใช้จริง', 'กรอกชื่อ GAT ผู้คัดเลือกแล้ว'], tab: 'aisel', tabNote: 'ทำที่แท็บ 5 (คัดเลือก)', act: 'aisel', actLabel: 'ไปแท็บ 5 — คัดเลือก' },
+    { id: '6', name: 'ทีม GAT ส่งข้อเสนอแนะที่คัดเลือกแล้วส่งให้ BU', sla: '', check: ['กดออกใบ REC (รันเลขเข้าชีต) แล้ว', 'หรือออกใบมือสำหรับใบไม่ผ่าน AI', 'ติดตามใบที่ส่ง — SLA 5 วันทำการ'], tab: 'aisend', tabNote: 'ทำที่แท็บ 6 (ส่งให้ BU)', act: 'aisend', actLabel: 'ไปแท็บ 6 — ส่งให้ BU' },
+    { id: '7', name: 'ทีม BU นำข้อเสนอแนะไปแก้ไข', sla: 'SLA: ตอบใน 5 วันทำการ', check: ['ดาวน์โหลดรายการใบ (.md) แล้ว', 'BU ประสานทีมที่รับผิดชอบแต่ละใบแล้ว'], tab: 'bufix', tabNote: 'ทำที่แท็บ 7 (BU นำไปแก้)', act: 'bufix', actLabel: 'ไปแท็บ 7 — BU แก้ไข' },
+    { id: '8', name: 'ทีม BU แก้ไข/ไม่แก้ไข + ส่งประเด็น/หลักฐาน', sla: 'SLA: ตอบใน 5 วันทำการ', check: ['แก้ไข = แนบลิงก์หลักฐาน', 'ไม่แก้ไข = เหตุผล + ผู้รับผิดชอบ ครบ', 'กรอกชื่อ-ตำแหน่งจริงผู้ตอบ'], tab: 'buanswer', tabNote: 'ทำที่แท็บ 8 (BU ตอบ)', act: 'buanswer', actLabel: 'ไปแท็บ 8 — BU ตอบ' },
+    { id: '9', name: 'ทีม GAT พิจารณาและปิดประเด็น', sla: '', check: ['ตรวจหลักฐานการแก้ (พอ/ไม่พอ)', '🔴 ที่ไม่แก้ = ยืนยันกลับเป็นทางการ', 'ติดตามถดถอย 30/60/90 วัน'], tab: 'close', tabNote: 'ทำที่แท็บ 9 (ปิดประเด็น)', act: 'close', actLabel: 'ไปแท็บ 9 — ปิดประเด็น' },
+    { id: '10', name: 'ทีม GAT สรุปรายงานผลการออกข้อเสนอแนะ', sla: 'กำหนด: ก่อนวันที่ 5 เดือนถัดไป', check: ['สรุปผลรวบแฟ้ม .md แล้ว', 'ส่งผู้มีอำนาจ/OAC + ทบทวน 🔴 ค้าง'], tab: 'summary', tabNote: 'ทำที่แท็บ 10 (สรุปรายงาน)', act: 'summary', actLabel: 'ไปแท็บ 10 — สรุปรายงาน' }
   ];
   function stepBoxHtml(sid, ix) {
     var s = RUN_STEPS.filter(function (x) { return x.id === sid; })[0];
@@ -1198,7 +1250,7 @@ function loadProcessDocs() {
     /* v1.12: แท็บ runner ถูกถอด — ตัด renderRunner() */
     /* v1.12 — 10 กระบวนการ: การ์ด Checklist ของขั้นนั้น ติดบนแท็บงานจริง */
     /* v1.12 — 10 กระบวนการ: การ์ด Checklist ของขั้นนั้น ติดบนแท็บงานจริง (แทรกก่อน card แรกของ pane) */
-    var SM = { p01: 'P-01', p02: 'P-02', packs: 'P-03', aireview: 'P-04', buanswer: 'P-05', close: 'P-06', p07: 'P-07', summary: 'P-08', dashboard: 'P-09', bct: 'P-10' };
+    var SM = { packs: '1', p02pick: '2', aiprompt: '3', aicand: '4', aisel: '5', aisend: '6', bufix: '7', buanswer: '8', close: '9', summary: '10' };
     if (SM[name]) {
       var pane = id('pane-' + name);
       var firstCard = pane ? pane.querySelector('.card') : null;
@@ -1247,5 +1299,5 @@ function loadProcessDocs() {
   }
 
   return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess,
-    _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _aiBuildPrompt: aiBuildPrompt, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks, _renderRecs: renderRecs };
+    _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _aiBuildPrompt: aiBuildPrompt, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks, _renderRecs: renderRecs, _renderPickTable: renderPickTable, _renderSentTable: renderSentTable, _renderFixTable: renderFixTable };
 })();

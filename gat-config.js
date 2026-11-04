@@ -1,7 +1,7 @@
 /* GAT Work System — shared config (โหลดก่อน app.js เสมอ) */
 window.GAT_CONFIG = {
   REC_SCOPE: ['GAT-REC-0042','GAT-REC-0043','GAT-REC-0044','GAT-REC-0045','GAT-REC-0046','GAT-REC-0047','GAT-REC-0048','GAT-REC-0049','GAT-REC-0050','GAT-REC-0051'], // v1.10 โหมดทดสอบเรื่องเดียว (GA-LC) — เคลียร์ [] เพื่อโชว์ทุกใบ
-  VERSION: 'v1.12 (4 พ.ย. 69) — 10 กระบวนการ P-01–P-10 = แท็บหลัก (P-01 วางแผน / P-02 แจ้งแผน+ขอข้อมูล เพิ่มใหม่ / P-07 อุทธรณ์ OAC เพิ่มใหม่) · ถอดแท็บ "กระบวนการทีม GAT" + "เดินกระบวนการ (Runner)" ออกจากเว็บ — เก็บเป็นข้อมูลครบ: gat-process.json + เอกสารเต็มย้ายไปท้ายแท็บคู่มือ · checklist ทุกขั้นติดบนแท็บงานจริง — โหมดทดสอบเรื่องเดียว GA-LC REC-0042–0051 — ชีตเก็บครบ 47 ใบ', // นิยาม PM=Process Management · WI=Work Instruction · SD=Supporting Document · FM=Form/Format ตามตารางที่พี่หนึ่งให้ 2 พ.ย. 69
+  VERSION: 'v1.13 (4 พ.ย. 69) — 10 แท็บตามลำดับของพี่หนึ่ง: 1.BU ส่งข้อมูล 2.GAT เลือกหัวข้อ 3.ตรวจด้วย AI 4.AI ออกข้อเสนอแนะ 5.GAT คัดเลือก 6.GAT ส่งให้ BU (รวมออกใบมือ) 7.BU นำไปแก้ 8.BU แก้/ไม่แก้+หลักฐาน 9.GAT ปิดประเด็น 10.สรุปรายงาน — ถอดแท็บ กระบวนการทีม GAT + Runner ออก (เก็บเป็นข้อมูล) — โหมดทดสอบเรื่องเดียว GA-LC REC-0042–0051 — ชีตเก็บครบ 47 ใบ', // นิยาม PM=Process Management · WI=Work Instruction · SD=Supporting Document · FM=Form/Format ตามตารางที่พี่หนึ่งให้ 2 พ.ย. 69
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง — ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
   BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbwmSjODcZRoqLiYomSNtSwK1rZqSe9YTWRBFa1YaUdWdqr8I61aW7s4YAo1blzXRV2C/exec'), // BCT กลาง — deploy v1.5.1 ที่หนึ่ง deploy 4 พ.ย. 69 (standalone + SHEET_ID)
   SOURCES: {

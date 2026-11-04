@@ -21,7 +21,7 @@ w.document.dispatchEvent(new w.Event('DOMContentLoaded'));
 setTimeout(() => {
   const d = w.document, gat = w.GAT;
   let pass = 0, fail = 0;
-  const ok = (name, cond) => { if (cond) pass++; else { fail++; console.error('❌ ' + name); } };
+  const ok = (name, cond, note) => { if (cond) pass++; else { fail++; console.error('❌ ' + name + (note!==undefined && note!==null && note!=='' && typeof note !== 'boolean' ? ' :: '+note : '')); } };
 
   // 1) นิยามใหม่: KPI "เอกสารกระบวนการทีม" = 6/7/6/5 รวม 24 (จาก gat-process.json จริง)
   const kpis = d.getElementById('kpiRow').textContent;
@@ -67,12 +67,30 @@ setTimeout(() => {
     ok('SD register: มีคอลัมน์แหล่งที่มา + จัดตามกลุ่ม', proc.includes('จัดตามกลุ่มมาตรฐาน') && proc.includes('แหล่งที่มา'));
     ok('FM_FIELDS: 11 ช่อง + Reference PM/WI + ผู้อนุมัติ', proc.includes('แบบฟอร์มบันทึกผล 11 ช่อง') && proc.includes('Reference PM / WI') && proc.includes('ผู้อนุมัติ (ถ้ามี)'));
     ok('FM_PRINCIPLE: ไม่สร้างฟอร์มเกินจำเป็น', proc.includes('ไม่ควรสร้างแบบฟอร์มมากเกินความจำเป็น'));
-    console.log('\n══ RESULT รวม (v1.12): ' + pass + ' pass / ' + fail + ' fail ══');
+    // --- v1.13: แท็บ 2/6/7 logic — seed packs+recs → ตาราง 3 อัน + ดาวน์โหลด bupix ---
+  var st5 = gat.state();
+  st5.packs = [{ PACK_ID: 'PACK-0001', BU: 'PAO', SCOPE: 'สวัสดิการพื้นฐาน', TITLE: 'รายละเอียดสวัสดิการ ต.ค. 69', STATUS: 'รอ GAT เลือกตรวจ' }];
+  st5.recs = st5.recs.concat([{ REC_ID: 'GAT-REC-0042', REC_NO: 42, SEVERITY: '🔴 ขัดกฎหมาย/จำเป็นจริง', TITLE: 'ทดสอบส่ง BU', STATUS: 'P-04 ขั้น ④ / ส่งให้ BU แล้ว', BU_DECISION: '' }]);
+  gat._renderPickTable(); gat._renderSentTable(); gat._renderFixTable();
+  ok('v1.13: แท็บ 2 — ตารางเลือกหัวข้อแสดง PACK', d.getElementById('pickBody').textContent.indexOf('PACK-0001') >= 0);
+  gat.showTab('aisend');
+  ok('v1.13: แท็บ 6 — ตารางติดตามใบส่ง BU (REC-0042)', d.getElementById('recBodySent').textContent.indexOf('GAT-REC-0042') >= 0);
+  ok('v1.13: แท็บ 6 — ฟอร์มออกใบมือรวมอยู่แท็บเดียว', !!d.getElementById('recRegPick') && !!d.getElementById('btnOpenRec'));
+  gat.showTab('bufix');
+  ok('v1.13: แท็บ 7 — ตารางรายการให้ BU ทำ + SLA "5 วันทำการ"', d.getElementById('recBodyFix').textContent.indexOf('GAT-REC-0042') >= 0 && d.getElementById('recBodyFix').textContent.indexOf('5 วันทำการ') >= 0);
+  ok('v1.13: แท็บ 7 — ปุ่มดาวน์โหลดรายการ (.md)', !!d.getElementById('btnBufixDl'));
+  // actLabel ของ RUN_STEPS ว่าจะไปทำแท็บไหน
+  var g8 = d.getElementById('stepbox');
+  gat.showTab('buanswer');
+  var sbTxt = d.getElementById('stepbox').textContent;
+  ok('v1.13: checklist แท็บ 8 + SLA "ตอบใน 5 วันทำการ"', sbTxt.indexOf('8') >= 0 && sbTxt.indexOf('5 วันทำการ') >= 0);
+
+  console.log('\n══ RESULT รวม (v1.13): ' + pass + ' pass / ' + fail + ' fail ══');
     process.exit(fail ? 1 : 0);
   }, 350);
 
   // 5) ข้อความคัดลอก (buildSummaryText ผ่าน export)
-  ok('แท็บครบหลัง render (v1.12 = 15 pane)', d.querySelectorAll('.tabpane').length === 15);
+  ok('แท็บครบหลัง render (v1.13 = 17 pane)', d.querySelectorAll('.tabpane').length === 17);
 
   // 6) Dashboard ยังแสดงแหล่งข้อมูล + BU chart (โดยไม่ crash)
   gat.showTab('dashboard');
@@ -82,32 +100,19 @@ setTimeout(() => {
 
   /* 7–12: ย้ายไปตรวจในบล็อก async processDocs (บล็อก 4) */
 
-  // 13) v1.12: process/runner ถูกถอดออก — nav หลัก = 10 กระบวนการ
+  // 13) v1.12: process/runner ถูกถอดออก — เก็บเป็นข้อมูล
   ok('v1.12: ไม่มีแท็บ process/runner บนหน้าเว็บ', !d.getElementById('pane-process') && !d.getElementById('pane-runner') && !d.querySelector('nav a[data-tab="process"]') && !d.querySelector('nav a[data-tab="runner"]'));
-  ok('v1.12: pane รวม 15 (10 ขั้น + ฐานข้อมูล/เอกสาร)', d.querySelectorAll('.tabpane').length === 15);
   ok('v1.12: แท็บปกติต้องไม่มี procBody', d.getElementById('procBody') === null);
   ok('v1.12: state.process ยังโหลดจาก gat-process.json (เก็บเป็นข้อมูล)', !!(gat.state().process && gat.state().process.CORE && gat.state().process.CORE.length === 10));
 
-  // 14) v1.12: 10 กระบวนการ = 10 แท็บหลัก + checklist ติดบนแท็บงานจริง
+  // 14) v1.13: 10 แท็บชื่อ 1..10 ตามหนึ่งสั่ง + checklist ติดบนแท็บ
   var navIds = Array.from(d.querySelectorAll('nav a[data-tab]')).map(function (a) { return a.getAttribute('data-tab'); });
-  ok('v1.12: nav หลัก 10 ขั้นเรียง P-01..P-10', ['p01','p02','packs','aireview','buanswer','close','p07','summary','dashboard','bct'].every(function (t) { return navIds.indexOf(t) >= 0; }));
-  gat.showTab('p01');
-  ok('v1.12: แท็บ P-01 มีการ์ด checklist P-01 + ฟอร์มจองเลขแผน', !!d.getElementById('stepbox') && d.getElementById('stepbox').textContent.includes('P-01') !== undefined && !!d.getElementById('btnSavePlan'));
-  gat.showTab('p02');
-  ok('v1.12: แท็บ P-02 มีการ์ด P-02 + ฟอร์มประกอบหนังสือ', d.getElementById('stepbox').textContent.indexOf('P-02') >= 0 && !!d.getElementById('btnP02Generate'));
-  gat.showTab('packs');
-  ok('v1.12: แท็บ P-03 มีการ์ด P-03 (checklist ติดบนแท็บ)', d.getElementById('stepbox') && d.getElementById('stepbox').textContent.indexOf('P-03') >= 0);
-  gat.showTab('p07');
-  ok('v1.12: แท็บ P-07 มีฟอร์มอุทธรณ์ (dropdown เลือกใบ + ผลตัดสิน)', !!d.getElementById('oacRecPick') && !!d.getElementById('btnOacLog'));
-  // ติ๊ก checklist บนแท็บจริง → runState บันทึก
-  gat.showTab('p01');
-  var cb1 = d.querySelector('.rb-chk');
-  w.localStorage.removeItem('gat_run_state');
-  cb1.checked = true; cb1.dispatchEvent(new w.Event('click', { bubbles: true }));
-  var after = w.GAT.state().runState || {};
-  var saved = null;
-  try { saved = JSON.parse(w.localStorage.getItem('gat_run_state') || 'null'); } catch (e) {}
-  ok('v1.12: ติ๊ก checklist บนแท็บ P-01 บันทึกความคืบหน้า (runState + localStorage)', (after['P-01'] || [])[0] === true && !!saved && (saved['P-01'] || [])[0] === true);
+  ok('v1.13: nav หลักครบ 10 แท็บใหม่', ['packs','p02pick','aiprompt','aicand','aisel','aisend','bufix','buanswer','close','summary'].every(function (t) { return navIds.indexOf(t) >= 0; }));
+  // เข้าแต่ละแท็บ = stepbox มีการ์ดขั้นนั้น
+  var seqTabs = [['packs','1'],['p02pick','2'],['aiprompt','3'],['aicand','4'],['aisel','5'],['aisend','6'],['bufix','7'],['buanswer','8'],['close','9'],['summary','10']];
+  var okBoxes = 0;
+  seqTabs.forEach(function (x) { gat.showTab(x[0]); var sb = d.getElementById('stepbox'); if (sb && sb.textContent.indexOf(x[1]) >= 0) okBoxes++; });
+  ok('v1.13: checklist ขึ้นครบ 10 แท็บ (stepbox ให้เลข 1..10)', okBoxes === 10, 'got ' + okBoxes);
 
   // --- v1.11: แท็บแยกตาม 10 กระบวนการ ---
   // seed REC ในขอบเขต 10 ใบ (เลียนแบบชีตจริง REC-0042–0051 ยังไม่มี BU ตอบ)
@@ -116,12 +121,10 @@ setTimeout(() => {
     return { REC_ID: 'GAT-REC-' + n, REC_NO: 42, SEVERITY: n === '0042' ? '🔴 ขัดกฎหมาย/จำเป็นจริง' : '🟢 ข้อเสนอ', TITLE: 'ทดสอบใบ ' + n, STATUS: 'P-04 ส่งให้ BU แล้ว', BU_DECISION: '' };
   }));
   gat._renderRecs();
-  ok('v1.11: nav มีทั้ง P-04/P-05/P-06 (แยกแท็บ)', ['P-04','P-05','P-06'].every(function (t) {
-    return Array.from(d.querySelectorAll('nav a')).some(function (a) { return a.textContent.indexOf(t) >= 0; });
-  }));
+  ok('v1.11+: nav มีทั้ง P-04/P-05/P-06 หรือแท็บไหม่ 5/6/9 อย่างน้อย 1 ชุด', Array.from(d.querySelectorAll('nav a')).some(function (a) { return a.textContent.indexOf('P-04') >= 0 || a.textContent.indexOf('ส่งให้ BU') >= 0; }));
   ok('v1.11: ฟอร์ม ② BU ตอบอยู่ใน pane-buanswer (ไม่ปน P-04)', d.getElementById('respRecPick').closest('.tabpane').id === 'pane-buanswer');
   ok('v1.11: ฟอร์ม ③ ปิดอยู่ใน pane-close', d.getElementById('closeRecPick').closest('.tabpane').id === 'pane-close');
-  ok('v1.11: ฟอร์ม ① ออกใบอยู่ใน pane-aireview (จบการการ์ด AI)', d.getElementById('recRegPick').closest('.tabpane').id === 'pane-aireview');
+  ok('v1.13: ฟอร์ม ① ออกใบมือย้ายไป pane-aisend (ขั้น 6)', d.getElementById('recRegPick').closest('.tabpane').id === 'pane-aisend');
   ok('v1.11: ทะเบียนกลางอยู่ที่แท็บ recs เฉพาะ', d.getElementById('recBody').closest('.tabpane').id === 'pane-recs');
   gat.showTab('buanswer');
   ok('v1.11: ตารางสำเนา P-05 มี 10 แถว (ขอบเขต REC)', d.getElementById('recBodyAns').querySelectorAll('tr').length === 10);

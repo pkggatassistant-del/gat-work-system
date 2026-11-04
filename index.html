@@ -179,20 +179,20 @@ ol.manual li{margin-bottom:8px}
     </div>
   </div>
   <nav id="mainNav">
-    <div class="nav-hd">กระบวนการทำงาน 10 ขั้น (P-01 → P-10)</div>
-    <a data-tab="p01"><span class="ic">🗺</span> P-01 วางแผนรอบตรวจ</a>
-    <a data-tab="p02"><span class="ic">📨</span> P-02 แจ้งแผน+ขอข้อมูล</a>
-    <a data-tab="packs"><span class="ic">📤</span> P-03 รับ–เก็บข้อมูล</a>
-    <a data-tab="aireview"><span class="ic">🤖</span> P-04 ตรวจ+ออกใบ</a>
-    <a data-tab="buanswer"><span class="ic">✍️</span> P-05 BU ตอบใบ</a>
-    <a data-tab="close"><span class="ic">🔒</span> P-06 ปิดประเด็น</a>
-    <a data-tab="p07"><span class="ic">⚖️</span> P-07 อุทธรณ์ OAC</a>
-    <a data-tab="summary"><span class="ic">🧭</span> P-08 รายงานรายเดือน</a>
-    <a data-tab="dashboard"><span class="ic">📊</span> P-09 คุมทะเบียน</a>
-    <a data-tab="bct"><span class="ic">🔄</span> P-10 ติดตั้งฐานใหม่</a>
+    <div class="nav-hd">ระบบปฏิบัติงาน 10 ขั้น</div>
+    <a data-tab="packs"><span class="ic">📤</span> 1. BU ส่งข้อมูลที่จะตรวจ</a>
+    <a data-tab="p02pick"><span class="ic">🗂</span> 2. GAT เลือกหัวข้อจากข้อมูลที่ส่ง</a>
+    <a data-tab="aiprompt"><span class="ic">🔍</span> 3. GAT ตรวจด้วย AI</a>
+    <a data-tab="aicand"><span class="ic">💡</span> 4. AI ออกข้อเสนอแนะ</a>
+    <a data-tab="aisel"><span class="ic">✂️</span> 5. GAT คัดเลือกข้อเสนอแนะ</a>
+    <a data-tab="aisend"><span class="ic">🧾</span> 6. GAT ส่งให้ BU</a>
+    <a data-tab="bufix"><span class="ic">🛠</span> 7. BU นำไปแก้ไข</a>
+    <a data-tab="buanswer"><span class="ic">✍️</span> 8. BU แก้/ไม่แก้ + หลักฐาน/เหตุผล</a>
+    <a data-tab="close"><span class="ic">🔒</span> 9. GAT พิจารณา+ปิดประเด็น</a>
+    <a data-tab="summary"><span class="ic">🧭</span> 10. GAT สรุปรายงานผล</a>
     <div class="nav-hd">ฐานข้อมูล</div>
-    <a data-tab="registers"><span class="ic">🗂</span> Registers</a>
-    <a data-tab="universe"><span class="ic">🗺</span> Regulatory Universe</a>
+    <a data-tab="registers"><span class="ic">🗄</span> Registers</a>
+    <a data-tab="universe"><span class="ic">🌐</span> Regulatory Universe</a>
     <a data-tab="recs"><span class="ic">🧾</span> ทะเบียนข้อเสนอแนะ</a>
     <div class="nav-hd">เอกสารระบบ</div>
     <a data-tab="manual"><span class="ic">📖</span> คู่มือการใช้งาน</a>
@@ -247,75 +247,6 @@ ol.manual li{margin-bottom:8px}
     </div>
   </section>
 
-  <!-- ============ P-01 วางแผน ============ -->
-  <section class="tabpane" id="pane-p01">
-    <div class="card">
-      <div class="card-hd"><h3>🗺 P-01 — วางแผนรอบตรวจรายเดือน</h3></div>
-      <p class="desc">เลือกขอบเขตจาก 3 แหล่ง (ปฏิทิน / ทะเบียน 🟡🔴 / เหตุเร่งด่วน) → ระบุเจ้าของด้าน (คน/ลูกค้า/การเงิน/กระบวนการ) → รอหัวหน้าสาย Audit อนุมัติแผน → จองเลขแผนรอบนี้ (เช่น PLAN-2569-11) แล้วบันทึก — แท็บ P-04 จะอ้างแผนนี้ในช่อง REF_PM_WI ทุกใบ</p>
-      <div class="filters">
-        <input id="planId" placeholder="เลขแผนรอบนี้ (เช่น PLAN-2569-11)" style="width:250px">
-        <input id="planScope" placeholder="ขอบเขตรอบนี้ (เช่น สวัสดิการพื้นฐาน — ประเทศไทย)" style="flex:1;min-width:240px">
-        <select id="planOwner">
-          <option value="">— เจ้าของด้าน —</option>
-          <option>คน (People)</option>
-          <option>ลูกค้า (Client)</option>
-          <option>การเงิน (Finance)</option>
-          <option>กระบวนการ (Process)</option>
-        </select>
-        <button id="btnSavePlan" class="gold">💾 บันทึกแผนรอบนี้ (รันเลข)</button>
-      </div>
-      <div id="planList" style="margin-top:10px"></div>
-      <p class="desc" id="planStatus" style="color:#0e8345;font-weight:600"></p>
-    </div>
-  </section>
-
-  <!-- ============ P-02 แจ้งแผน ============ -->
-  <section class="tabpane" id="pane-p02">
-    <div class="card">
-      <div class="card-hd"><h3>📨 P-02 — แจ้งแผน + ขอข้อมูล BU (ล่วงหน้า 14 วัน)</h3></div>
-      <p class="desc">เลือกแบบหนังสือ (ให้ข้อมูล / เรียกข้อมูลเพิ่ม) → กรอกผู้รับ + SLA (ข้อความ "ส่งใน 3 วันทำการ / ด่วน LCT 24 ชม." ขึ้นเอง) → กรอกเนื้อหา → ประกอบหนังสือ → คัดลอก/ดาวน์โหลดส่งตามช่องทางจริง (ระบบนี้ไม่ส่งเอง)</p>
-      <div class="filters">
-        <select id="p02Type" style="width:230px">
-          <option value="ให้ข้อมูล">แบบ ให้ข้อมูล (ปกติ)</option>
-          <option value="เรียกข้อมูลเพิ่ม">แบบ เรียกข้อมูลเพิ่ม (ขาด/เร่ง)</option>
-        </select>
-        <input id="p02To" placeholder="ผู้รับ (BU + ตำแหน่ง)" style="flex:1;min-width:200px">
-        <input id="p02RefPlan" placeholder="อ้างแผน (เช่น PLAN-2569-11)" style="width:230px">
-      </div>
-      <div class="filters"><input id="p02Title" placeholder="เรื่อง — เช่น แจ้งตรวจ สวัสดิการพื้นฐาน (ประเทศไทย)" style="flex:1;min-width:240px"><input id="p02Sla" placeholder="SLA — เช่น ส่งข้อมูลใน 3 วันทำการ" style="width:260px"></div>
-      <div class="filters"><textarea id="p02Body" rows="6" placeholder="เนื้อความนอกชื่อหัว: สรุปข้อมูลที่ขอ + กำหนดส่ง + ช่องทางติดต่อ..." style="width:100%;font-family:inherit;min-height:110px"></textarea></div>
-      <div class="filters"><input id="p02By" placeholder="ชื่อ-ตำแหน่งผู้แจ้ง (GAT)" style="width:280px"></div>
-      <div class="filters">
-        <button id="btnP02Generate" class="gold">✨ ประกอบหนังสือ</button>
-        <button class="button-lite" id="btnP02Copy">📋 คัดลอก</button>
-        <button class="button-lite" id="btnP02Download">⬇ ดาวน์โหลด .txt</button>
-      </div>
-      <div class="filters"><textarea id="p02Final" rows="12" placeholder="หนังสือฉบับเต็มจะปรากฏที่นี่ — แก้ไขได้ละคัดลอก/ดาวน์โหลดส่งตามช่องทางจริง" style="width:100%;font-family:inherit;min-height:150px"></textarea></div>
-    </div>
-  </section>
-
-  <!-- ============ P-07 อุทธรณ์ OAC ============ -->
-  <section class="tabpane" id="pane-p07">
-    <div class="card">
-      <div class="card-hd"><h3>⚖️ P-07 — อุทธรณ์ต่อ OAC (BU คัดค้านใบ)</h3></div>
-      <p class="desc">BU ไม่ตกลงกับใบใด: อุทธรณ์ <b>ภายใน 7 วัน</b>ที่ได้รับคำตอบ (กฎบัตรข้อ 9 — การตัดสิน OAC = ที่สุดของรอบ) · 🔴 ระหว่างอุทธรณ์ ต้องมีมาตรการป้องกันชั่วคราว</p>
-      <div class="filters"><select id="oacRecPick" style="flex:1;min-width:240px"><option value="">— เลือกใบที่คัดค้าน —</option></select></div>
-      <div class="filters">
-        <input id="oacDate" placeholder="วันที่ตัดสิน (เช่น 12 พ.ย. 69)" style="width:210px">
-        <select id="oacResult" style="flex:1;min-width:190px">
-          <option value="">— ผลตัดสิน —</option>
-          <option>อุทธรณ์ถูก — ปิดใบ</option>
-          <option>อุทธรณ์ไม่ถูก — รักษาเดิม</option>
-          <option>อยู่ระหว่างพิจารณา</option>
-        </select>
-      </div>
-      <div class="filters"><textarea id="oacReason" rows="3" placeholder="เหตุผลคัดค้าน / หมายเหตุการตัดสิน (อ้างกฎหมาย/ข้อเท็จจริง)" style="flex:1;min-width:280px;font-family:inherit"></textarea></div>
-      <div class="filters"><input id="oacBy" placeholder="ชื่อ-ตำแหน่งผู้อุทธรณ์ (BU)" style="width:280px"><button id="btnOacLog" class="gold">⚖️ บันทึกอุทธรณ์นี้ (ในเครื่องนี้)</button></div>
-      <div id="oacList" style="margin-top:10px"></div>
-      <p class="desc" id="oacStatus" style="color:#0e8345;font-weight:600">ฟอร์มส่งตรงถึง OAC กำลังจะมา (ตามใบแจ้งระบบ) — ตอนนี้บันทึกรายการได้ในเครื่องนี้</p>
-    </div>
-  </section>
-
   <!-- ============ PACKS (BU ส่งข้อมูล) ============ -->
   <section class="tabpane" id="pane-packs">
     <div class="card">
@@ -344,54 +275,6 @@ ol.manual li{margin-bottom:8px}
     </div>
   </section>
 
-  <!-- ============ AI REVIEW ============ -->
-  <section class="tabpane" id="pane-aireview">
-    <div class="card">
-      <div class="card-hd"><b>🤖 AI Review — GAT เลือก Pack → ใช้ AI ตรวจ → คัดใบ → ออก REC</b></div>
-      <p class="desc">ขั้น ②–⑥ ของวงจร: GAT เลือก Pack ที่ BU ส่ง → ระบบสร้างชุดคำสั่ง AI กรอกหัวข้อ/กติกา GAT พร้อมใช้ (คัดลอกไปโปรแกรม AI ที่ใช้ตรวจ) → GAT วางสรุปผล AI กลับเข้าช่อง → ติ๊กเลือกเฉพาะใบจะใช้ → กดออกใบ REC รันเลขเข้าชีต + แจ้ง BU อัตโนมัตในหน้าเว็บ</p>
-      <div class="filters">
-        <select id="aiPackPick" style="flex:1;min-width:280px"><option value="">— เลือก Pack ที่ BU ส่ง —</option></select>
-        <button class="button-lite" id="btnAiBuild">🧩 สร้างชุดคำสั่ง AI (จาก Pack ที่เลือก)</button>
-      </div>
-      <div class="filters"><textarea id="aiPrompt" placeholder="ชุดคำสั่ง AI จะปรากฏที่นี่ — กดคัดลอก พาไปวางใน AI ที่ใช้ตรวจ" style="width:100%;min-height:150px" readonly></textarea></div>
-      <div class="filters">
-        <button class="button-lite" id="btnAiCopy">📋 คัดลอกชุดคำสั่ง</button>
-        <button class="button-lite" id="btnAiPasteFromChat" >⬇ วางคำตอบ AI ด้านล่าง</button>
-      </div>
-      <div class="filters"><textarea id="aiResult" placeholder="GAT วางผลวิเคราะห์ของ AI ที่นี่ (ข้อความเดียวขึ้นบรรทัดใหม่ = 1 ใบประเด็น) รูปที่ AI ตอบตามชุดคำสั่งก็พบกัน" style="width:100%;min-height:150px"></textarea></div>
-      <div class="filters">
-        <input id="aiSev" style="width:170px" value="">
-        <button class="button-lite" id="btnAiParse">✂️ ตัดเป็นใบจากคำตอบ AI (แสดงรายใบติ๊กเลือก)</button>
-      </div>
-      <div id="aiCandidates"></div>
-      <div class="filters">
-        <input id="aiBy" placeholder="ชื่อ GAT ผู้คัดเลือก" style="width:240px">
-        <button id="btnAiEmit" class="gold">🧾 ออกใบ REC จากใบที่ติ๊กเลือก (รันเลข → ชีต)</button>
-      </div>
-      <div id="aiStatus" class="status" style="margin-top:8px"></div>
-    </div>
-  
-    <div class="card" style="border-top:3px solid var(--gold)">
-      <h3>✍️ ออกใบ REC มือ (GAT) <span class="pill n">รันเลขอัตโนมัติ GAT-REC-0001…</span> — ขั้น P-04</h3>
-      <p class="desc">ใบที่ไม่ผ่าน AI หรือออกตรง ๆ: เลือกต้นเรื่องจาก Registers → ระดับ → ผู้ออก/REF_PM_WI/ผู้อนุมัติ → กด รันเลข (ส่งเข้า BCT อัตโนมัติ)</p>
-      <div class="filters">
-        <select id="recRegPick" style="flex:1;min-width:280px"><option value="">— เลือกรายการจาก Registers (ต้นเรื่อง) —</option></select>
-        <select id="recSev">
-          <option>🔴 ขัดกฎหมาย/จำเป็นจริง</option>
-          <option selected>🟢 ข้อเสนอ</option>
-        </select>
-      </div>
-      <div class="filters"><input id="recTitle" placeholder="หัวข้อข้อเสนอแนะ (สั้น ชัด — อ้างชีท+แถวในรายละเอียด)" style="flex:1;min-width:280px"></div>
-      <div class="filters"><textarea id="recDetail" rows="4" placeholder="รายละเอียดสิ่งที่ตรวจพบ + ข้อเสนอแนะ (อ้างชีท+แถวต้นฉบับ — ห้ามเดา ตามกฎเหล็ก)" style="flex:1;min-width:280px;font-family:inherit"></textarea></div>
-      <div class="filters">
-        <input id="recBy" placeholder="ผู้ออกข้อเสนอแนะ (GAT)" value="GAT" style="width:240px">
-        <input id="recRefPmWi" placeholder="REF_PM_WI (เช่น P-04 ขั้น ④ / WI-02)" style="width:280px">
-        <input id="recApprover" placeholder="ผู้อนุมัติ (ถ้ามี — เช่น หัวหน้าสาย Audit)" style="width:260px">
-        <button id="btnOpenRec" class="gold">🧾 รันเลข + ส่งเข้า BCT</button>
-        <button class="button-lite" id="btnDraftRec">⬇ ดาวน์โหลดโครง .txt (สำรอง)</button>
-      </div>
-    </div>
-</section>
 
   <!-- ============ BCT ============ -->
   <section class="tabpane" id="pane-bct">
@@ -439,6 +322,112 @@ ol.manual li{margin-bottom:8px}
         <tbody id="recBody"></tbody>
       </table>
       </div>
+    </div>
+  </section>
+
+
+  <!-- ============ 2. แท็บ GAT เลือกหัวข้อจากข้อมูลที่ BU ส่ง ============ -->
+  <section class="tabpane" id="pane-p02pick">
+    <div class="card">
+      <div class="card-hd"><b>🗂 ขั้น 2 — ทีม GAT เลือกหัวข้อที่ BU ส่งข้อมูลมาให้</b></div>
+      <p class="desc">ดูสถานะการส่งจากชีตจริง → เลือก <b>หัวข้อ/Pack ที่จะลงตรวจ</b> — เลือกแล้วส่งต่อขั้น 3 (ตรวจด้วย AI)</p>
+      <div class="filters"><button class="button-lite" id="btnLoadPacksPick">🔄 รีเฟรชสถานะการส่ง</button></div>
+      <div style="overflow-x:auto"><table id="pickTable" class="table"><thead><tr><th style="width:44px">เลือก</th><th>เลข Pack</th><th>BU</th><th>ขอบเขต</th><th>หัวเรื่อง</th><th>สถานะ</th></tr></thead><tbody id="pickBody"><tr><td colspan="6" class="empty">ยังไม่มีข้อมูล — กด รีเฟรชสถานะ</td></tr></tbody></table></div>
+      <div class="filters">
+        <button id="btnGotoAi" class="gold">🔍 ไปขั้น 3 — ตรวจด้วย AI</button>
+        <span id="pickStatus" class="status"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. แท็บ GAT ตรวจด้วย AI ============ -->
+  <section class="tabpane" id="pane-aiprompt">
+    <div class="card">
+      <div class="card-hd"><b>🔍 ขั้น 3 — ทีม GAT เข้าไปตรวจ โดยใช้ AI ตรวจข้อมูลที่ BU ส่ง</b></div>
+      <p class="desc">เลือก Pack → กดสร้างชุดคำสั่ง AI (ระบบกรอกหัวข้อ/กติกา GAT ให้ครบ) → คัดลอกไปวางในโปรแกรม AI ที่ใช้ตรวจ</p>
+      <div class="filters">
+        <select id="aiPackPick" style="flex:1;min-width:280px"><option value="">— เลือก Pack ที่ BU ส่ง —</option></select>
+        <button class="button-lite" id="btnAiBuild">🧩 สร้างชุดคำสั่ง AI (จาก Pack ที่เลือก)</button>
+      </div>
+      <div class="filters"><textarea id="aiPrompt" placeholder="ชุดคำสั่ง AI จะปรากฏที่นี่ — กดคัดลอก พาไปวางใน AI ที่ใช้ตรวจ" style="width:100%;min-height:150px" readonly></textarea></div>
+      <div class="filters"><button class="button-lite" id="btnAiCopy">📋 คัดลอกชุดคำสั่ง</button></div>
+      <div class="filters">
+        <span class="desc" style="flex:1">เมื่อ AI ตรวจเสร็จ → วางผลใน <b>ขั้น 4 AI ออกข้อเสนอแนะ</b> ต่อทันที</span>
+        <button class="button-lite" id="btnGotoAicand">💡 ไปขั้น 4 — AI ออกข้อเสนอแนะ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. แท็บ AI ออกข้อเสนอแนะ ============ -->
+  <section class="tabpane" id="pane-aicand">
+    <div class="card">
+      <div class="card-hd"><b>💡 ขั้น 4 — AI ออกข้อเสนอแนะจากการตรวจ</b></div>
+      <p class="desc">GAT วางผลที่ AI ตรวจได้ (ข้อความเดียวขึ้นบรรทัดใหม่ = 1 ใบประเด็น) → กดตัดเป็นใบ = ได้รายชื่อ "ข้อเสนอแนะจาก AI" รอคัดเลือก</p>
+      <div class="filters"><textarea id="aiResult" placeholder="วางผลวิเคราะห์ของ AI ที่นี่ (ข้อความเดียวขึ้นบรรทัดใหม่ = 1 ใบประเด็น)" style="width:100%;min-height:150px"></textarea></div>
+      <div class="filters">
+        <input id="aiSev" style="width:170px" value="">
+        <button class="button-lite" id="btnAiParse">✂️ ตัดเป็นใบ (รายการจะปรากฏในขั้น 5 ต่อ)</button>
+        <button class="button-lite" id="btnGotoAisel">✂️ ไปขั้น 5 — คัดเลือก</button>
+      </div>
+      <div id="aiStatus" class="status" style="margin-top:8px"></div>
+    </div>
+  </section>
+
+  <!-- ============ 5. แท็บ GAT คัดเลือกข้อเสนอแนะจาก AI ============ -->
+  <section class="tabpane" id="pane-aisel">
+    <div class="card">
+      <div class="card-hd"><b>✂️ ขั้น 5 — ทีม GAT คัดเลือกข้อเสนอแนะจาก AI</b></div>
+      <p class="desc">ติ๊ก ✅ เฉพาะใบที่จะใช้จริง (ตัดใบซ้ำ/ใบตั้งข้อสังเกตไม่ได้ตาม WI-02) — กรอกชื่อผู้คัดเลือก แล้วกดขั้น 6 ต่อ</p>
+      <div id="aiCandidates"></div>
+      <div class="filters"><input id="aiBy" placeholder="ชื่อ GAT ผู้คัดเลือก" style="width:240px"></div>
+      <div class="filters">
+        <button class="button-lite" id="btnGotoAisend">🧾 ไปขั้น 6 — ส่งให้ BU</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6. แท็บ GAT ส่งให้ BU ============ -->
+  <section class="tabpane" id="pane-aisend">
+    <div class="card">
+      <div class="card-hd"><b>🧾 ขั้น 6 — ทีม GAT ส่งข้อเสนอแนะที่คัดเลือกแล้วให้ BU</b></div>
+      <p class="desc">กด <b>ออกใบ REC</b> = รันเลข GAT-REC → ชีตกลาง + สถานะเปลี่ยน "ส่งให้ BU แล้ว" — BU เห็นใบที่แท็บ 8 ต่อ</p>
+      <div class="filters">
+        <button id="btnAiEmit" class="gold">🧾 ออกใบ REC จากใบที่ติ๊กเลือก (รันเลข → ชีต)</button>
+      </div>
+      <div class="card">
+        <h3>✍️ ออกใบ REC มือ (GAT <span class="pill n">ใบที่ไม่ผ่าน AI / ออกตรง ๆ</span>)</h3>
+        <p class="desc">เลือกต้นเรื่องจาก Registers → ระดับ → ผู้ออก/REF_PM_WI/ผู้อนุมัติ → กด รันเลข (ส่งเข้า BCT อัตโนมัติ)</p>
+        <div class="filters">
+          <select id="recRegPick" style="flex:1;min-width:280px"><option value="">— เลือกรายการจาก Registers (ต้นเรื่อง) —</option></select>
+          <select id="recSev"><option>🔴 ขัดกฎหมาย/จำเป็นจริง</option><option selected>🟢 ข้อเสนอ</option></select>
+        </div>
+        <div class="filters"><input id="recTitle" placeholder="หัวข้อข้อเสนอแนะ (สั้น ชัด อ้างชีท+แถว)" style="flex:1;min-width:280px"></div>
+        <div class="filters"><textarea id="recDetail" rows="4" placeholder="รายละเอียดสิ่งที่ตรวจพบ + ข้อเสนอแนะ (อ้างชีท+แถวต้นฉบับ ตามกฎเหล็ก)" style="flex:1;min-width:280px;font-family:inherit"></textarea></div>
+        <div class="filters">
+          <input id="recBy" placeholder="ผู้ออกข้อเสนอแนะ (GAT)" value="GAT" style="width:240px">
+          <input id="recRefPmWi" placeholder="REF_PM_WI (เช่น P-04 ขั้น ④ / WI-02)" style="width:280px">
+          <input id="recApprover" placeholder="ผู้อนุมัติ (ถ้ามี เช่น หัวหน้าสาย Audit)" style="width:260px">
+          <button id="btnOpenRec" class="gold">🧾 รันเลข + ส่งเข้า BCT</button>
+          <button class="button-lite" id="btnDraftRec">⬇ ดาวน์โหลดโครง .txt (สำรอง)</button>
+        </div>
+      </div>
+      <div class="card" style="border-top:3px solid #94a3b8">
+        <h3>📨 ติดตาม: ใบที่ส่งให้ BU แล้ว (รอ BU ตอบ)</h3>
+        <p class="desc">ใบจากชีตจริงที่สถานะ "ส่งให้ BU" — ติดตามให้ครบตาม SLA 5 วันทำการ</p>
+        <div style="overflow-x:auto"><table class="table"><thead><tr><th>เลขใบ</th><th>หัวข้อ</th><th>ระดับ</th><th>สถานะ</th></tr></thead><tbody id="recBodySent"><tr><td colspan="4" class="empty">— ยังไม่มีใบที่ส่งแล้วในขอบเขตโชว์ —</td></tr></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 7. แท็บ BU นำไปแก้ไข ============ -->
+  <section class="tabpane" id="pane-bufix">
+    <div class="card">
+      <div class="card-hd"><b>🛠 ขั้น 7 — ทีม BU นำข้อเสนอแนะไปแก้ไข</b></div>
+      <p class="desc">ดาวน์โหลดรายการใบที่ BU ต้องทำ ครบชุด (อ่านง่าย พาไปแก้ได้ทันที) — เมื่อแก้แล้ว → บันทึกคำตอบที่ <b>แท็บ 8</b></p>
+      <div class="filters">
+        <button id="btnBufixDl" class="gold">⬇ ดาวน์โหลดรายการใบที่ BU ต้องทำ (.md)</button>
+      </div>
+      <div style="overflow-x:auto"><table class="table"><thead><tr><th>เลขใบ</th><th>หัวข้อ</th><th>ระดับ</th><th>ต้องส่ง (ตาม SLA 5 วันทำการ)</th></tr></thead><tbody id="recBodyFix"><tr><td colspan="4" class="empty">— ยังไม่มีใบให้ทำ —</td></tr></tbody></table></div>
     </div>
   </section>
 
