@@ -21,7 +21,7 @@
  */
 
 var CONFIG = {
-  VERSION: 'v1.5.2 (4 พ.ย. 69) — บังคับใช้ชีตกลางตาม SHEET_ID เสมอ (กันพลาด write คนละชีตตอน bound กับชีตอื่น) โดย GAT(แดง)',
+  VERSION: 'v1.5.2 (4 พ.ย. 69) — SHEET_ID เสมอ + action update_pack_status (ปิด/ติดแท็ก Pack ทดสอบ) โดย GAT(แดง)',
   SHEETS: {
     REGISTERS: 'GAT_Registers',   // Master Register: รายการตรวจสอบ/ภาระต้องส่ง
     ENTRIES: 'GAT_Entries',       // รายการบันทึกผลตรวจสอบรายครั้ง (BU กรอก)
@@ -228,10 +228,19 @@ function doPost(e) {
           return json_({ ok: true, PACK_ID: pk.PACK_ID });
         } finally { lock2.releaseLock(); }
       }
+      case 'update_pack_status': {
+        var lock3 = LockService.getScriptLock();
+        lock3.waitLock(10000);
+        try {
+          var nUpd = updatePackStatus_(data);
+          log_(data.BY || 'GAT', 'update_pack_status', or_(data.PACK_ID), or_(data.STATUS));
+          return json_({ ok: true, updated: nUpd });
+        } finally { lock3.releaseLock(); }
+      }
       case 'migrate':
         return json_({ ok: true, result: migrateSheets() });
       case 'ping':
-        return json_({ ok: true, version: (typeof CONFIG !== 'undefined' && CONFIG.VERSION) || 'gas-v1.2+ping', actions: 'open_issue,respond_issue,close_issue,submit_pack,migrate,ping,clean_recs,backfill_ref_pm_wi,fix_log_timestamps' });
+        return json_({ ok: true, version: (typeof CONFIG !== 'undefined' && CONFIG.VERSION) || 'gas-v1.2+ping', actions: 'open_issue,respond_issue,close_issue,submit_pack,update_pack_status,migrate,ping,clean_recs,backfill_ref_pm_wi,fix_log_timestamps' });
       default:
         throw new Error('unknown action: ' + action);
     }
@@ -432,6 +441,25 @@ function submitPack_(data) {
   var now = Utilities.formatDate(new Date(), CONFIG.TZ, 'yyyy-MM-dd HH:mm');
   sh.appendRow([packId, or_(data.BU), or_(data.SCOPE), or_(data.PERIOD), or_(data.TITLE), or_(data.LINKS), or_(data.NOTE), 'รอ GAT เลือกตรวจ', or_(data.BY || 'BU'), now, '', '']);
   return { PACK_ID: packId };
+}
+
+/* v1.5.2 — เปลี่ยนสถานะ Pack (เช่น mark "ทดสอบระบบ — ปิด" หรือ "ตรวจแล้ว") */
+function updatePackStatus_(data) {
+  if (!data.PACK_ID) throw new Error('ต้องระบุ PACK_ID');
+  var sh = getSS_().getSheetByName(CONFIG.SHEETS.PACKS);
+  if (!sh) throw new Error('ไม่พบแท็บ ' + CONFIG.SHEETS.PACKS);
+  var last = sh.getLastRow();
+  var ids = last > 1 ? sh.getRange(2, 1, last - 1, 1).getValues() : [];
+  var hit = -1;
+  ids.forEach(function (r, i) { if (String(r[0]) === String(data.PACK_ID)) hit = i + 2; });
+  if (hit < 0) throw new Error('ไม่พบ ' + data.PACK_ID);
+  var col = data.FIELD === 'AI_NOTE' || data.FIELD === 'AI_REVIEW_AT'
+    ? (data.FIELD === 'AI_NOTE' ? 12 : 11)
+    : 8; // STATUS column
+  var val = data.STATUS || '';
+  if (data.FIELD === 'AI_REVIEW_AT') val = Utilities.formatDate(new Date(), CONFIG.TZ, 'yyyy-MM-dd HH:mm');
+  sh.getRange(hit, col).setValue(val);
+  return 1;
 }
 
 function log_(actor, action, target, detail) {
