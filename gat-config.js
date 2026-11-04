@@ -2,7 +2,7 @@
 window.GAT_CONFIG = {
   VERSION: 'v1.8 (4 พ.ย. 69) — วงจร 10 ขั้นครบบนเว็บ: แท็บ 📤 BU ส่งข้อมูล (Pack) + 🤖 AI Review แล้วออกใบ REC', // นิยาม PM=Process Management · WI=Work Instruction · SD=Supporting Document · FM=Form/Format ตามตารางที่พี่หนึ่งให้ 2 พ.ย. 69; v1.3 = แยกข้อมูลตรวจ/เอกสารทีม
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง — ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
-  BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbwkiyWP4UzOGNt6Ly-XV1Rztz7gaW9V6GuKZ_hSpWmUu9QMjUmDS0RUjbej784ewTxVig/exec'), // BCT กลาง — deploy ใหม่ 2 พ.ย. 69 (localStorage ทับได้)
+  BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbwmSjODcZRoqLiYomSNtSwK1rZqSe9YTWRBFa1YaUdWdqr8I61aW7s4YAo1blzXRV2C/exec'), // BCT กลาง — deploy v1.5.1 ที่หนึ่ง deploy 4 พ.ย. 69 (standalone + SHEET_ID)
   SOURCES: {
     // อ้างไฟล์เทียบตำแหน่ง index.html (ทำงานได้ทั้งบน GitHub Pages และ local)
     SEED: 'gat-seed.json',            // ข้อมูลตั้งต้นจาก PKG_Compliance_plan_2026-30.xlsx
