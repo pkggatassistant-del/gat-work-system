@@ -1,6 +1,6 @@
 /* GAT Work System — shared config (โหลดก่อน app.js เสมอ) */
 window.GAT_CONFIG = {
-  VERSION: 'v1.7 (3 พ.ย. 69) — สรุปผลงาน: แสดงรายใบแยกชุด สวัสดิการ(F-01–F-15) + การเงิน(FIN-R1–R7) ตามคำขอพี่หนึ่ง', // นิยาม PM=Process Management · WI=Work Instruction · SD=Supporting Document · FM=Form/Format ตามตารางที่พี่หนึ่งให้ 2 พ.ย. 69; v1.3 = แยกข้อมูลตรวจ/เอกสารทีม
+  VERSION: 'v1.8 (4 พ.ย. 69) — วงจร 10 ขั้นครบบนเว็บ: แท็บ 📤 BU ส่งข้อมูล (Pack) + 🤖 AI Review แล้วออกใบ REC', // นิยาม PM=Process Management · WI=Work Instruction · SD=Supporting Document · FM=Form/Format ตามตารางที่พี่หนึ่งให้ 2 พ.ย. 69; v1.3 = แยกข้อมูลตรวจ/เอกสารทีม
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง — ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
   BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbwkiyWP4UzOGNt6Ly-XV1Rztz7gaW9V6GuKZ_hSpWmUu9QMjUmDS0RUjbej784ewTxVig/exec'), // BCT กลาง — deploy ใหม่ 2 พ.ย. 69 (localStorage ทับได้)
   SOURCES: {

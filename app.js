@@ -16,7 +16,7 @@ var GAT = (function () {
     entries: [],
     issues: [],
     recs: [],
-    registersBCT: [],
+    registersBCT: [], packs: [], packsLoaded: false,
     lastImport: null,
     filter: { bu: '', type: '', q: '' },
     page: 1
@@ -232,10 +232,12 @@ var GAT = (function () {
   }
   function importBCT() {
     status('กำลังดึงข้อมูลจาก BCT…');
-    Promise.all([gasGet('list_registers'), gasGet('list_entries'), gasGet('list_recs').catch(function(){return gasGet('list_issues');})])
+    Promise.all([gasGet('list_registers'), gasGet('list_entries'), gasGet('list_recs').catch(function(){return gasGet('list_issues');}), gasGet('list_packs').catch(function(){return {ok:false};})])
       .then(function (res) {
         state.registersBCT = (res[0].ok ? res[0].data : []);
         state.entries = (res[1].ok ? res[1].data : []);
+        state.packs = (res[3] && res[3].ok ? res[3].data : state.packs || []);
+        try { renderPacks(); fillPackSelectors(); renderAiCandidates(); } catch (e) {}
         state.recs = (res[2].ok ? res[2].data : []);
         state.issues = state.recs;
         state.registers = seedToRegisters(state.seed)
@@ -276,6 +278,7 @@ var GAT = (function () {
   function status(msg) { id('statusBar').innerHTML = '<span class="ok">' + esc(msg) + '</span>'; }
   function renderAll() {
     renderDash(); renderRegisters(); renderUniverse(); renderRecs(); renderSummary(); renderBctStatus(); loadProcess(); renderRunner();
+    try { renderPacks(); fillPackSelectors(); } catch (e) {}
   }
   function copyText(t, msg) {
     var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select();
@@ -415,7 +418,161 @@ var GAT = (function () {
     });
   }
 
-  /* group ใบ REC เป็นชุดตามรหัสหน้า TITLE (F-xx = สวัสดิการ, FIN-Rx = ระเบียบการเงิน, ที่เหลือ = อื่นๆ) — v1.7 */
+  /* ---------- Packs (BU ส่งข้อมูล) + AI Review — v1.8 ตามวงจร 10 ขั้นของพี่หนึ่ง 4 พ.ย. 69 ---------- */
+  function escP(t){return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function renderPacks() {
+    var tb = document.querySelector('#packTable tbody'); if (!tb) return;
+    var packs = state.packs || [];
+    if (!packs.length) { tb.innerHTML = '<tr><td colspan="7" class="empty">ยังไม่มีการส่งข้อมูล — BU กรอกฟอร์มด้านบน</td></tr>'; return; }
+    tb.innerHTML = packs.map(function (x) {
+      var st = String(x.STATUS || 'รอ GAT เลือกตรวจ');
+      var links = String(x.LINKS || '').split('\n').filter(Boolean);
+      var linkHtml = links.length ? links.map(function (l, i) { return '<a href="' + escP(l.trim()) + '" target="_blank" rel="noopener">ลิงก์' + (i + 1) + '</a>'; }).join(' · ') : '—';
+      return '<tr><td class="mono"><b>' + escP(x.PACK_ID || '') + '</b></td>' +
+        '<td>' + escP(x.BU || '') + '</td>' +
+        '<td>' + escP(x.SCOPE || '') + '</td>' +
+        '<td>' + escP(x.TITLE || '') + '</td>' +
+        '<td>' + linkHtml + '</td>' +
+        '<td>' + escP(st) + '</td>' +
+        '<td class="mono">' + escP(x.CREATED_AT || '') + '</td></tr>';
+    }).join('');
+  }
+  function loadPacks() {
+    var st = document.getElementById('packStatus'); if (st) st.textContent = 'กำลังดึงสถานะจากชีต…';
+    gasGet('list_packs').then(function (res) {
+      if (res.ok) { state.packs = res.data; renderPacks(); fillPackSelectors(); if (st) st.textContent = '✅ โหลด ' + res.data.length + ' รายการจากชีตจริง'; }
+      else if (st) st.textContent = '❌ GAS ยังไม่รองรับ list_packs — ต้อง deploy โค้ด v1.5 (ส่งให้พี่หนึ่งแล้ว)';
+    }).catch(function (e) { if (st) st.textContent = '❌ ' + e; });
+  }
+  function sendPack() {
+    var st = document.getElementById('packStatus');
+    var bu = document.getElementById('packBu').value;
+    var scope = document.getElementById('packScope').value;
+    var title = document.getElementById('packTitle').value.trim();
+    var links = document.getElementById('packLinks').value.trim();
+    var note = document.getElementById('packNote').value.trim();
+    var by = document.getElementById('packBy').value.trim() || 'BU';
+    if (!bu) { if (st) st.textContent = '⚠️ เลือก BU ก่อน'; return; }
+    if (!title) { if (st) st.textContent = '⚠️ กรอกหัวเรื่องการส่งก่อน'; return; }
+    if (!links) { if (st) st.textContent = '⚠️ ต้องแนบลิงก์หลักฐานอย่างน้อย 1 ลิงก์ (Drive/ชีต/ภาพ)'; return; }
+    if (st) st.textContent = 'กำลังส่ง…';
+    postToBCT('submit_pack', { BU: bu, SCOPE: scope, PERIOD: document.getElementById('packPeriod').value.trim(), TITLE: title, LINKS: links, NOTE: note, BY: by }, function (res) {
+      if (res.ok) {
+        if (st) st.textContent = '✅ รันเลขสำเร็จ: ' + res.PACK_ID + ' — บันทึกชีต + AuditLog แล้ว — รอ GAT เลือกตรวจ';
+        document.getElementById('packTitle').value = ''; document.getElementById('packLinks').value = ''; document.getElementById('packNote').value = '';
+        loadPacks();
+      } else if (st) st.textContent = '❌ ' + (res.error || 'ส่งไม่สำเร็จ — ตรวจว่า GAS เป็น v1.5');
+    });
+  }
+  function fillPackSelectors() {
+    var sel = document.getElementById('packBu');
+    if (sel && !sel.options.length > 1) {
+      var bus = (state.seed && state.seed.companies || []).map(function (c) { return c.BU || c.name || c; }).filter(Boolean);
+      (bus.length ? bus : ['AAMG', 'PMSG', 'CPDG', 'LDC', 'TNR']).forEach(function (b) {
+        var o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o);
+      });
+    }
+    var scopes = ['ระเบียบการเงิน PKG 2567 — เงินสดย่อย/นำฝาก', 'ระเบียบการเงิน PKG 2567 — ตัดชำระโอน/QR', 'ระเบียบการเงิน PKG 2567 — สำรองจ่าย/เอกสาร 3', 'สวัสดิการพนักงาน (ลา/ทำหมัน/IPD)', 'เอกสารกระบวนการ PM/WI/SD/FM', 'อื่น ๆ (ระบุในหัวเรื่อง)'];
+    var sel2 = document.getElementById('packScope');
+    if (sel2 && sel2.options.length <= 1) scopes.forEach(function (sc) { var o = document.createElement('option'); o.value = sc; o.textContent = sc; sel2.appendChild(o); });
+    var sel3 = document.getElementById('aiPackPick');
+    if (sel3) {
+      var cur = sel3.value;
+      sel3.innerHTML = '<option value="">— เลือก Pack ที่ BU ส่ง —</option>' + (state.packs || []).filter(function (x) { return String(x.STATUS || '').indexOf('ตรวจแล้ว') < 0; }).map(function (x) {
+        return '<option value="' + escP(x.PACK_ID) + '">' + escP(x.PACK_ID + ' · ' + x.BU + ' · ' + String(x.TITLE || '').slice(0, 48)) + '</option>';
+      }).join('');
+      if (cur) sel3.value = cur;
+    }
+  }
+  /* ---------- AI Review ---------- */
+  function aiBuildPrompt(pid) {
+    var pk = (state.packs || []).filter(function (x) { return x.PACK_ID === pid; })[0];
+    if (!pk) { alert('เลือก Pack ก่อน'); return; }
+    var prompt = [
+      'คุณคือ AI ผู้ช่วยตรวจสอบของ ทีม GAT (General Audit Team) PKG — สอดคลุมกฎบัตร v1.4',
+      'ขอบเขตการตรวจ: ' + (pk.SCOPE || '-') + ' / รอบ: ' + (pk.PERIOD || '-') ,
+      'ข้อเท็จจริงจาก BU: ' + (pk.TITLE || ''),
+      'ลิงก์หลักฐานที่ต้องวิเคราะห์ (เข้าอ่านโดย AI ผู้ตรวจ):',
+      String(pk.LINKS || '').split('\n').filter(Boolean).map(function (l, i) { return (i + 1) + '. ' + l.trim(); }).join('\n'),
+      pk.NOTE ? 'หมายเหตุ: ' + pk.NOTE : '',
+      '',
+      'กติกาเหล็กของ GAT:',
+      '1. ทุกข้อค้นพบต้องอ้างหลักฐาน+ตำแหน่ง (ชีท#แถว ลิงก์) — ห้ามเดา ไม่พบให้เขียน "ไม่พบในไฟล์"',
+      '2. วิเคราะห์ตามแกน 5 เส้าการเงิน: สรุปหน้างาน = ใบเสร็จ = สลิปฝาก = Statement/BCT = ยอดเข้าจริงแบงก์',
+      '3. ให้คะแนนแต่ละใบ: 🔴 ขัดกฎหมาย/จำเป็นจริง · 🟢 ข้อเสนอ/ปรับปรุง',
+      '4. ตอบกลับ 1 ใบต่อ 1 บล็อก ใช้รูปแบบ [ใบ: หัวข้อ | ระดับ 🔴/🟢 | ประเด็น | ข้อเสนอ | หลักฐาน/ชีต+แถว]',
+      '5. 1 ใบ = 1 ประเด็น — ห้ามรวมหลายประเด็นในใบเดียว (มาตรฐาน FM-01)',
+      '6. พิจารณาด้วยวาทกรรม: "ตรวจเส้นทางการเงินตั้งแต่ต้นทางถึงปลายทาง (End-to-End Financial Traceability)"'
+    ].filter(Boolean).join('\n');
+    document.getElementById('aiPrompt').value = prompt;
+    aiStatus('✅ สร้างชุดคำสั่งจาก ' + pid + ' แล้ว — กดคัดลอกไปวางใน AI ตัวที่ใช้ตรวจ');
+  }
+  function aiStatus(t) { var el = document.getElementById('aiStatus'); if (el) el.textContent = t; }
+  function aiParse() {
+    var t = String(document.getElementById('aiResult').value || '').trim();
+    if (!t) { aiStatus('⚠️ วางคำตอบ AI ในช่องด้านบนก่อน'); return; }
+    // แยกใบจากบล็อค [ใบ: …] หรือ บล็อกที่เริ่มด้วย "ใบ/ประเด็น/ข้อ" ขึ้นบล็อกใหม่
+    var blocks = [];
+    if (t.indexOf('[ใบ:') >= 0) {
+      blocks = t.split(/\n?(?=\[ใบ:)/).filter(Boolean).map(function (b) { return b.replace(/^\[(?=ใบ:)/, '').replace(/\]$/, '').trim(); });
+    } else {
+      blocks = t.split(/\n{2,}/).map(function (b) { return b.trim(); }).filter(Boolean);
+    }
+    var cands = blocks.map(function (b) {
+      var m = b.match(/ระดับ\s*([🔴🟢🟡🟠])/u);
+      return { txt: b, sev: m ? m[1] : '🟢', checked: (m ? m[1] : '🟢') === '🔴' };
+    });
+    state.aiCands = cands;
+    renderAiCandidates(cands);
+    aiStatus('✂️ ตัดได้ ' + cands.length + ' บล็อก — ติ๊กเลือกเฉพาะใบจะออกเป็น REC (🔴 เลือกให้อัตโนมัติ)');
+  }
+  function renderAiCandidates(cands) {
+    var box = document.getElementById('aiCandidates'); if (!box) return;
+    cands = cands || state.aiCands || [];
+    if (!cands.length) { box.innerHTML = ''; return; }
+    box.innerHTML = '<div class="card" style="margin-top:8px"><b>ใบที่ AI เสนอ (' + cands.length + ') — ติ๊กเลือก → ออก REC</b>' +
+      cands.map(function (c, i) {
+        return '<div class="filters" style="align-items:flex-start"><input type="checkbox" id="aiC' + i + '" ' + (c.checked ? 'checked' : '') + ' style="width:auto;margin-top:4px">' +
+          '<div style="flex:1;font-size:13px;line-height:1.5">' + escP(c.txt).replace(/\n/g, '<br>') + '</div></div>';
+      }).join('') + '</div>';
+  }
+  function aiEmit() {
+    var cands = state.aiCands || [];
+    var picked = [];
+    cands.forEach(function (c, i) {
+      var cb = document.getElementById('aiC' + i);
+      if (cb && cb.checked) picked.push(c);
+    });
+    if (!picked.length) { aiStatus('⚠️ ยังไม่ได้ติ๊กเลือกใบใด ๆ'); return; }
+    var by = document.getElementById('aiBy').value.trim() || 'GAT';
+    var regs = state.registers || [];
+    var r = regs[0] || {};
+    var doNext = function (idx) {
+      if (idx >= picked.length) { aiStatus('✅ ออกใบครบ ' + picked.length + ' ใบ — รันเลขจากชีตสำเร็จ (ละเอียดปลายแถวด้านบน)'); importBCT(true); return; }
+      var c = picked[idx];
+      var sevFull = (c.sev === '🔴' ? '🔴 ขัดกฎหมาย/จำเป็นจริง' : '🟢 ข้อเสนอ');
+      var title = (c.txt.match(/\[?ใบ:\s*([^|\n]+)/) || [null, c.txt.slice(0, 80)])[1];
+      var post = {
+        REG_ID: r.REG_ID || '',
+        PROCESS_TYPE: r.PROCESS_TYPE || 'PM',
+        PROCESS_CODE: r.PROCESS_CODE || 'GAT-AI-REVIEW',
+        SEVERITY: sevFull,
+        TITLE: title.trim(),
+        DETAIL: c.txt,
+        SHEET_REF: 'AI Review (ผู้คัดเลือก: ' + by + ')',
+        REF_PM_WI: 'P-04 ขั้น ④ (AI วิเคราะห์ คัดโดย GAT)',
+        APPROVER: by,
+        BY: by
+      };
+      postToBCT('open_issue', post, function (res) {
+        if (res.ok) { postToBCT('respond_issue', { REC_ID: res.REC_ID, BU_DECISION: 'ส่งข้อเสนอแนะที่ GAT คัดเลือกให้ BU พิจารณา', BY: 'GAT(ระบบ AI Review)' }, function () { doNext(idx + 1); }); }
+        else { aiStatus('❌ ' + (res.error || 'ส่งไม่สำเร็จ — เช็ค GAS v1.5') + ' (หยุดที่ใบที่ ' + (idx + 1) + ')'); }
+      });
+    };
+    doNext(0);
+  }
+
+/* group ใบ REC เป็นชุดตามรหัสหน้า TITLE (F-xx = สวัสดิการ, FIN-Rx = ระเบียบการเงิน, ที่เหลือ = อื่นๆ) — v1.7 */
   function escHtml(t) {
     return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
@@ -906,6 +1063,14 @@ var GAT = (function () {
       download('gat-rec-draft.txt', text, 'text/plain;charset=utf-8');
     });
     id('btnRespond').addEventListener('click', respondRec);
+
+    // v1.8 — Packs + AI Review
+    var b1 = id('btnSendPack'); if (b1) b1.addEventListener('click', sendPack);
+    var b2 = id('btnLoadPacks'); if (b2) b2.addEventListener('click', loadPacks);
+    var b3 = id('btnAiBuild'); if (b3) b3.addEventListener('click', function(){ aiBuildPrompt(id('aiPackPick').value); });
+    var b4 = id('btnAiCopy'); if (b4) b4.addEventListener('click', function(){ var t=id('aiPrompt'); t.select(); try{document.execCommand('copy'); status('📋 คัดลอกชุดคำสั่ง AI แล้ว');}catch(e){} });
+    var b5 = id('btnAiParse'); if (b5) b5.addEventListener('click', aiParse);
+    var b6 = id('btnAiEmit'); if (b6) b6.addEventListener('click', aiEmit);
     id('respDecision').addEventListener('change', function () {
       var noFix = this.value === 'ไม่แก้ไข';
       id('respReason').disabled = !noFix; id('respResponsible').disabled = !noFix;
@@ -1019,5 +1184,6 @@ var GAT = (function () {
     status('ส่งออก CSV สำหรับวางลงชีท GAT_Registers บน BCT แล้ว (' + regs.length + ' รายการ)');
   }
 
-  return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess, renderRunner: renderRunner };
+  return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess, renderRunner: renderRunner,
+    _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _aiBuildPrompt: aiBuildPrompt, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks };
 })();

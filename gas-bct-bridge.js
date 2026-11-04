@@ -116,7 +116,10 @@ function migrateSheets() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   addColumns_(ss, CONFIG.SHEETS.RECS, ['REC_NO', 'CREATED_BY', 'BU_DECISION', 'EVIDENCE_URL', 'NO_FIX_REASON', 'RESPONSIBLE', 'REF_PM_WI', 'APPROVER']);
   log_('system', 'migrate', CONFIG.SHEETS.RECS, 'เพิ่มคอลัมน์ v1.1 + FM 11 ช่อง: REF_PM_WI + APPROVER (ถ้ายังไม่มี)');
-  return 'OK';
+  // v1.5 — ensure แท็บ Packs (ถ้ายังไม่มี)
+  var pk = ensureSheet(ss, CONFIG.SHEETS.PACKS, ['PACK_ID', 'BU', 'SCOPE', 'PERIOD', 'TITLE', 'LINKS', 'NOTE', 'STATUS', 'CREATED_BY', 'CREATED_AT', 'AI_REVIEW_AT', 'AI_NOTE']);
+  log_('system', 'migrate', CONFIG.SHEETS.PACKS, 'v1.5: เตรียมแท็บ GAT_Packs (BU ส่งข้อมูลเพื่อเข้ารับการตรวจ)');
+  return 'OK + Packs:' + (pk ? 'ready' : 'fail');
 }
 
 function ensureSheet(ss, name, headers) {

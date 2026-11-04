@@ -186,6 +186,9 @@ ol.manual li{margin-bottom:8px}
     <a data-tab="registers"><span class="ic">🗂</span> Registers</a>
     <a data-tab="universe"><span class="ic">🗺</span> Regulatory Universe</a>
     <a data-tab="recs"><span class="ic">🧾</span> ข้อเสนอแนะ (รันเลข)</a>
+    <div class="nav-hd">วงจร BU ↔ GAT ↔ AI</div>
+    <a data-tab="packs"><span class="ic">📤</span> BU ส่งข้อมูล (Pack)</a>
+    <a data-tab="aireview"><span class="ic">🤖</span> AI Review แล้วออกใบ</a>
     <div class="nav-hd">การเชื่อมข้อมูล</div>
     <a data-tab="bct"><span class="ic">🔄</span> BCT Import/Export</a>
     <div class="nav-hd">เอกสารระบบ</div>
@@ -239,6 +242,62 @@ ol.manual li{margin-bottom:8px}
       </table>
       </div>
       <div class="pginfo" id="regPage"></div>
+    </div>
+  </section>
+
+  <!-- ============ PACKS (BU ส่งข้อมูล) ============ -->
+  <section class="tabpane" id="pane-packs">
+    <div class="card">
+      <div class="card-hd"><b>📤 BU ส่งข้อมูลเพื่อเข้ารับการตรวจ (Pack)</b></div>
+      <p class="desc">ขั้น ① ของวงจร: BU กรอกข้อมูลที่ GAT แจ้งว่าจะตรวจ + แนบลิงก์หลักฐาน → ระบบรันเลข PACK-xxxx ลงชีตกลางทันที — GAT เลือกลงตรวจในแท็บ "🤖 AI Review" ต่อ — SLA: ส่งข้อมูลให้ครบภายใน 3 วันทำการนับจากได้รับแจ้ง (WI-01)</p>
+      <div class="filters">
+        <select id="packBu" style="width:180px"><option value="">— เลือก BU —</option></select>
+        <select id="packScope" style="min-width:260px"><option value="">— ขอบเขตที่ GAT แจ้งจะตรวจ —</option></select>
+        <input id="packPeriod" placeholder="รอบ/งวด เช่น ต.ค. 69" style="width:180px">
+      </div>
+      <div class="filters"><input id="packTitle" placeholder="หัวเรื่องการส่ง เช่น รายละเอียดเงินสดย่อย ต.ค. 69 (บังคับ)" style="flex:1;min-width:280px"></div>
+      <div class="filters"><textarea id="packLinks" placeholder="ลิงก์ไฟล์/เอกสารที่ส่ง (ขึ้นบรรทัดใหม่ = หลายลิงก์)  เช่น Drive: …, ชีต: …" style="width:100%;min-height:84px"></textarea></div>
+      <div class="filters"><textarea id="packNote" placeholder="หมายเหตุถึง GAT (ไม่บังคับ) เช่น ลิงก์ชีตใหญ่เปิดช้าให้นำเข้าเฉพาะแถบ…" style="width:100%;min-height:56px"></textarea></div>
+      <div class="filters">
+        <input id="packBy" placeholder="ชื่อผู้ส่ง (BU)" style="width:240px">
+        <button id="btnSendPack" class="gold">📤 ส่งข้อมูลเข้าระบบ (รันเลข PACK)</button>
+      </div>
+      <div id="packStatus" class="status" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><b>สถานะการส่งทั้งหมด (จากชีตจริง)</b></div>
+      <div class="filters">
+        <button class="button-lite" id="btnLoadPacks">🔄 รีเฟรชสถานะ</button>
+      </div>
+      <div style="overflow-x:auto"><table id="packTable" class="table"><thead><tr><th>เลข Pack</th><th>BU</th><th>ขอบเขต</th><th>หัวเรื่อง</th><th>ลิงก์</th><th>สถานะ</th><th>ส่งเมื่อ</th></tr></thead><tbody><tr><td colspan="7" class="empty">ยังไม่มีข้อมูล — กด รีเฟรชสถานะ</td></tr></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- ============ AI REVIEW ============ -->
+  <section class="tabpane" id="pane-aireview">
+    <div class="card">
+      <div class="card-hd"><b>🤖 AI Review — GAT เลือก Pack → ใช้ AI ตรวจ → คัดใบ → ออก REC</b></div>
+      <p class="desc">ขั้น ②–⑥ ของวงจร: GAT เลือก Pack ที่ BU ส่ง → ระบบสร้างชุดคำสั่ง AI กรอกหัวข้อ/กติกา GAT พร้อมใช้ (คัดลอกไปโปรแกรม AI ที่ใช้ตรวจ) → GAT วางสรุปผล AI กลับเข้าช่อง → ติ๊กเลือกเฉพาะใบจะใช้ → กดออกใบ REC รันเลขเข้าชีต + แจ้ง BU อัตโนมัตในหน้าเว็บ</p>
+      <div class="filters">
+        <select id="aiPackPick" style="flex:1;min-width:280px"><option value="">— เลือก Pack ที่ BU ส่ง —</option></select>
+        <button class="button-lite" id="btnAiBuild">🧩 สร้างชุดคำสั่ง AI (จาก Pack ที่เลือก)</button>
+      </div>
+      <div class="filters"><textarea id="aiPrompt" placeholder="ชุดคำสั่ง AI จะปรากฏที่นี่ — กดคัดลอก พาไปวางใน AI ที่ใช้ตรวจ" style="width:100%;min-height:150px" readonly></textarea></div>
+      <div class="filters">
+        <button class="button-lite" id="btnAiCopy">📋 คัดลอกชุดคำสั่ง</button>
+        <button class="button-lite" id="btnAiPasteFromChat" >⬇ วางคำตอบ AI ด้านล่าง</button>
+      </div>
+      <div class="filters"><textarea id="aiResult" placeholder="GAT วางผลวิเคราะห์ของ AI ที่นี่ (ข้อความเดียวขึ้นบรรทัดใหม่ = 1 ใบประเด็น) รูปที่ AI ตอบตามชุดคำสั่งก็พบกัน" style="width:100%;min-height:150px"></textarea></div>
+      <div class="filters">
+        <input id="aiSev" style="width:170px" value="">
+        <button class="button-lite" id="btnAiParse">✂️ ตัดเป็นใบจากคำตอบ AI (แสดงรายใบติ๊กเลือก)</button>
+      </div>
+      <div id="aiCandidates"></div>
+      <div class="filters">
+        <input id="aiBy" placeholder="ชื่อ GAT ผู้คัดเลือก" style="width:240px">
+        <button id="btnAiEmit" class="gold">🧾 ออกใบ REC จากใบที่ติ๊กเลือก (รันเลข → ชีต)</button>
+      </div>
+      <div id="aiStatus" class="status" style="margin-top:8px"></div>
     </div>
   </section>
 
