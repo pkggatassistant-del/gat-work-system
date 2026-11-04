@@ -598,6 +598,14 @@ var GAT = (function () {
     return out;
   }
 
+  function scopedRecs() {
+    // v1.10 — รายการ REC ที่โชว์บนเว็บทุกแท็บ: ถ้าตั้ง REC_SCOPE = เฉพาะเลขในขอบเขต (โหมดทดสอบเรื่องเดียว) ไม่ตั้ง = ทั้งหมด
+    var recs = state.recs || [];
+    var SCOPE_ONLY = (window.GAT_CONFIG.REC_SCOPE && window.GAT_CONFIG.REC_SCOPE.length) ? window.GAT_CONFIG.REC_SCOPE : null;
+    if (!SCOPE_ONLY) return recs;
+    return recs.filter(function (x) { return SCOPE_ONLY.indexOf(String(x.REC_ID || '')) >= 0; });
+  }
+
 /* ---------- แท็บสรุปผลงาน GAT (สร้างข้อความสดจาก state) ---------- */
   function renderSummary() {
     var box = id('summaryBody'); if (!box) return;
@@ -926,7 +934,8 @@ var GAT = (function () {
     // dropdown เลือกเลขที่ตอบ
     var rp = id('respRecPick');
     var cur = rp.value;
-    rp.innerHTML = '<option value="">— เลือกเลขข้อเสนอแนะ —</option>' + state.recs.map(function (x) {
+    var rpRecs = scopedRecs(); // v1.10
+    rp.innerHTML = '<option value="">— เลือกเลขข้อเสนอแนะ —</option>' + rpRecs.map(function (x) {
       return '<option value="' + esc(x.REC_ID) + '">' + esc(x.REC_ID) + (x.REC_NO ? ' (#' + esc(x.REC_NO) + ')' : '') + ' · ' + esc(String(x.TITLE || '').slice(0, 40)) + '</option>';
     }).join('');
     rp.value = cur;
@@ -934,7 +943,7 @@ var GAT = (function () {
     var cp = id('closeRecPick');
     if (cp) {
       var curc = cp.value;
-      cp.innerHTML = '<option value="">— เลือกใบที่ BU ตอบแล้ว —</option>' + (state.recs || []).filter(function (x) {
+      cp.innerHTML = '<option value="">— เลือกใบที่ BU ตอบแล้ว —</option>' + scopedRecs().filter(function (x) {
         var st = String(x.STATUS || '');
         return String(x.BU_DECISION || '').trim() && st.indexOf('ปิด') < 0 && st.indexOf('ทดสอบ') < 0;
       }).map(function (x) {
@@ -942,7 +951,7 @@ var GAT = (function () {
       }).join('');
       cp.value = curc;
     }
-    var list = state.recs;
+    var list = scopedRecs(); // v1.10 — ขอบเขตโชว์
     id('recCount').textContent = list.length ? ('รวม ' + list.length + ' รายการ') : '';
     id('recBody').innerHTML = list.map(function (x) {
       var sev = String(x.SEVERITY || '').indexOf('🔴') >= 0 ? 'sev-red' : 'sev-grn';
