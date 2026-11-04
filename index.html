@@ -199,7 +199,6 @@ ol.manual li{margin-bottom:8px}
     <a data-tab="report"><span class="ic">📤</span> รายงานผู้บริหาร</a>
     <a id="navQms" data-tab="qms" style="display:none"><span class="ic">📘</span> QMS Document</a>
   </nav>
-</nav>
   <div class="nav-foot"><span class="dot-ok"></span>ระบบออนไลน์ · <span class="v" id="ver"></span></div>
 </aside>
 
@@ -264,6 +263,7 @@ ol.manual li{margin-bottom:8px}
       <div class="filters">
         <button id="btnNotifyPlan" class="gold">🧭 บันทึกเรื่องที่จะตรวจ (รันเลขแผน)</button>
         <button class="button-lite" id="btnNotifyDl">⬇ ดาวน์โหลดหนังสือแจ้ง (.txt)</button>
+        <button id="btnNotifPush" class="alt">☁️ ดันแผนแจ้งลงชีต</button>
       </div>
       <div id="notStatus" class="status" style="margin-top:8px"></div>
       <!-- v1.20: GAT ติ๊กเรื่องที่จะตรวจ → ส่งเข้าขั้น 3 ได้ทันที (ไม่ต้องรอ PACK) -->
@@ -276,7 +276,6 @@ ol.manual li{margin-bottom:8px}
 
     <!-- ============ ขั้น 2: BU ส่งข้อมูลตามเรื่องที่แจ้ง ============ -->
     <div class="card">
-<div class="card">
       <div class="card-hd"><b>📤 ขั้น 2 — BU ส่งข้อมูลตามเรื่องที่ GAT แจ้ง</b></div>
       <p class="desc">เลือก <b>เรื่องที่ส่ง</b> (dropdown จากที่ GAT บันทึกไว้ด้านบน) → กรอกหัวเรื่อง + แนบลิงก์หลักฐาน → ระบบรันเลข PACK-xxxx ลงชีตกลาง — SLA: ส่งให้ครบ <b>ภายในกำหนดวันส่ง</b>ที่ GAT แจ้งไว้ทุกเรื่อง (WI-01)</p>
       <div class="filters">
@@ -541,8 +540,11 @@ ol.manual li{margin-bottom:8px}
         <label style="font-size:13px">รอบรายงาน: <input id="d10Wk" type="week"></label>
         <span style="font-size:12.5px;color:#7d93b2">ช่วงข้อมูล: <b id="d10WkTxt">—</b></span>
         <span style="flex:1"></span>
+        <button id="btnD10Wk" class="button-lite">🔄 อัปเดตข้อมูลเสาร์–ศุกร์</button>
         <button id="btnD10Save" class="gold">💾 บันทึกค่าที่กรอก (เครื่องนี้)</button>
-        <button id="btnD10Md" class="green">⬇ ดาวน์โหลดรายงาน .md ส่งหนึ่ง</button>
+        <button id="btnD10Push" class="alt">☁️ ดันรายงานลงชีต</button>
+        <span id="d10WkSt" style="font-size:12px;color:#7d93b2"></span>
+        <button id="btnD10Md" class="gold">⬇ ดาวน์โหลดรายงาน .md ส่งหนึ่ง</button>
       </div>
       <div id="d10Form"></div>
     </div>

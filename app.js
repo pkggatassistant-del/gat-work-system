@@ -950,7 +950,7 @@ function loadProcessDocs() {
       account: 'Law+Compliance+Tax = Zero-breach Incidence = "การละเมิด/ความผิดพลาด/ผิดนัด" = ศูนย์',
       kr1: Math.round(recFixed / recAll * 100), kr2: Math.round((recFixed + recNoFix) / recAll * 100), kr3: Math.round(recClosed / recAll * 100),
       kr1note: 'จากประเด็นในชีต GAT_Issues — แก้แล้ว ' + recFixed + '/' + recs.length + ' ใบ', kr2note: 'ตอบกลับครบ (แก้+ไม่แก้) ' + (recFixed + recNoFix) + '/' + recs.length + ' ใบ', kr3note: 'ปิดสมบูรณ์ ' + recClosed + '/' + recs.length + ' ใบ',
-      bp: ['', '', ''], ll: ['', '', ''], ii: ['', '', ''], xp: DTA_XP.map(function () { return true; }),
+      okrnote: '', bp: ['', '', ''], ll: ['', '', ''], ii: ['', '', ''], xp: DTA_XP.map(function () { return true; }),
       tmm: DTA_TMM.map(function (t, i) { return { ap: t.ap, owner: t.owner, done: '', stat: 'เปิดใหม่', link: '' }; }),
       coach: ['', '', '']
     };
@@ -966,7 +966,7 @@ function loadProcessDocs() {
   }
   function dtaReadForm() {
     var d = dtaLoad();
-    ['purpose', 'vision', 'account', 'kr1note', 'kr2note', 'kr3note'].forEach(function (k) { var el = id('dta_' + k); if (el) d[k] = el.value; });
+    ['purpose', 'vision', 'account', 'kr1note', 'kr2note', 'kr3note', 'okrnote', 'objP'].forEach(function (k) { var el = id('dta_' + k); if (el) d[k] = k === 'objP' ? (parseInt(el.value, 10) || 0) : el.value; });
     var st = id('dtaStatus'); if (st) d.weekLabel = st.value;
     ['bp', 'll', 'ii', 'coach'].forEach(function (grp) { for (var i = 1; i <= 3; i++) { var el = id('dta_' + grp + i); if (el) d[grp][i - 1] = el.value; } });
     for (var j = 1; j <= 15; j++) { var el = id('dta_xp' + j); if (el) d.xp[j - 1] = !!el.checked; }
@@ -990,6 +990,9 @@ function loadProcessDocs() {
     h.push('<h3 style="margin:14px 0 6px">เป้าหมาย / เข็มทิศ (OKRs.) — Progress ("ทำได้" %)</h3><table class="tbl"><tr><th>รายการ</th><th style="width:110px">ทำได้ %</th><th>หมายเหตุ/รายละเอียด</th></tr>' +
       dtaKrRow('Obj.', 'dta_objP', 'Law+Compliance+Tax = Zero-breach Incidence', (d.objP || 0)) +
       dtaKrRow('KR1', 'dta_kr1', 'ข้อบกพร่องระดับ Critical ที่ได้รับการยกระดับทันเวลา มีผู้รับผิดชอบและกำหนดเวลาแก้ไข', d.kr1) + dtaKrRow('KR2', 'dta_kr2', 'ตรวจสอบกระบวนการทำงาน ประสิทธิภาพ และความถูกต้องของการปฏิบัติงาน', d.kr2) + dtaKrRow('KR3', 'dta_kr3', 'การตรวจยืนยันว่าการแก้ไขได้ผลจริง', d.kr3) + '</table>');
+    // บทวิเคราะห์ปิดปรับเปลี่ยน / สถานการณ์ประจำวัน (D1_DTA แถว 12–13 — v1.25 เติมตามคำชี้แนะ)
+    h.push('<h3 style="margin:14px 0 6px">🎯 บทวิเคราะห์ปิดปรับเปลี่ยน / สถานการณ์ประจำวัน</h3>');
+    h.push('<div style="margin:8px 0"><label style="font-size:13px;font-weight:700">✍ จากเป้าหมาย / เข็มทิศ (OKRs.) — สรุปสถานการณ์</label><textarea id="dta_okrnote" rows="3" style="width:100%" placeholder="สรุปสถานะ ณ วันรายงาน: %ลุล่วงประเด็น MS24 + สรุปสั้น NCASS + KR1 สถานะ…">' + escHtml(d.okrnote || '') + '</textarea></div>');
     ['bp', 'll', 'ii'].forEach(function (g, gi) {
       var hd = ['🌟 BP (สิ่งที่ทำได้ดีและต้องทำต่อ) :: ยึดมั่นในสิ่งที่ใช่', '🌟 LL (สิ่งที่ล้มเหลว) :: ละทิ้งในสิ่งที่ไม่ใช่', '🌟 II (ไอเดียเพื่อปรับปรุง) :: ค้นหาสิ่งที่ใช่ใหม่ ๆ ตลอดเวลา'][gi];
       h.push('<h3 style="margin:14px 0 6px">' + hd + '</h3>');
@@ -1030,16 +1033,18 @@ function loadProcessDocs() {
     L.push('## เป้าหมาย / เข็มทิศ (OKRs.) — Progress ทำได้');
     L.push('| รายการ | ทำได้ % |');
     L.push('|---|---|');
-    L.push('| Obj. | ' + (id('dta_objP') || {}).value || 0);
-    L.push('| KR1 | ' + (id('dta_kr1') || {}).value || 0);
-    L.push('| KR2 | ' + (id('dta_kr2') || {}).value || 0);
-    L.push('| KR3 | ' + (id('dta_kr3') || {}).value || 0);
-    L.push((id('dta_kr1') ? ' — ' + d.kr1note : ''));
+    var gv = function (pid) { var el = id(pid); return el ? (el.value || '0') : '0'; };
+    L.push('| รายการ | ทำได้ % |');
+    L.push('|---|---|');
+    L.push('| Obj. | ' + gv('dta_objP') + '% |');
+    L.push('| KR1 | ' + gv('dta_kr1') + '% | — ' + (d.kr1note || '') + ' |');
+    L.push('| KR2 | ' + gv('dta_kr2') + '% | — ' + (d.kr2note || '') + ' |');
+    L.push('| KR3 | ' + gv('dta_kr3') + '% | — ' + (d.kr3note || '') + ' |');
     L.push('');
     L.push('## 🎯 บทวิเคราะห์ปิดปรับเปลี่ยน / สถานการณ์ประจำวัน');
+    L.push('จากเป้าหมาย / เข็มทิศ (OKRs.): ' + (d.okrnote || '(ยังไม่กรอก)'));
+    L.push('');
     L.push('**🌟 BP (สิ่งที่ทำได้ดีและต้องทำต่อ):**');
-    ['bp', 'll', 'ii'].forEach(function (g) { });
-    ['bp', 'll', 'ii'].forEach(function (g, gi) { var hd = ['BP', 'LL', 'II'][gi]; });
     L.push((d.bp || []).filter(Boolean).map(function (x, i) { return (i + 1) + '. ' + x; }).join('\n') || '(ยังไม่กรอก)');
     L.push('**🌟 LL (สิ่งที่ล้มเหลว):**');
     L.push((d.ll || []).filter(Boolean).map(function (x, i) { return (i + 1) + '. ' + x; }).join('\n') || '(ยังไม่กรอก)');
@@ -1062,15 +1067,71 @@ function loadProcessDocs() {
     L.push('สร้างจาก GAT Work System v1.24 · แบบฟอร์มตามชีต D1_DTA · ส่งรายงานทุกวันศุกร์');
     download('DTA-รายงานวัดผล-GAT-' + new Date().toISOString().slice(0, 10) + '.md', L.join('\n'));
   }
+  /* ---------- v1.25: ดันข้อมูลลงชีต (แผนแจ้ง + รายงานวัดผล DTA) — รอ GAS v1.6 ---------- */
+  function dtaWeekSnap() {
+    // สิ่งที่เกิดระหว่างเสาร์–ศุกร์: ดึงจาก state จริง (REC/PACK/แผนแจ้ง) สรุปรายการให้ GAT ตรวจก่อนรายงาน
+    var recs = state.recs || [];
+    var packs = state.packs || [];
+    var L = [];
+    L.push('ข้อเสนอแนะ (REC) สถานะ: รวม ' + recs.length + ' ใบ · ส่ง BU แล้ว ' + recs.filter(function (x) { return String(x.STATUS || '').indexOf('ส่งให้ BU') >= 0; }).length + ' · ปิด ' + recs.filter(function (x) { return String(x.STATUS || '').indexOf('ปิด') >= 0; }).length);
+    L.push('ข้อมูลที่ BU ส่ง (PACK): ' + packs.length + ' รายการ');
+    var notifs = loadNotifs();
+    L.push('แผนแจ้งตรวจ: ' + notifs.length + ' แผน');
+    var d = dtaLoad();
+    var upd = [];
+    upd.push('สถานะประเด็น: ' + L.join(' · '));
+    return upd.join('\n');
+  }
+  function dtaApplyWeek() {
+    var st = document.getElementById('d10WkSt'); if (st) st.textContent = '';
+    var box = document.getElementById('dta_okrnote'); if (!box) return;
+    var snap = dtaWeekSnap();
+    if (box.value.trim()) box.value = box.value.trim() + '\n' + snap; else box.value = snap;
+    if (st) st.textContent = '🔄 ดึงสิ่งที่เกิดระหว่างวันเสาร์–ศุกร์ (จากชีต/ระบบปัจจุบัน) แล้ววางท้าย "บทวิเคราะห์" — GAT ตรวจ/แก้ไขก่อนกดรายงาน';
+  }
+  function pushPlansToSheet() {
+    var st = document.getElementById('notStatus'); if (st) st.textContent = 'กำลังดันแผนแจ้งลงชีต…';
+    var list = loadNotifs();
+    if (!list.length) { if (st) st.textContent = '⚠️ ยังไม่มีแผนแจ้งในเครื่องนี้'; return; }
+    postToBCT('push_plans', { rows: list }, function (res) {
+      if (res.ok && res.saved) { if (st) st.textContent = '✅ ดันแผนแจ้งลงชีตแล้ว ' + res.saved + ' แผน (แท็บ GAT_Plans) — BU/ทีมเห็นข้อมูลชุดเดียว'; }
+      else if (st) st.textContent = '❌ GAS ยังไม่รองรับ push_plans — ต้อง deploy v1.6 (ส่งให้พี่หนึ่งแล้ว)';
+    });
+  }
+  function pushDtaToSheet() {
+    var st = document.getElementById('d10Status'); if (st) st.textContent = 'กำลังดันรายงานวัดผลลงชีต…';
+    var d = dtaReadForm();
+    try { localStorage.setItem(DTA_LS, JSON.stringify(d)); } catch (e) {}
+    postToBCT('push_dta', { row: d }, function (res) {
+      if (res.ok) { if (st) st.textContent = '✅ ดันรายงานวัดผล DTA ลงชีตแล้ว (แท็บ GAT_DTA — รอบ ' + (d.weekLabel || 'ไม่ระบุสัปดาห์') + ')'; }
+      else if (st) st.textContent = '❌ GAS ยังไม่รองรับ push_dta — ต้อง deploy v1.6 (ส่งให้พี่หนึ่งแล้ว)';
+    });
+  }
   function initD10() {
     if (!id('d10Form')) return;
     renderDtaReport();
-    var wk = id('d10Wk');
+    var wk = id('d10Wk'), tx = id('d10WkTxt');
+    function isoMonday(y, w) { // วันจันทร์ของ ISO week w ปี y (UTC)
+      var d = new Date(Date.UTC(y, 0, 4));
+      var dow = d.getUTCDay() || 7;
+      d = new Date(d.getTime() - (dow - 1) * 864e5 + (w - 1) * 7 * 864e5);
+      return d;
+    }
     function wkTxt() {
-      try { var v = wk.value; if (!v) { id('d10WkTxt').textContent = '(ยังไม่เลือกสัปดาห์)'; return; } var p2 = v.split('-W'); var monday = new Date(p2[0] + '-01-01'); monday = new Date(monday.getTime() + ((parseInt(p2[1], 10) - 1) * 7 + [0,3,2,1,0,6,5,4,3,2,1,0,6][0]) * 864e5); } catch (e) {}
-      id('d10WkTxt').textContent = ''; }
-    var bsv = id('btnD10Save'); if (bsv) bsv.onclick = dtaSave;
+      var v = wk.value; if (!v || v.indexOf('-W') < 0) { tx.textContent = '—'; return; }
+      var p = v.split('-W'), y = parseInt(p[0], 10), ww = parseInt(p[1], 10);
+      var mon = isoMonday(y, ww);
+      var sat = new Date(mon.getTime() + 5 * 864e5), fri = new Date(mon.getTime() + 11 * 864e5);
+      var f = function (d) { return d.getUTCDate() + ' ' + ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'][d.getUTCMonth()] + ' ' + (d.getUTCFullYear() + 543); };
+      tx.textContent = f(sat) + ' → ' + f(fri);
+      var rr = id('dtaStatus'); if (rr && (!rr.value || rr.value.indexOf('เสาร์') >= 0)) rr.value = 'เสาร์ ' + f(sat).split(' ')[0] + ' ' + f(sat).split(' ')[1] + ' → ศุกร์ ' + f(fri).split(' ')[0] + ' ' + f(fri).split(' ')[1];
+    }
+    wk.addEventListener('change', wkTxt); wkTxt();
+    var bsv = id('btnD10Save'); if (bsv) bsv.onclick = function () { dtaSave(); renderDtaReport(); };
     var bmd = id('btnD10Md'); if (bmd) bmd.onclick = dtaDownload;
+    var bup = id('btnD10Wk'); if (bup) bup.onclick = dtaApplyWeek;
+    var bp1 = id('btnD10Push'); if (bp1) bp1.onclick = pushDtaToSheet;
+    var bp2 = id('btnNotifPush'); if (bp2) bp2.onclick = pushPlansToSheet;
   }
 
   function kpiHTML(label, val, cls) {
@@ -1509,6 +1570,7 @@ function loadProcessDocs() {
     var spE = id('aiPackPick'); if (spE) spE.addEventListener('change', function () { if (spE.value === '__PLAN__') { document.getElementById('aiEvidenceLinks').value = ''; var s2 = document.getElementById('evidenceStatus'); if (s2) s2.textContent = 'โหมดตามแผนแจ้ง — ลิงก์หลักฐานชีต GAT ใส่ที่การ์ดด้านล่าง (บังคับ)'; renderBuLinks(); return; } var ev = loadEvidence(); document.getElementById('aiEvidenceLinks').value = ev[spE.value] || ''; var s2 = document.getElementById('evidenceStatus'); if (s2) s2.textContent = ev[spE.value] ? '✓ มีลิงก์ GAT ผูกไว้แล้วสำหรับ Pack นี้' : ''; renderBuLinks(); });
     /* v1.14 P-01 แจ้งเรื่อง */
     var n1 = id('btnNotifyPlan'); if (n1) n1.addEventListener('click', saveNotifPlan);
+    var n3 = id('btnNotifPush'); if (n3) n3.addEventListener('click', pushPlansToSheet);
     var n2 = id('btnNotifyDl'); if (n2) n2.addEventListener('click', downloadNotifDoc);
     fillNotifPickers(); renderNotifList();
     id('respDecision').addEventListener('change', function () {

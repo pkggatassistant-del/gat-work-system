@@ -177,7 +177,29 @@ setTimeout(() => {
   ok('v1.24: ปุ่มดาวน์โหลดรายงาน .md อยู่', !!d.getElementById('btnD10Md'));
   ok('v1.24: nav แท็บ 10 = "10. รายงานวัดผล DTA"', Array.from(d.querySelectorAll('nav a')).some(function (a) { return (a.textContent || '').indexOf('รายงานวัดผล DTA') >= 0; }));
 
-  console.log('\n══ RESULT รวม (v1.24): ' + pass + ' pass / ' + fail + ' fail ══');
+  
+// ===== v1.25: บทวิเคราะห์สถานการณ์ + ปุ่มอัปเดตเสาร์–ศุกร์ + ดันชีต =====
+(function () {
+  var a = function (name, cond) { ok('v1.25: ' + name, !!cond); };
+  a('pane-d10 มีปุ่มอัปเดตเสาร์–ศุกร์', d.getElementById('btnD10Wk'));
+  a('pane-d10 มีปุ่มดันรายงานลงชีต', d.getElementById('btnD10Push'));
+  a('pane-d10 มี d10WkSt', d.getElementById('d10WkSt'));
+  a('แท็บ 1 มีปุ่มดันแผนลงชีต', d.getElementById('btnNotifPush'));
+  a('app.js มี dtaApplyWeek', fs.readFileSync('app.js','utf8').indexOf('dtaApplyWeek') >= 0);
+  a('app.js มี pushDtaToSheet/pushPlansToSheet', fs.readFileSync('app.js','utf8').indexOf('pushDtaToSheet') >= 0 && fs.readFileSync('app.js','utf8').indexOf('pushPlansToSheet') >= 0);
+  a('app.js มี dta_week snapshot', fs.readFileSync('app.js','utf8').indexOf('dtaWeekSnap') >= 0);
+  try { w.GAT.showTab('d10'); } catch (e) {}
+  var bp = d.getElementById('dta_bp1');
+  var okn = d.getElementById('dta_okrnote');
+  a('บทวิเคราะห์ okrnote อยู่ก่อน BP', okn && bp && (okn.compareDocumentPosition(bp) & 4));
+  var wk = d.getElementById('d10Wk');
+  wk.value = '2026-W45';
+  wk.dispatchEvent(new w.Event('change', { bubbles: true }));
+  a('wkTxt คำนวณเสาร์–ศุกร์ ISO (W45 = 7 พ.ย.)', (d.getElementById('d10WkTxt').textContent || '').indexOf('7 พ.ย.') >= 0);
+  var rr = d.getElementById('dtaStatus');
+  a('week picker เติมช่องรอบรายงานอัตโนมัติ', (rr.value || '').indexOf('7 พ.ย.') >= 0);
+})();
+console.log('\n══ RESULT รวม (v1.25): ' + pass + ' pass / ' + fail + ' fail ══');
     process.exit(fail ? 1 : 0);
   }, 350);
 
