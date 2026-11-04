@@ -952,8 +952,12 @@ var GAT = (function () {
       cp.value = curc;
     }
     var list = scopedRecs(); // v1.10 — ขอบเขตโชว์
-    id('recCount').textContent = list.length ? ('รวม ' + list.length + ' รายการ') : '';
-    id('recBody').innerHTML = list.map(function (x) {
+    var rowsHtml = rowsRecs(list);
+    fillRecTable('recBody', 'recCount', list, rowsHtml);
+    fillRecTable('recBodyAns', 'recCountAns', list, rowsHtml); // v1.11 — สำเนาแท็บ P-05
+    fillRecTable('recBodyClose', 'recCountClose', list, rowsHtml); // v1.11 — สำเนาแท็บ P-06
+  }
+  function rowsRecs(list) { return list.map(function (x) {
       var sev = String(x.SEVERITY || '').indexOf('🔴') >= 0 ? 'sev-red' : 'sev-grn';
       var tail = [];
       if (x.EVIDENCE_URL) tail.push('📎 <a href="' + esc(x.EVIDENCE_URL) + '" target="_blank" rel="noopener">หลักฐาน</a>');
@@ -966,7 +970,14 @@ var GAT = (function () {
         '<td>' + esc(x.STATUS || '') + '</td>' +
         '<td>' + esc(x.BU_DECISION || '') + '</td>' +
         '<td>' + (tail.join('<br>') || '—') + '</td></tr>';
-    }).join('') || '<tr><td colspan="7" class="empty">ยังไม่มีข้อเสนอแนะ — ออกข้อเสนอแนะแรกได้จากฟอร์มด้านบน (ต้องตั้ง BCT API ก่อน เพื่อให้รันเลขบนชีท)</td></tr>';
+    }).join('') || '<tr><td colspan="7" class="empty">ไม่มีรายการในขอบเขตโชว์ (REC_SCOPE)</td></tr>';
+  }
+
+  /* v1.11 — เติมตาราง + ตัวนับ (ใช้ได้ทั้งทะเบียนกลาง + สำเนาในแท็บ P-05/P-06) */
+  function fillRecTable(bodyId, countId, list, rowsHtml) {
+    var b = id(bodyId); if (!b) return;
+    b.innerHTML = rowsHtml;
+    var c = id(countId); if (c) c.textContent = list.length ? ('รวม ' + list.length + ' รายการ') : '';
   }
 
   function openRec() {
@@ -1119,16 +1130,16 @@ var GAT = (function () {
   }
   document.addEventListener('DOMContentLoaded', boot);
 
-  var TAB_NAMES = { dashboard: 'Dashboard', registers: 'Registers', bct: 'BCT Import/Export', recs: 'ข้อเสนอแนะ', universe: 'Regulatory Universe', summary: 'สรุปผลงาน GAT', process: 'กระบวนการทีม GAT', runner: 'เดินกระบวนการ (Runner)', manual: 'คู่มือการใช้งาน', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
+  var TAB_NAMES = { dashboard: 'Dashboard', summary: 'สรุปผลงาน GAT', packs: 'P-03 BU ส่งข้อมูล (Pack)', aireview: 'P-04 ตรวจ+ออกใบ', buanswer: 'P-05 BU ตอบใบ', close: 'P-06 ปิดประเด็น', recs: 'ทะเบียนข้อเสนอแนะ', registers: 'Registers', universe: 'Regulatory Universe', bct: 'BCT Import/Export', process: 'กระบวนการทีม GAT', runner: 'เดินกระบวนการ (Runner)', manual: 'คู่มือการใช้งาน', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
 
   /* ---------- แท็บเดินกระบวนการ (Process Runner) — ให้ทีมเดินตาม CORE ทีละขั้น ---------- */
   var RUN_STEPS = [
     { id: 'P-01', check: ['เลือกขอบเขตจาก 3 แหล่ง (ปฏิทิน / ทะเบียน 🟡🔴 / เหตุเร่งด่วน) แล้ว', 'ระบุเจ้าของด้าน (คน/ลูกค้า/การเงิน) ครบทุกหัวข้อ', 'รอหัวหน้าสาย Audit อนุมัติแผนแล้ว'], act: null, actLabel: null },
     { id: 'P-02', check: ['แจ้งแผน + รายการขอข้อมูลให้ BU แล้ว (ล่วงหน้า 14 วัน)', 'ระบุกำหนดส่ง (SLA 3 วันทำการ / ด่วน LCT 24 ชม.) ในหนังสือทุกครั้ง'], act: null, actLabel: null },
     { id: 'P-03', check: ['BU ส่งสำเนาไฟล์เข้าระบบแล้ว (ห้ามแก้ต้นฉบับ)', 'จด «ชีท+แถว» ที่อ่านครบทุกไฟล์', 'บันทึกรอบส่งลง GAT_Entries แล้ว'], act: 'bct', actLabel: 'บันทึกที่แท็บ BCT → ชีท GAT_Entries' },
-    { id: 'P-04', check: ['ตรวจตาม Checklist ของขอบเขตนั้นแล้ว', 'ข้อพบมี หลักฐาน + เกณฑ์อ้างอิง + แนวทางบรรเทา ครบทุกใบ', 'อ้างกฎหมาย = ฉบับจริง + วันบังคับใช้ (ไม่พบ = เขียน «ไม่พบในไฟล์»)'], act: 'recs', actLabel: 'ออกใบที่แท็บ ข้อเสนอแนะ (รันเลข GAT-REC อัตโนมัติ)' },
-    { id: 'P-05', check: ['ส่งใบประเด็นให้ Process Owner/BU แล้ว', 'ติดตามคำตอบ (แก้=หลักฐาน / ไม่แก้=เหตุผล+ผู้รับผิดชอบ) ภายใน 5 วันทำการ', 'ช่องคำตอบครบทุกช่องแล้ว (ขาด = ยังไม่นับตอบ)'], act: 'recs', actLabel: 'บันทึกคำตอบที่แท็บ ข้อเสนอแนะ (ช่อง BU ตอบ)' },
-    { id: 'P-06', check: ['ตรวจหลักฐานการแก้แล้ว (พอ/ไม่พอ ชัดเจน)', '🔴 ที่ไม่แก้ = ยืนยันกลับเป็นทางการแล้ว', 'ติดตามรอบถัดไป / ถดถอย 30/60/90 วัน ลงระบบแล้ว'], act: 'recs', actLabel: 'ปิดรายการ (GAT ยืนยัน) ที่แท็บ ข้อเสนอแนะ' },
+    { id: 'P-04', check: ['ตรวจตาม Checklist ของขอบเขตนั้นแล้ว', 'ข้อพบมี หลักฐาน + เกณฑ์อ้างอิง + แนวทางบรรเทา ครบทุกใบ', 'อ้างกฎหมาย = ฉบับจริง + วันบังคับใช้ (ไม่พบ = เขียน «ไม่พบในไฟล์»)'], act: 'aireview', actLabel: 'ออกใบที่แท็บ P-04 ตรวจ+ออกใบ (รันเลข GAT-REC อัตโนมัติ)' },
+    { id: 'P-05', check: ['ส่งใบประเด็นให้ Process Owner/BU แล้ว', 'ติดตามคำตอบ (แก้=หลักฐาน / ไม่แก้=เหตุผล+ผู้รับผิดชอบ) ภายใน 5 วันทำการ', 'ช่องคำตอบครบทุกช่องแล้ว (ขาด = ยังไม่นับตอบ)'], act: 'buanswer', actLabel: 'ตอบใบที่แท็บ P-05 BU ตอบใบ' },
+    { id: 'P-06', check: ['ตรวจหลักฐานการแก้แล้ว (พอ/ไม่พอ ชัดเจน)', '🔴 ที่ไม่แก้ = ยืนยันกลับเป็นทางการแล้ว', 'ติดตามรอบถัดไป / ถดถอย 30/60/90 วัน ลงระบบแล้ว'], act: 'close', actLabel: 'ปิดรายการ (GAT ยืนยัน) ที่แท็บ P-06 ปิดประเด็น' },
     { id: 'P-07', check: ['BU อุทธรณ์ภายใน 7 วัน (ถ้ามี)', 'OAC ตัดสิน = จบที่การตัดสิน (บันทึก GAT_AuditLog แล้ว)', 'High ระหว่างอุทธรณ์: มีมาตรการป้องกันชั่วคราวแล้ว'], act: null, actLabel: null },
     { id: 'P-08', check: ['รายงานฉบับสมบูรณ์ก่อนวันที่ 5 ของเดือนถัดไป', 'คุมถดถอย 30/60/90 วัน ลงระบบแล้ว', 'ส่งผู้มีอำนาจ/OAC + นัดประชุมทบทวน 🔴 ค้าง'], act: 'summary', actLabel: 'สรุปที่แท็บ สรุปผลงาน (คัดลอก/ดาวน์โหลด .md)' },
     { id: 'P-09', check: ['อัปเดตสถานะ 5 ระดับ (🟢🟡🟠🔴⚫) ให้ทะเบียนล่าสุดแล้ว', 'นำเข้าข้อมูล live จาก BCT แล้ว', 'ตรวจว่าไม่มีรายการสถานะตกยุค'], act: 'dashboard', actLabel: 'ตรวจที่แท็บ Dashboard (KPI สด)' },
@@ -1159,7 +1170,7 @@ var GAT = (function () {
         return '<tr><td style="width:34px;text-align:center"><input type="checkbox" class="rb-chk" data-rstep="' + s.id + '" data-rchk="' + i + '"' + (checks[i] ? ' checked' : '') + '></td><td style="font-size:13.5px">' + esc(c) + '</td></tr>';
       }).join('') + '</table></div>');
     });
-    h.push('<div class="note">การทำจริงยังเกิดในแท็บปลายทาง (BCT / ข้อเสนอแนะ / สรุปผลงาน / Dashboard) — Runner ช่วยลำดับ+ไม่พลาดขั้น+ไม่พลาดหลักฐาน ตามหลัก «ผู้ปฏิบัติต้องอ่านแล้วทำตามได้จริง» ของ WI</div>');
+    h.push('<div class="note">การทำจริงยังเกิดในแท็บปลายทาง (P-03 Packs / P-04 ออกใบ / P-05 BU ตอบ / P-06 ปิดประเด็น / สรุปผลงาน / Dashboard) — Runner ช่วยลำดับ+ไม่พลาดขั้น+ไม่พลาดหลักฐาน ตามหลัก «ผู้ปฏิบัติต้องอ่านแล้วทำตามได้จริง» ของ WI</div>');
     box.innerHTML = h.join('');
   }
   function saveRunState() {
@@ -1193,7 +1204,7 @@ var GAT = (function () {
       return;
     }
     var ra = e.target.getAttribute && e.target.getAttribute('data-runact');
-    if (ra) { showTab(ra === 'recs' ? 'recs' : ra); return; }
+    if (ra) { showTab(ra); return; }
     var rd = e.target.getAttribute && e.target.getAttribute('data-rundoc');
     if (rd) { // เปิดเอกสาร PM เต็มของขั้นนั้น (แท็บกระบวนการ → เลข index ใน PM_DOCS)
       var pd = (state.process || {}).meta ? (state.process.meta.PM_DOCS || []) : [];

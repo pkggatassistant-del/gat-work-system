@@ -182,14 +182,15 @@ ol.manual li{margin-bottom:8px}
     <div class="nav-hd">ภาพรวม</div>
     <a data-tab="dashboard" class="on"><span class="ic">📊</span> Dashboard</a>
     <a data-tab="summary"><span class="ic">🧭</span> สรุปผลงาน GAT</a>
-    <div class="nav-hd">งานตรวจสอบ</div>
+    <div class="nav-hd">งานตรวจสอบ (ขั้น P-03–P-06)</div>
+    <a data-tab="packs"><span class="ic">📤</span> P-03 BU ส่งข้อมูล (Pack)</a>
+    <a data-tab="aireview"><span class="ic">🤖</span> P-04 ตรวจ+ออกใบ</a>
+    <a data-tab="buanswer"><span class="ic">✍️</span> P-05 BU ตอบใบ</a>
+    <a data-tab="close"><span class="ic">🔒</span> P-06 ปิดประเด็น</a>
+    <a data-tab="recs"><span class="ic">🧾</span> ทะเบียนข้อเสนอแนะ</a>
+    <div class="nav-hd">การเชื่อมข้อมูล</div>
     <a data-tab="registers"><span class="ic">🗂</span> Registers</a>
     <a data-tab="universe"><span class="ic">🗺</span> Regulatory Universe</a>
-    <a data-tab="recs"><span class="ic">🧾</span> ข้อเสนอแนะ (รันเลข)</a>
-    <div class="nav-hd">วงจร BU ↔ GAT ↔ AI</div>
-    <a data-tab="packs"><span class="ic">📤</span> BU ส่งข้อมูล (Pack)</a>
-    <a data-tab="aireview"><span class="ic">🤖</span> AI Review แล้วออกใบ</a>
-    <div class="nav-hd">การเชื่อมข้อมูล</div>
     <a data-tab="bct"><span class="ic">🔄</span> BCT Import/Export</a>
     <div class="nav-hd">เอกสารระบบ</div>
     <a data-tab="process"><span class="ic">⚙</span> กระบวนการทีม GAT</a>
@@ -299,7 +300,28 @@ ol.manual li{margin-bottom:8px}
       </div>
       <div id="aiStatus" class="status" style="margin-top:8px"></div>
     </div>
-  </section>
+  
+    <div class="card" style="border-top:3px solid var(--gold)">
+      <h3>✍️ ออกใบ REC มือ (GAT) <span class="pill n">รันเลขอัตโนมัติ GAT-REC-0001…</span> — ขั้น P-04</h3>
+      <p class="desc">ใบที่ไม่ผ่าน AI หรือออกตรง ๆ: เลือกต้นเรื่องจาก Registers → ระดับ → ผู้ออก/REF_PM_WI/ผู้อนุมัติ → กด รันเลข (ส่งเข้า BCT อัตโนมัติ)</p>
+      <div class="filters">
+        <select id="recRegPick" style="flex:1;min-width:280px"><option value="">— เลือกรายการจาก Registers (ต้นเรื่อง) —</option></select>
+        <select id="recSev">
+          <option>🔴 ขัดกฎหมาย/จำเป็นจริง</option>
+          <option selected>🟢 ข้อเสนอ</option>
+        </select>
+      </div>
+      <div class="filters"><input id="recTitle" placeholder="หัวข้อข้อเสนอแนะ (สั้น ชัด — อ้างชีท+แถวในรายละเอียด)" style="flex:1;min-width:280px"></div>
+      <div class="filters"><textarea id="recDetail" rows="4" placeholder="รายละเอียดสิ่งที่ตรวจพบ + ข้อเสนอแนะ (อ้างชีท+แถวต้นฉบับ — ห้ามเดา ตามกฎเหล็ก)" style="flex:1;min-width:280px;font-family:inherit"></textarea></div>
+      <div class="filters">
+        <input id="recBy" placeholder="ผู้ออกข้อเสนอแนะ (GAT)" value="GAT" style="width:240px">
+        <input id="recRefPmWi" placeholder="REF_PM_WI (เช่น P-04 ขั้น ④ / WI-02)" style="width:280px">
+        <input id="recApprover" placeholder="ผู้อนุมัติ (ถ้ามี — เช่น หัวหน้าสาย Audit)" style="width:260px">
+        <button id="btnOpenRec" class="gold">🧾 รันเลข + ส่งเข้า BCT</button>
+        <button class="button-lite" id="btnDraftRec">⬇ ดาวน์โหลดโครง .txt (สำรอง)</button>
+      </div>
+    </div>
+</section>
 
   <!-- ============ BCT ============ -->
   <section class="tabpane" id="pane-bct">
@@ -336,27 +358,24 @@ ol.manual li{margin-bottom:8px}
   <!-- ============ RECS ============ -->
   <section class="tabpane" id="pane-recs">
     <div class="card">
-      <h3>① GAT ออกข้อเสนอแนะใหม่ <span class="pill n">รันเลขอัตโนมัติ GAT-REC-0001…</span></h3>
-      <p class="desc">วงจร: GAT ตรวจ → ออกข้อเสนอแนะ (รันเลข ส่งเข้า BCT อัตโนมัติ) → BU พิจารณา: <b>แก้ไข</b> (แนบหลักฐาน) หรือ <b>ไม่แก้ไข</b> (เหตุผล + ผู้รับผิดชอบ) → GAT ตรวจคำตอบแล้วปิด — ป้าย 🔴 ที่ BU ไม่แก้ GAT ต้องยืนยันกลับอย่างเป็นทางการ (SOP ขั้น ⑤)</p>
-      <div class="filters">
-        <select id="recRegPick" style="flex:1;min-width:280px"><option value="">— เลือกรายการจาก Registers (ต้นเรื่อง) —</option></select>
-        <select id="recSev">
-          <option>🔴 ขัดกฎหมาย/จำเป็นจริง</option>
-          <option selected>🟢 ข้อเสนอ</option>
-        </select>
+      <div class="card-hd">
+        <h3>🧾 ทะเบียนข้อเสนอแนะทั้งหมด</h3>
+        <span id="recCount" style="font-size:12px;color:var(--muted)"></span>
       </div>
-      <div class="filters"><input id="recTitle" placeholder="หัวข้อข้อเสนอแนะ (สั้น ชัด — อ้างชีท+แถวในรายละเอียด)" style="flex:1;min-width:280px"></div>
-      <div class="filters"><textarea id="recDetail" rows="4" placeholder="รายละเอียดสิ่งที่ตรวจพบ + ข้อเสนอแนะ (อ้างชีท+แถวต้นฉบับ — ห้ามเดา ตามกฎเหล็ก)" style="flex:1;min-width:280px;font-family:inherit"></textarea></div>
-      <div class="filters">
-        <input id="recBy" placeholder="ผู้ออกข้อเสนอแนะ (GAT)" value="GAT" style="width:240px">
-        <input id="recRefPmWi" placeholder="REF_PM_WI (เช่น P-04 ขั้น ④ / WI-02)" style="width:280px">
-        <input id="recApprover" placeholder="ผู้อนุมัติ (ถ้ามี — เช่น หัวหน้าสาย Audit)" style="width:260px">
-        <button id="btnOpenRec" class="gold">🧾 รันเลข + ส่งเข้า BCT</button>
-        <button class="button-lite" id="btnDraftRec">⬇ ดาวน์โหลดโครง .txt (สำรอง)</button>
+      <p class="desc">แท็บนี้ = ทะเบียนกลาง (อ่านอย่างเดียว) · ออกใบ: แท็บ <b>P-04 ตรวจ+ออกใบ</b> · BU ตอบ: แท็บ <b>P-05 BU ตอบใบ</b> · GAT ปิด: แท็บ <b>P-06 ปิดประเด็น</b> · BU คัดค้านประเด็น: อุทธรณ์ OAC ภายใน 7 วัน (P-07 กฎบัตรข้อ 9)</p>
+      <div class="tblwrap">
+      <table class="tbl">
+        <thead><tr><th>เลขที่</th><th>ระดับ</th><th>หัวข้อ</th><th>อ้างชีท+แถว</th><th>สถานะ</th><th>การตัดสิน BU</th><th>หลักฐาน/เหตุผล · ผู้รับผิดชอบ</th></tr></thead>
+        <tbody id="recBody"></tbody>
+      </table>
       </div>
     </div>
+  </section>
+
+  <!-- ============ P-05 BU ตอบใบ ============ -->
+  <section class="tabpane" id="pane-buanswer">
     <div class="card">
-      <h3>② BU พิจารณา (แก้ไข / ไม่แก้ไข)</h3>
+      <div class="card-hd"><h3>✍️ BU ตอบใบ (แก้ไข / ไม่แก้ไข) — ขั้น P-05</h3></div>
       <p class="desc">BU กรอกบนชีท BCT ตรงคอลัมน์ <code>BU_DECISION / EVIDENCE_URL / NO_FIX_REASON / RESPONSIBLE</code> หรือกรอกผ่านฟอร์มนี้ — ระบบส่งค่าทันที</p>
       <div class="filters"><select id="respRecPick" style="flex:1;min-width:240px"><option value="">— เลือกเลขข้อเสนอแนะ —</option></select></div>
       <div class="filters">
@@ -376,8 +395,24 @@ ol.manual li{margin-bottom:8px}
       </div>
     </div>
     <div class="card">
-      <h3>③ GAT ตรวจคำตอบ → ปิดประเด็น (ขั้น ⑨)</h3>
-      <p class="desc">หลัง BU ส่งคำตอบ (แก้+หลักฐาน / ไม่แก้+เหตุผล): GAT เลือกใบ → กดปิด — ระบบจด AuditLog "close_issue" — สถานะเปลี่ยนเป็น ปิดแล้ว (GAT ยืนยัน) — ไม่สามารถปิดใบที่ BU ยังไม่ตอบ</p>
+      <div class="card-hd">
+        <h3>🧾 ทะเบียนข้อเสนอแนะ (สำเนา)</h3>
+        <span id="recCountAns" style="font-size:12px;color:var(--muted)"></span>
+      </div>
+      <div class="tblwrap">
+      <table class="tbl">
+        <thead><tr><th>เลขที่</th><th>ระดับ</th><th>หัวข้อ</th><th>อ้างชีท+แถว</th><th>สถานะ</th><th>การตัดสิน BU</th><th>หลักฐาน/เหตุผล · ผู้รับผิดชอบ</th></tr></thead>
+        <tbody id="recBodyAns"></tbody>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ P-06 GAT ปิดประเด็น ============ -->
+  <section class="tabpane" id="pane-close">
+    <div class="card">
+      <h3>🔒 GAT ตรวจคำตอบ → ปิดประเด็น (ขั้น ⑨ — P-06)</h3>
+      <p class="desc">หลัง BU ส่งคำตอบ (แก้+หลักฐาน / ไม่แก้+เหตุผล): GAT เลือกใบ → กดปิด — ระบบจด AuditLog "close_issue" — สถานะเปลี่ยนเป็น ปิดแล้ว (GAT ยืนยัน) — ไม่สามารถปิดใบที่ BU ยังไม่ตอบ · ป้าย 🔴 ที่ BU ไม่แก้ และขัดกฎหมายจริง GAT ต้องยืนยันกลับอย่างเป็นทางการ (SOP ขั้น ⑤)</p>
       <div class="filters"><select id="closeRecPick" style="flex:1;min-width:280px"><option value="">— เลือกใบที่ BU ตอบแล้ว —</option></select></div>
       <div class="filters">
         <input id="closeBy" placeholder="ชื่อ-ตำแหน่งจริงผู้ปิด (GAT)" style="width:260px">
@@ -386,13 +421,13 @@ ol.manual li{margin-bottom:8px}
     </div>
     <div class="card">
       <div class="card-hd">
-        <h3>③ ทะเบียนข้อเสนอแนะ</h3>
-        <span id="recCount" style="font-size:12px;color:var(--muted)"></span>
+        <h3>🧾 ทะเบียนข้อเสนอแนะ (สำเนา)</h3>
+        <span id="recCountClose" style="font-size:12px;color:var(--muted)"></span>
       </div>
       <div class="tblwrap">
       <table class="tbl">
         <thead><tr><th>เลขที่</th><th>ระดับ</th><th>หัวข้อ</th><th>อ้างชีท+แถว</th><th>สถานะ</th><th>การตัดสิน BU</th><th>หลักฐาน/เหตุผล · ผู้รับผิดชอบ</th></tr></thead>
-        <tbody id="recBody"></tbody>
+        <tbody id="recBodyClose"></tbody>
       </table>
       </div>
     </div>

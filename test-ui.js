@@ -52,7 +52,7 @@ setTimeout(() => {
   ok('hero แสดง v2.7 (ตัดชื่อยาว)', proc.includes('v2.8'));
 
   // 5) ข้อความคัดลอก (buildSummaryText ผ่าน export)
-  ok('แท็บครบหลัง render', d.querySelectorAll('.tabpane').length === 10);
+  ok('แท็บครบหลัง render (v1.11 = 14 pane)', d.querySelectorAll('.tabpane').length === 14);
 
   // 6) Dashboard ยังแสดงแหล่งข้อมูล + BU chart (โดยไม่ crash)
   gat.showTab('dashboard');
@@ -88,10 +88,10 @@ setTimeout(() => {
 
   const runTxt = d.getElementById('runBody').textContent;
   // 13) Runner: แท็บใหม่ + การ์ด 10 ขั้น + checklist ติ๊กได้
-  ok('แท็บ runner อยู่ในระบบ (9 pane + nav)', d.querySelectorAll('.tabpane').length === 10 && d.getElementById('runBody') !== null);
+  ok('แท็บ runner อยู่ในระบบ (14 pane + nav)', d.querySelectorAll('.tabpane').length === 14 && d.getElementById('runBody') !== null);
   ok('Runner: hero CORE 10 + KPI ผ่านแล้ว', runTxt.includes('เดินกระบวนการ CORE 10') && runTxt.includes('ผ่านแล้ว'));
   ok('Runner: มี P-01..P-10 ครบ + ชี้จุด PM', runTxt.includes('P-01') && runTxt.includes('P-10') && runTxt.includes('PM:'));
-  ok('Runner: มีปุ่มไปทำจริง (ออกใบ/บันทึกคำตอบ/ปิดรายการ)', runTxt.includes('ออกใบที่แท็บ') && runTxt.includes('บันทึกคำตอบที่แท็บ') && runTxt.includes('ปิดรายการ (GAT ยืนยัน)'));
+  ok('Runner: มีปุ่มไปทำจริง (ออกใบ/บันทึกคำตอบ/ปิดรายการ)', runTxt.includes('ออกใบที่แท็บ P-04') && runTxt.includes('ตอบใบที่แท็บ P-05') && runTxt.includes('ปิดรายการ (GAT ยืนยัน) ที่แท็บ P-06'));
   // ติ๊ก checklist ขั้นแรก แล้วเลขผ่านต้องขยับ
   var cb1 = d.querySelector('.rb-chk');
   w.localStorage.removeItem('gat_run_state');
@@ -100,6 +100,37 @@ setTimeout(() => {
   var saved = null;
   try { saved = JSON.parse(w.localStorage.getItem('gat_run_state') || 'null'); } catch (e) {}
   ok('Runner: ติ๊ก checklist บันทึกความคืบหน้า (runState + localStorage)', (after['P-01'] || [])[0] === true && !!saved && (saved['P-01'] || [])[0] === true);
+
+  // --- v1.11: แท็บแยกตาม 10 กระบวนการ ---
+  // seed REC ในขอบเขต 10 ใบ (เลียนแบบชีตจริง REC-0042–0051 ยังไม่มี BU ตอบ)
+  var st0 = gat.state();
+  st0.recs = st0.recs.concat(['0042','0043','0044','0045','0046','0047','0048','0049','0050','0051'].map(function (n) {
+    return { REC_ID: 'GAT-REC-' + n, REC_NO: 42 + 0, SEVERITY: n === '0042' ? '🔴 ขัดกฎหมาย/จำเป็นจริง' : '🟢 ข้อเสนอ', TITLE: 'ทดสอบใบ ' + n, STATUS: 'P-04 ส่งให้ BU แล้ว', BU_DECISION: '' };
+  }));
+  gat._renderRecs();
+  ok('v1.11: nav มีทั้ง P-04/P-05/P-06 (แยกแท็บ)', ['P-04','P-05','P-06'].every(function (t) {
+    return Array.from(d.querySelectorAll('nav a')).some(function (a) { return a.textContent.indexOf(t) >= 0; });
+  }));
+  ok('v1.11: ฟอร์ม ② BU ตอบอยู่ใน pane-buanswer (ไม่ปน P-04)', d.getElementById('respRecPick').closest('.tabpane').id === 'pane-buanswer');
+  ok('v1.11: ฟอร์ม ③ ปิดอยู่ใน pane-close', d.getElementById('closeRecPick').closest('.tabpane').id === 'pane-close');
+  ok('v1.11: ฟอร์ม ① ออกใบอยู่ใน pane-aireview (จบการการ์ด AI)', d.getElementById('recRegPick').closest('.tabpane').id === 'pane-aireview');
+  ok('v1.11: ทะเบียนกลางอยู่在แท็บ recs เฉพาะ', d.getElementById('recBody').closest('.tabpane').id === 'pane-recs');
+  gat.showTab('buanswer');
+  ok('v1.11: ตารางสำเนา P-05 มี 10 แถว (ขอบเขต REC)', d.getElementById('recBodyAns').querySelectorAll('tr').length === 10);
+  ok('v1.11: ตัวนับสำเนา P-05 = รวม 10 รายการ', d.getElementById('recCountAns').textContent.indexOf('10') >= 0);
+  gat.showTab('close');
+  ok('v1.11: ตารางสำเนา P-06 มี 10 แถว', d.getElementById('recBodyClose').querySelectorAll('tr').length === 10);
+  gat.showTab('buanswer');
+  ok('v1.11: dropdown ตอบใบ = 10 ตัวเลือก + หัว', d.getElementById('respRecPick').options.length === 11);
+  gat.showTab('close');
+  ok('v1.11: dropdown ปิดใบว่าง (BU ยังไม่ตอบ)', d.getElementById('closeRecPick').options.length === 1);
+  // seed ใบที่ BU ตอบแล้ว 1 ใบ (ทับ REC-0051) → ต้องขึ้นใน dropdown ปิด
+  var st2 = gat.state();
+  st2.recs = st2.recs.filter(function (r) { return r.REC_ID !== 'GAT-REC-0051'; });
+  st2.recs.push({ REC_ID: 'GAT-REC-0051', REC_NO: 42, SEVERITY: '🔴 ขัดกฎหมาย/จำเป็นจริง', TITLE: 'ทดสอบ BU ตอบแล้ว', STATUS: 'BU ตอบแล้ว', BU_DECISION: 'แก้ไข', EVIDENCE_URL: 'https://example.com/x' });
+  gat._renderRecs();
+  gat.showTab('close');
+  ok('v1.11: BU ตอบแล้วขึ้นใน dropdown ปิด (P-06)', d.getElementById('closeRecPick').options.length === 2);
 
   console.log('\n══ RESULT: ' + pass + ' pass / ' + fail + ' fail ══');
   process.exit(fail ? 1 : 0);
