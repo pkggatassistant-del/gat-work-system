@@ -648,6 +648,26 @@ function loadProcessDocs() {
     document.getElementById('aiPrompt').value = prompt;
     aiStatus('✅ สร้างชุดคำสั่งจาก ' + pid + ' แล้ว — กดคัดลอกไปวางใน AI ตัวที่ใช้ตรวจ');
   }
+  /* v1.19 — แท็บ 3: แสดงลิงก์หลักฐานที่ BU ส่งมา (คลิกได้) — ที่ GAT ต้องดาวน์โหลด→นำขึ้นชีต→แชร์ AI */
+  function renderBuLinks() {
+    var box = document.getElementById('buLinksCard'); if (!box) return;
+    var pid = (document.getElementById('aiPackPick') || {}).value || '';
+    var pk = (state.packs || []).filter(function (x) { return x.PACK_ID === pid; })[0];
+    if (!pk) { box.innerHTML = '<div class="empty" style="margin:10px 0">เลือก Pack แล้วลิงก์หลักฐานที่ BU ส่งมาจะแสดงที่นี่ — คลิกเปิด/ดาวน์โหลดได้เลย</div>'; return; }
+    var links = String(pk.LINKS || '').split('\n').filter(Boolean);
+    var items = links.map(function (l) {
+      var u = l.trim(); var m = u.match(/https?:\/\/\S+/); var rest = m ? u.replace(m[0], '').trim() : '';
+      var href = m ? m[0] : u;
+      return '<li style="margin:6px 0"><a href="' + escP(href) + '" target="_blank" class="mono" style="word-break:break-all">' + escP(href) + '</a>' + (rest ? ' <span style="color:#5b6b7f">— ' + escP(rest) + '</span>' : '') + '</li>';
+    }).join('');
+    var gatDone = state.evidence && state.evidence[pid];
+    box.innerHTML = '<div class="card" style="border-left:4px solid #2563eb;margin:10px 0">' +
+      '<div class="card-hd"><b>📥 ลิงก์หลักฐานที่ BU ส่งมา (' + links.length + ' ลิงก์) — ปกติติดสิทธิ์: ดาวน์โหลด → นำขึ้นชีต GAT → แชร์ให้ openclaw</b></div>' +
+      (links.length ? '<ol style="margin:8px 0 4px;padding-left:24px">' + items + '</ol>' : '<div class="empty">Pack นี้ไม่มีลิงก์ (ชีต LINKS ว่าง)</div>') +
+      (gatDone ? '<div class="status">✅ ลิงก์ฉบับ AI ผูกไว้แล้ว (' + String(state.evidence[pid]).split('\n').filter(Boolean).length + ' ลิงก์) — ชุดคำสั่งจะใช้ฉบับนี้แทนอัตโนมัติ</div>'
+                : '<div class="status">⚠️ ยังไม่มีลิงก์ฉบับ AI — ทำรายการด้านบนเสร็จแล้ววางลิงก์ในการ์ดด้านล่าง แล้วกดบันทึก</div>') +
+      '</div>';
+  }
   /* v1.18 — ลิงก์หลักฐานฉบับ GAT (ผูกแพ็ค) — localStorage: gat_evidence {PACK_ID: links} */
   function loadEvidence() {
     try { return JSON.parse(localStorage.getItem('gat_evidence') || '{}'); } catch (e) { return {}; }
@@ -1284,7 +1304,7 @@ function loadProcessDocs() {
     var lp2 = id('btnLoadPacksPick'); if (lp2) lp2.addEventListener('click', function () { loadPacks(); });
     var rp = id('btnPickRemove'); if (rp) rp.addEventListener('click', removePickPacks);
     var se = id('btnSaveEvidence'); if (se) se.addEventListener('click', saveEvidenceLink);
-    var spE = id('aiPackPick'); if (spE) spE.addEventListener('change', function () { var ev = loadEvidence(); document.getElementById('aiEvidenceLinks').value = ev[spE.value] || ''; var s2 = document.getElementById('evidenceStatus'); if (s2) s2.textContent = ev[spE.value] ? '✓ มีลิงก์ GAT ผูกไว้แล้วสำหรับ Pack นี้' : ''; });
+    var spE = id('aiPackPick'); if (spE) spE.addEventListener('change', function () { var ev = loadEvidence(); document.getElementById('aiEvidenceLinks').value = ev[spE.value] || ''; var s2 = document.getElementById('evidenceStatus'); if (s2) s2.textContent = ev[spE.value] ? '✓ มีลิงก์ GAT ผูกไว้แล้วสำหรับ Pack นี้' : ''; renderBuLinks(); });
     /* v1.14 P-01 แจ้งเรื่อง */
     var n1 = id('btnNotifyPlan'); if (n1) n1.addEventListener('click', saveNotifPlan);
     var n2 = id('btnNotifyDl'); if (n2) n2.addEventListener('click', downloadNotifDoc);
@@ -1357,6 +1377,7 @@ function loadProcessDocs() {
     var c = id('crumbTab'); if (c) c.textContent = TAB_NAMES[name] || name;
     var sb = document.getElementById('sidebar'); if (sb && sb.classList) sb.classList.remove('open');
     if (name === 'manual' && !showTab._manLoaded) { showTab._manLoaded = true; loadManual(); loadProcessDocs(); /* v1.12: เอกสารกระบวนการเต็ม moved มาส่วนท้ายแท็บคู่มือ */ }
+    if (name === 'aiprompt') renderBuLinks(); /* v1.19 — แท็บ 3: แสดงลิงก์หลักฐาน BU ทุกครั้งที่เข้าแท็บ */
     /* v1.12: แท็บ runner ถูกถอด — ตัด renderRunner() */
     /* v1.12 — 10 กระบวนการ: การ์ด Checklist ของขั้นนั้น ติดบนแท็บงานจริง */
     /* v1.12 — 10 กระบวนการ: การ์ด Checklist ของขั้นนั้น ติดบนแท็บงานจริง (แทรกก่อน card แรกของ pane) */

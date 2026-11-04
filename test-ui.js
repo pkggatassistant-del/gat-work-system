@@ -132,7 +132,17 @@ setTimeout(() => {
   var pr = d.getElementById('aiPrompt').value;
   ok('v1.18: ชุดคำสั่ง AI ใช้ลิงก์ GAT แทนลิงก์ BU อัตโนมัติ', pr.indexOf('gat-copy-test') >= 0 && pr.indexOf('drive.bu-private') < 0);
 
-  console.log('\n══ RESULT รวม (v1.18): ' + pass + ' pass / ' + fail + ' fail ══');
+  // --- v1.19: แท็บ 3 แสดงลิงก์หลักฐาน BU (คลิกได้) ---
+  st6.packs.push({ PACK_ID: 'PACK-9991', BU: 'PKG', SCOPE: 'การเงิน', PERIOD: 'ต.ค. 69', TITLE: 'FIN', LINKS: 'เอกสารรายรับ: https://docs.bu.com/fin1\nสรุปวางเบิก: https://docs.bu.com/fin2', NOTE: '' });
+  gat._fillPackSelectors();
+  var pkSel2 = d.getElementById('aiPackPick'); pkSel2.value = 'PACK-9991';
+  gat.showTab('aiprompt');
+  var blc = d.getElementById('buLinksCard');
+  var nLinks = blc.querySelectorAll('a').length;
+  ok('v1.19: แท็บ 3 แสดงลิงก์ BU คลิกได้ 2 ลิงก์', nLinks === 2, 'got ' + nLinks);
+  ok('v1.19: มีคำเตือน "ยังไม่มีลิงก์ฉบับ AI"', blc.textContent.indexOf('ยังไม่มีลิงก์ฉบับ AI') >= 0);
+
+  console.log('\n══ RESULT รวม (v1.19): ' + pass + ' pass / ' + fail + ' fail ══');
     process.exit(fail ? 1 : 0);
   }, 350);
 
