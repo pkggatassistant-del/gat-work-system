@@ -1,6 +1,7 @@
 /* GAT Work System — shared config (โหลดก่อน app.js เสมอ) */
 window.GAT_CONFIG = {
-  VERSION: 'v1.9 (4 พ.ย. 69) — คู่มือทั้ง 10 ขั้น + ปุ่ม ปิดประเด็น (ขั้น ⑨) ในแท็บข้อเสนอแนะ + ฟอร์มบังคับ ชื่อ-ตำแหน่งจริง', // นิยาม PM=Process Management · WI=Work Instruction · SD=Supporting Document · FM=Form/Format ตามตารางที่พี่หนึ่งให้ 2 พ.ย. 69; v1.3 = แยกข้อมูลตรวจ/เอกสารทีม
+  REC_SCOPE: ['GAT-REC-0042','GAT-REC-0043','GAT-REC-0044','GAT-REC-0045','GAT-REC-0046','GAT-REC-0047','GAT-REC-0048','GAT-REC-0049','GAT-REC-0050','GAT-REC-0051'], // v1.10 โหมดทดสอบเรื่องเดียว (GA-LC) — เคลียร์ [] เพื่อโชว์ทุกใบ
+  VERSION: 'v1.10 (4 พ.ย. 69) — โหมดทดสอบเรื่องเดียว: ประกาศสวัสดิการพื้นฐาน (GA-LC 10 ใบ) + วงจร 10 ขั้น + ปิดประเด็น (ขั้น ⑨) + บังคับ ชื่อ-ตำแหน่งจริง', // นิยาม PM=Process Management · WI=Work Instruction · SD=Supporting Document · FM=Form/Format ตามตารางที่พี่หนึ่งให้ 2 พ.ย. 69; v1.3 = แยกข้อมูลตรวจ/เอกสารทีม
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง — ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
   BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbwmSjODcZRoqLiYomSNtSwK1rZqSe9YTWRBFa1YaUdWdqr8I61aW7s4YAo1blzXRV2C/exec'), // BCT กลาง — deploy v1.5.1 ที่หนึ่ง deploy 4 พ.ย. 69 (standalone + SHEET_ID)
   SOURCES: {

@@ -579,12 +579,14 @@ var GAT = (function () {
   function recGroups() {
     var recs = state.recs || [];
     var g = { wel: [], fin: [], other: [] };
+    var SCOPE_ONLY = (window.GAT_CONFIG.REC_SCOPE && window.GAT_CONFIG.REC_SCOPE.length) ? window.GAT_CONFIG.REC_SCOPE : null; // v1.10: โหมดทดสอบเรื่องเดียว (ซ่อนชุดอื่นจากเว็บ ไม่ลบข้อมูลชีต)
     recs.forEach(function (x) {
       var t = String(x.TITLE || '');
       var rid = String(x.REC_ID || '');
       // ใบทดสอบ (ปิดแล้ว) ไม่แสดงหัวข้อรายใบ
       var isTest = t.indexOf('ทดสอบ') >= 0 || t.indexOf('RT-') >= 0;
       if (isTest) return;
+      if (SCOPE_ONLY && SCOPE_ONLY.indexOf(rid) < 0) return; // ซ่อนใบที่ไม่อยู่ขอบเขต (v1.10)
       if (t.indexOf('F-') === 0 || t.indexOf(' F-') >= 0 && rid <= 'GAT-REC-0015') g.wel.push(x);
       else if (t.indexOf('FIN-R') >= 0) g.fin.push(x);
       else g.other.push(x);
@@ -592,7 +594,7 @@ var GAT = (function () {
     var out = [];
     if (g.wel.length) out.push({ label: '🏥 ชุด 1: สวัสดิการพื้นฐาน (F-01–F-15 — ตรวจ 29 ต.ค. 69)', items: g.wel });
     if (g.fin.length) out.push({ label: '💰 ชุด 2: ระเบียบการเงิน PKG 2567 (FIN-R1–R7 — ตรวจ 3 พ.ย. 69)', items: g.fin });
-    if (g.other.length) out.push({ label: '📌 ชุดอื่นๆ', items: g.other });
+    if (g.other.length) out.push({ label: '📋 ประกาศสวัสดิการพื้นฐานสมาชิก PKG — ประเทศไทย (GA-LC)', items: g.other });
     return out;
   }
 
