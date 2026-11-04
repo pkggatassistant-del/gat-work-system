@@ -185,7 +185,7 @@ setTimeout(() => {
   var navIds = Array.from(d.querySelectorAll('nav a[data-tab]')).map(function (a) { return a.getAttribute('data-tab'); });
   ok('v1.13: nav หลักครบ 10 แท็บใหม่', ['packs','p02pick','aiprompt','aicand','aisel','aisend','bufix','buanswer','close','summary'].every(function (t) { return navIds.indexOf(t) >= 0; }));
   // เข้าแต่ละแท็บ = stepbox มีการ์ดขั้นนั้น
-  var seqTabs = [['packs','1'],['p02pick','2'],['aiprompt','3'],['aicand','4'],['aisel','5'],['aisend','6'],['bufix','7'],['buanswer','8'],['close','9'],['summary','10']];
+  var seqTabs = [['packs','2'],['p02pick','1'],['aiprompt','3'],['aicand','4'],['aisel','5'],['aisend','6'],['bufix','7'],['buanswer','8'],['close','9'],['summary','10']];
   var okBoxes = 0;
   seqTabs.forEach(function (x) { gat.showTab(x[0]); var sb = d.getElementById('stepbox'); if (sb && sb.textContent.indexOf(x[1]) >= 0) okBoxes++; });
   ok('v1.13: checklist ขึ้นครบ 10 แท็บ (stepbox ให้เลข 1..10)', okBoxes === 10, 'got ' + okBoxes);

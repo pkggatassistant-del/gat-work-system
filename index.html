@@ -180,8 +180,8 @@ ol.manual li{margin-bottom:8px}
   </div>
   <nav id="mainNav">
     <div class="nav-hd">ระบบปฏิบัติงาน 10 ขั้น</div>
-    <a data-tab="packs"><span class="ic">📤</span> 1. BU ส่งข้อมูลที่จะตรวจ</a>
-    <a data-tab="p02pick"><span class="ic">🗂</span> 2. GAT เลือกหัวข้อจากข้อมูลที่ส่ง</a>
+    <a data-tab="p02pick"><span class="ic">🗂</span> 1. GAT เลือกหัวข้อจากข้อมูลที่ส่ง</a>
+    <a data-tab="packs"><span class="ic">📤</span> 2. BU ส่งข้อมูลที่จะตรวจ</a>
     <a data-tab="aiprompt"><span class="ic">🔍</span> 3. GAT ตรวจด้วย AI</a>
     <a data-tab="aicand"><span class="ic">💡</span> 4. AI ออกข้อเสนอแนะ</a>
     <a data-tab="aisel"><span class="ic">✂️</span> 5. GAT คัดเลือกข้อเสนอแนะ</a>
@@ -249,9 +249,9 @@ ol.manual li{margin-bottom:8px}
 
   <!-- ============ PACKS (BU ส่งข้อมูล) ============ -->
   <section class="tabpane" id="pane-packs">
-    <!-- ============ P-01 ครึ่งบน: GAT แจ้งเรื่องที่จะตรวจ (รายประเด็น) ============ -->
+    <!-- ============ ขั้น 1 ครึ่งแรก: GAT แจ้งเรื่องที่จะตรวจ (รายประเด็น) ============ -->
     <div class="card">
-      <div class="card-hd"><b>🧭 P-01 ครึ่งแรก — GAT แจ้งเรื่องที่จะตรวจ (รายประเด็น)</b></div>
+      <div class="card-hd"><b>🧭 ขั้น 1 (ครึ่งแรก) — GAT แจ้งเรื่องที่จะตรวจ (รายประเด็น)</b></div>
       <p class="desc">GAT ใส่เรื่องที่ 1, 2, 3, … <b>แยกทีละประเด็น (1 บรรทัด = 1 เรื่อง)</b>: ประเด็นที่ตรวจ + หัวข้อเอกสารหลักฐานที่ต้องส่ง + ผู้รับผิดชอบ + กำหนดวันส่งข้อมูล — บันทึกแล้วเป็นรายการที่ BU เห็นและส่งตาม</p>
       <div class="filters">
         <input id="notBu" placeholder="BU ที่แจ้ง พิมพ์ได้เลย เช่น PAO" style="width:220px">
@@ -274,10 +274,10 @@ ol.manual li{margin-bottom:8px}
       <div id="notList"></div>
     </div>
 
-    <!-- ============ P-01 ครึ่งล่าง: BU ส่งข้อมูลตามเรื่องที่แจ้ง ============ -->
+    <!-- ============ ขั้น 2: BU ส่งข้อมูลตามเรื่องที่แจ้ง ============ -->
     <div class="card">
 <div class="card">
-      <div class="card-hd"><b>📤 P-01 ครึ่งหลัง — BU ส่งข้อมูลตามเรื่องที่ GAT แจ้ง</b></div>
+      <div class="card-hd"><b>📤 ขั้น 2 — BU ส่งข้อมูลตามเรื่องที่ GAT แจ้ง</b></div>
       <p class="desc">เลือก <b>เรื่องที่ส่ง</b> (dropdown จากที่ GAT บันทึกไว้ด้านบน) → กรอกหัวเรื่อง + แนบลิงก์หลักฐาน → ระบบรันเลข PACK-xxxx ลงชีตกลาง — SLA: ส่งให้ครบ <b>ภายในกำหนดวันส่ง</b>ที่ GAT แจ้งไว้ทุกเรื่อง (WI-01)</p>
       <div class="filters">
         <select id="packBu" style="width:180px"><option value="">— เลือก BU —</option></select>
@@ -292,13 +292,7 @@ ol.manual li{margin-bottom:8px}
       </div>
       <div id="packStatus" class="status" style="margin-top:8px"></div>
     </div>
-    <div class="card">
-      <div class="card-hd"><b>สถานะการส่งทั้งหมด (จากชีตจริง)</b></div>
-      <div class="filters">
-        <button class="button-lite" id="btnLoadPacks">🔄 รีเฟรชสถานะ</button>
-      </div>
-      <div style="overflow-x:auto"><table id="packTable" class="table"><thead><tr><th>เลข Pack</th><th>BU</th><th>ขอบเขต</th><th>หัวเรื่อง</th><th>ลิงก์</th><th>สถานะ</th><th>ส่งเมื่อ</th></tr></thead><tbody><tr><td colspan="7" class="empty">ยังไม่มีข้อมูล — กด รีเฟรชสถานะ</td></tr></tbody></table></div>
-    </div>
+        </div>
   </section>
 
 
@@ -352,10 +346,10 @@ ol.manual li{margin-bottom:8px}
   </section>
 
 
-  <!-- ============ 2. แท็บ GAT เลือกหัวข้อจากข้อมูลที่ BU ส่ง ============ -->
+  <!-- ============ 1. แท็บ GAT เลือกหัวข้อ (ครึ่งหลังของขั้น 1) ============ -->
   <section class="tabpane" id="pane-p02pick">
     <div class="card">
-      <div class="card-hd"><b>🗂 ขั้น 2 — ทีม GAT เลือกหัวข้อที่ BU ส่งข้อมูลมาให้</b></div>
+      <div class="card-hd"><b>🗂 ขั้น 1 (ครึ่งหลัง) — ทีม GAT เลือกหัวข้อที่ BU ส่งข้อมูลมาให้</b></div>
       <p class="desc">ดูสถานะการส่งจากชีตจริง → เลือก <b>หัวข้อ/Pack ที่จะลงตรวจ</b> — เลือกแล้วส่งต่อขั้น 3 (ตรวจด้วย AI)</p>
       <div class="filters"><button class="button-lite" id="btnLoadPacksPick">🔄 รีเฟรชสถานะการส่ง</button></div>
       <div style="overflow-x:auto"><table id="pickTable" class="table"><thead><tr><th style="width:44px">เลือก</th><th>เลข Pack</th><th>BU</th><th>ขอบเขต</th><th>หัวเรื่อง</th><th>สถานะ</th></tr></thead><tbody id="pickBody"><tr><td colspan="6" class="empty">ยังไม่มีข้อมูล — กด รีเฟรชสถานะ</td></tr></tbody></table></div>
@@ -365,7 +359,13 @@ ol.manual li{margin-bottom:8px}
         <span id="pickStatus" class="status"></span>
       </div>
     </div>
-  </section>
+  <div class="card">
+      <div class="card-hd"><b>สถานะการส่งทั้งหมด (จากชีตจริง)</b></div>
+      <div class="filters">
+        <button class="button-lite" id="btnLoadPacks">🔄 รีเฟรชสถานะ</button>
+      </div>
+      <div style="overflow-x:auto"><table id="packTable" class="table"><thead><tr><th>เลข Pack</th><th>BU</th><th>ขอบเขต</th><th>หัวเรื่อง</th><th>ลิงก์</th><th>สถานะ</th><th>ส่งเมื่อ</th></tr></thead><tbody><tr><td colspan="7" class="empty">ยังไม่มีข้อมูล — กด รีเฟรชสถานะ</td></tr></tbody></table></div>
+</section>
 
   <!-- ============ 3. แท็บ GAT ตรวจด้วย AI ============ -->
   <section class="tabpane" id="pane-aiprompt">
