@@ -376,6 +376,15 @@ ol.manual li{margin-bottom:8px}
       </div>
     </div>
     <div class="card">
+      <h3>③ GAT ตรวจคำตอบ → ปิดประเด็น (ขั้น ⑨)</h3>
+      <p class="desc">หลัง BU ส่งคำตอบ (แก้+หลักฐาน / ไม่แก้+เหตุผล): GAT เลือกใบ → กดปิด — ระบบจด AuditLog "close_issue" — สถานะเปลี่ยนเป็น ปิดแล้ว (GAT ยืนยัน) — ไม่สามารถปิดใบที่ BU ยังไม่ตอบ</p>
+      <div class="filters"><select id="closeRecPick" style="flex:1;min-width:280px"><option value="">— เลือกใบที่ BU ตอบแล้ว —</option></select></div>
+      <div class="filters">
+        <input id="closeBy" placeholder="ชื่อ-ตำแหน่งจริงผู้ปิด (GAT)" style="width:260px">
+        <button id="btnCloseRec" class="gold">🔒 ปิดประเด็น (GAT ยืนยัน)</button>
+      </div>
+    </div>
+    <div class="card">
       <div class="card-hd">
         <h3>③ ทะเบียนข้อเสนอแนะ</h3>
         <span id="recCount" style="font-size:12px;color:var(--muted)"></span>

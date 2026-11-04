@@ -928,6 +928,18 @@ var GAT = (function () {
       return '<option value="' + esc(x.REC_ID) + '">' + esc(x.REC_ID) + (x.REC_NO ? ' (#' + esc(x.REC_NO) + ')' : '') + ' · ' + esc(String(x.TITLE || '').slice(0, 40)) + '</option>';
     }).join('');
     rp.value = cur;
+    // v1.9 — dropdown ปิดใบ (เฉพาะใบที่ BU ตอบแล้ว + ยังไม่ปิด)
+    var cp = id('closeRecPick');
+    if (cp) {
+      var curc = cp.value;
+      cp.innerHTML = '<option value="">— เลือกใบที่ BU ตอบแล้ว —</option>' + (state.recs || []).filter(function (x) {
+        var st = String(x.STATUS || '');
+        return String(x.BU_DECISION || '').trim() && st.indexOf('ปิด') < 0 && st.indexOf('ทดสอบ') < 0;
+      }).map(function (x) {
+        return '<option value="' + esc(x.REC_ID) + '">' + esc(x.REC_ID) + ' · ' + esc(String(x.TITLE || '').slice(0, 40)) + ' · BU: ' + esc(String(x.BU_DECISION || '')) + '</option>';
+      }).join('');
+      cp.value = curc;
+    }
     var list = state.recs;
     id('recCount').textContent = list.length ? ('รวม ' + list.length + ' รายการ') : '';
     id('recBody').innerHTML = list.map(function (x) {
@@ -1064,6 +1076,19 @@ var GAT = (function () {
     });
     id('btnRespond').addEventListener('click', respondRec);
 
+    // v1.9 — ปิดใบ (GAT ยืนยัน)
+    var b7 = id('btnCloseRec');
+    if (b7) b7.addEventListener('click', function () {
+      var recId = id('closeRecPick').value;
+      var st = function (t) { status(t); };
+      if (!recId) { st('⚠️ เลือกใบที่ BU ตอบแล้วก่อน'); return; }
+      var by = id('closeBy').value.trim() || 'GAT';
+      postToBCT('close_issue', { REC_ID: recId, BY: by }, function (res) {
+        if (res.ok) { st('🔒 ปิดใบ ' + recId + ' แล้ว — บันทึกชีต + AuditLog'); importBCT(true); }
+        else st('❌ ' + (res.error || 'ปิดไม่สำเร็จ'));
+      });
+    });
+
     // v1.8 — Packs + AI Review
     var b1 = id('btnSendPack'); if (b1) b1.addEventListener('click', sendPack);
     var b2 = id('btnLoadPacks'); if (b2) b2.addEventListener('click', loadPacks);
@@ -1185,5 +1210,5 @@ var GAT = (function () {
   }
 
   return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess, renderRunner: renderRunner,
-    _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _aiBuildPrompt: aiBuildPrompt, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks };
+    _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _aiBuildPrompt: aiBuildPrompt, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks, _renderRecs: renderRecs };
 })();
