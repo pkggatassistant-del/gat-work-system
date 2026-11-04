@@ -87,7 +87,7 @@ setTimeout(() => {
 
   // --- v1.14: P-01 ครึ่งแรก — GAT แจ้งเรื่องรายประเด็น → BU เลือกเรื่องที่ส่ง ---
   st5.packs = [];
-  var nb2 = d.getElementById('notBu'); if (nb2) { nb2.innerHTML += '<option>PAO</option>'; }
+  var nb2 = d.getElementById('notBu');
   ok('v1.14: แท็บ 1 มีการ์ดแจ้งเรื่อง + ส่งข้อมูล แยกครึ่ง', !!d.getElementById('notItems') && !!d.getElementById('btnNotifyPlan') && !!d.getElementById('packNotif') && !!d.getElementById('btnSendPack'));
   if (nb2) {
     nb2.value = 'PAO';
@@ -98,7 +98,13 @@ setTimeout(() => {
   ok('v1.14: BU dropdown เห็นแผนที่แจ้ง', d.getElementById('packNotif').options.length >= 2);
   ok('v1.14: รายการ "เรื่องที่จะตรวจ" แสดง 2 เรื่อง', d.getElementById('notList').textContent.indexOf('เรื่องที่ 2') >= 0);
 
-  console.log('\n══ RESULT รวม (v1.14): ' + pass + ' pass / ' + fail + ' fail ══');
+  // --- v1.15: dropdown BU ทั้ง 2 การ์ด (ไม่เหมือนกัน) — ยอมรับรายชื่อจริงจาก seed ---
+  var optsN = Array.from(d.getElementById('notBu').options).map(function (o) { return o.value; });
+  var optsP = Array.from(d.getElementById('packBu').options).map(function (o) { return o.value; });
+  ok('v1.15: notBu เติมรายชื่อ BU อัตโนมัติ (≥55 รายการ + PAO)', optsN.length >= 55 && optsN.indexOf('PAO') >= 0, 'got ' + optsN.length);
+  ok('v1.15: อัตราบรรจุ dropdown สองการ์ดชุดเดียวกัน', JSON.stringify(optsN) === JSON.stringify(optsP));
+
+  console.log('\n══ RESULT รวม (v1.15): ' + pass + ' pass / ' + fail + ' fail ══');
     process.exit(fail ? 1 : 0);
   }, 350);
 

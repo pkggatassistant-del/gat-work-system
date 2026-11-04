@@ -1,7 +1,7 @@
 /* GAT Work System — shared config (โหลดก่อน app.js เสมอ) */
 window.GAT_CONFIG = {
   REC_SCOPE: ['GAT-REC-0042','GAT-REC-0043','GAT-REC-0044','GAT-REC-0045','GAT-REC-0046','GAT-REC-0047','GAT-REC-0048','GAT-REC-0049','GAT-REC-0050','GAT-REC-0051'], // v1.10 โหมดทดสอบเรื่องเดียว (GA-LC) — เคลียร์ [] เพื่อโชว์ทุกใบ
-  VERSION: 'v1.14 (4 พ.ย. 69) — 10 แท็บขั้นปฏิบัติงานตามคำสั่งหนึ่ง + แท็บ 1 แบ่ง 2 ครึ่ง: ครึ่งแรก GAT แจ้งเรื่องที่จะตรวจรายประเด็น (ประเด็น+เอกสาร+ผู้รับผิดชอบ+กำหนดวัน) ครึ่งหลัง BU เลือกเรื่องที่ส่งเป็น PACK — แจ้งเรื่องเก็บในเครื่อง (รอดันชีต GAT_Plans)', // นิยาม PM=Process Management · WI=Work Instruction · SD=Supporting Document · FM=Form/Format ตามตารางที่พี่หนึ่งให้ 2 พ.ย. 69
+  VERSION: 'v1.15 (4 พ.ย. 69) — แก้ dropdown เลือก BU ว่าง (notBu ไม่ถูกเติม) — ทั้ง 2 การ์ด P-01 ใช้รายชื่อ BU จาก seed ครบ + PAO, // นิยาม PM=Process Management · WI=Work Instruction · SD=Supporting Document · FM=Form/Format ตามตารางที่พี่หนึ่งให้ 2 พ.ย. 69
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง — ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
   BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbwmSjODcZRoqLiYomSNtSwK1rZqSe9YTWRBFa1YaUdWdqr8I61aW7s4YAo1blzXRV2C/exec'), // BCT กลาง — deploy v1.5.1 ที่หนึ่ง deploy 4 พ.ย. 69 (standalone + SHEET_ID)
   SOURCES: {

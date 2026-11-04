@@ -579,11 +579,18 @@ function loadProcessDocs() {
     });
   }
   function fillPackSelectors() {
+    var bus = (state.seed && state.seed.companies || []).map(function (c) { return c.BU || c.name || c; }).filter(Boolean);
+    bus = (bus.length ? bus : ['AAMG', 'PMSG', 'CPDG', 'LDC', 'TNR']).concat(['PAO']);
     var sel = document.getElementById('packBu');
-    if (sel && !sel.options.length > 1) {
-      var bus = (state.seed && state.seed.companies || []).map(function (c) { return c.BU || c.name || c; }).filter(Boolean);
-      (bus.length ? bus : ['AAMG', 'PMSG', 'CPDG', 'LDC', 'TNR']).forEach(function (b) {
+    if (sel && sel.options.length <= 1) {
+      bus.forEach(function (b) {
         var o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o);
+      });
+    }
+    var selN = document.getElementById('notBu');
+    if (selN && selN.options.length <= 1) {
+      bus.forEach(function (b) {
+        var o = document.createElement('option'); o.value = b; o.textContent = b; selN.appendChild(o);
       });
     }
     var scopes = ['ระเบียบการเงิน PKG 2567 — เงินสดย่อย/นำฝาก', 'ระเบียบการเงิน PKG 2567 — ตัดชำระโอน/QR', 'ระเบียบการเงิน PKG 2567 — สำรองจ่าย/เอกสาร 3', 'สวัสดิการพนักงาน (ลา/ทำหมัน/IPD)', 'เอกสารกระบวนการ PM/WI/SD/FM', 'อื่น ๆ (ระบุในหัวเรื่อง)'];
