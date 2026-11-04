@@ -440,6 +440,24 @@ function loadProcessDocs() {
     var cnt = document.getElementById('pickCount');
     if (cnt) cnt.textContent = 'รวม ' + (state.packs || []).length + ' การส่ง';
   }
+  function removePickPacks() {
+    var st = document.getElementById('pickStatus');
+    var picked = Array.from(document.querySelectorAll('.pick-chk')).filter(function (c) { return c.checked; }).map(function (c) { return c.getAttribute('data-pack'); });
+    if (!picked.length) { if (st) st.textContent = '⚠️ ติ๊กเลือกแถวที่จะลบก่อน'; return; }
+    var who = prompt('ใครสั่งลบ? (ชื่อ-ตำแหน่ง GAT ผู้ลบ) — บันทึกลง AuditLog');
+    if (!who) { if (st) st.textContent = 'ยกเลิก — ไม่ลบ'; return; }
+    if (!confirm('ลบออกจากรายการตรวจ: ' + picked.join(', ') + ' ?\n(ลงชีตคงอยู่ — เปลี่ยนสถานะเป็น "ลบออกโดย GAT" + ล็อก AuditLog — ย้อนดูได้)')) { if (st) st.textContent = 'ยกเลิก'; return; }
+    var done = 0, pend = picked.length;
+    picked.forEach(function (pid) {
+      postToBCT('update_pack_status', { PACK_ID: pid, STATUS: '❌ ลบออกจากรายการตรวจ — ลบโดย ' + who, BY: who }, function (res) {
+        done++; pend--;
+        if (pend === 0) {
+          if (st) st.textContent = done ? '🗑 ลบออกแล้ว ' + done + ' แถว (มีร่องรอยในชีต/หนังสือ AuditLog)' : '❌ ลบไม่สำเร็จ — GAS ต้องเป็น v1.5.2 (update_pack_status)';
+          if (done) loadPacks();
+        }
+      });
+    });
+  }
   function renderSentTable() {
     var tb = document.getElementById('recBodySent'); if (!tb) return;
     var list = scopedRecs().filter(function (r) { return String(r.STATUS || '').indexOf('ส่งให้ BU') >= 0 || String(r.STATUS || '').indexOf('P-04') >= 0; });
@@ -1247,6 +1265,7 @@ function loadProcessDocs() {
     var g5 = id('btnBufixDl'); if (g5) g5.addEventListener('click', downloadBufixList);
     /* btnLoadPacksPick — ปุ่ม "รีเฟรชสถานะ" ในแท็บ 2 (ใช้ loadPacks เดิม + render ทั้ง 2 ตาราง) */
     var lp2 = id('btnLoadPacksPick'); if (lp2) lp2.addEventListener('click', function () { loadPacks(); });
+    var rp = id('btnPickRemove'); if (rp) rp.addEventListener('click', removePickPacks);
     /* v1.14 P-01 แจ้งเรื่อง */
     var n1 = id('btnNotifyPlan'); if (n1) n1.addEventListener('click', saveNotifPlan);
     var n2 = id('btnNotifyDl'); if (n2) n2.addEventListener('click', downloadNotifDoc);
@@ -1371,5 +1390,5 @@ function loadProcessDocs() {
   }
 
   return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess,
-    _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _aiBuildPrompt: aiBuildPrompt, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks, _renderRecs: renderRecs, _renderPickTable: renderPickTable, _renderSentTable: renderSentTable, _renderFixTable: renderFixTable };
+    _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _aiBuildPrompt: aiBuildPrompt, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks, _renderRecs: renderRecs, _renderPickTable: renderPickTable, _removePickPacks: removePickPacks, _renderSentTable: renderSentTable, _renderFixTable: renderFixTable };
 })();

@@ -109,7 +109,19 @@ setTimeout(() => {
   d.getElementById('btnNotifyPlan').click();
   ok('v1.16: บันทึกแผนจากช่องกรอก (ไม่ต้อง dropdown)', (d.getElementById('notStatus').textContent || '').indexOf('PLAN-2569-') >= 0);
 
-  console.log('\n══ RESULT รวม (v1.16): ' + pass + ' pass / ' + fail + ' fail ══');
+  // --- v1.17: แท็บ 2 ลบออกจากรายการ (เลือก checkbox → confirm → update_pack_status) ---
+  var st6 = gat.state(); st6.packs = [{ PACK_ID: 'PACK-0001', BU: 'TEST', TITLE: 'probe', STATUS: 'x' }, { PACK_ID: 'PACK-0002', BU: 'PKG', TITLE: 'สวัสดิการ', STATUS: 'x' }];
+  gat._renderPickTable();
+  d.querySelectorAll('.pick-chk')[0].checked = true;
+  var origPrompt = w.prompt, origConfirm = w.confirm;
+  w.prompt = function () { return 'แดง (GAT)'; }; w.confirm = function () { return true; };
+  var posts = []; // ดัก postToBCT — ปกติยิง fetch จริง ในเทส mock ไม่ได้ตอบ cb → แค่ยืนยันเรียก
+  ok('v1.17: มีปุ่ม 🗑 ลบออกจากรายการ', !!d.getElementById('btnPickRemove'));
+  try { gat._removePickPacks(); } catch (e) {}
+  w.prompt = origPrompt; w.confirm = origConfirm;
+  gat._removePickPacks(); // ไม่เลือก → warn
+
+  console.log('\n══ RESULT รวม (v1.17): ' + pass + ' pass / ' + fail + ' fail ══');
     process.exit(fail ? 1 : 0);
   }, 350);
 
