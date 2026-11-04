@@ -121,7 +121,18 @@ setTimeout(() => {
   w.prompt = origPrompt; w.confirm = origConfirm;
   gat._removePickPacks(); // ไม่เลือก → warn
 
-  console.log('\n══ RESULT รวม (v1.17): ' + pass + ' pass / ' + fail + ' fail ══');
+  // --- v1.18: ลิงก์หลักฐานฉบับ GAT (แชร์สิทธิ์ openclaw) → ชุดคำสั่ง AI ใช้แทนลิงก์ BU ---
+  st6.packs = [{ PACK_ID: 'PACK-9992', BU: 'PKG', SCOPE: 'สวัสดิการ', PERIOD: 'ต.ค. 69', TITLE: 'ทดสอบลิงก์', LINKS: 'https://drive.bu-private/x', NOTE: '' }];
+  gat._fillPackSelectors(); gat._renderPickTable();
+  var pkSel = d.getElementById('aiPackPick'); pkSel.value = 'PACK-9992';
+  d.getElementById('aiEvidenceLinks').value = 'https://docs.google.com/spreadsheets/gat-copy-test';
+  d.getElementById('btnSaveEvidence').click();
+  ok('v1.18: บันทึกลิงก์ GAT ผูก Pack', (d.getElementById('evidenceStatus').textContent || '').indexOf('PACK-9992') >= 0);
+  Array.from(d.querySelectorAll('button')).find(function (b) { return b.id === 'btnAiBuild'; }).click();
+  var pr = d.getElementById('aiPrompt').value;
+  ok('v1.18: ชุดคำสั่ง AI ใช้ลิงก์ GAT แทนลิงก์ BU อัตโนมัติ', pr.indexOf('gat-copy-test') >= 0 && pr.indexOf('drive.bu-private') < 0);
+
+  console.log('\n══ RESULT รวม (v1.18): ' + pass + ' pass / ' + fail + ' fail ══');
     process.exit(fail ? 1 : 0);
   }, 350);
 

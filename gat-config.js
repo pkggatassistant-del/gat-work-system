@@ -1,7 +1,7 @@
 /* GAT Work System — shared config (โหลดก่อน app.js เสมอ) */
 window.GAT_CONFIG = {
   REC_SCOPE: ['GAT-REC-0042','GAT-REC-0043','GAT-REC-0044','GAT-REC-0045','GAT-REC-0046','GAT-REC-0047','GAT-REC-0048','GAT-REC-0049','GAT-REC-0050','GAT-REC-0051'], // v1.10 โหมดทดสอบเรื่องเดียว (GA-LC) — เคลียร์ [] เพื่อโชว์ทุกใบ
-  VERSION: 'v1.17 (4 พ.ย. 69) — แท็บ 2 เพิ่มปุ่ม ลบออกจากรายการ: ติ๊กเลือก+ใส่ชื่อผู้ลบ+ยืนยัน → สถานะในชีตเปลี่ยน ลบออกโดย GAT + AuditLog (แถวไม่หาย ย้อนดูได้ — P-09 กรองแสดงตัดออกอัตโนมัติ)', // นิยาม PM=Process Management · WI=Work Instruction · SD=Supporting Document · FM=Form/Format ตามตารางที่พี่หนึ่งให้ 2 พ.ย. 69
+  VERSION: 'v1.18 (4 พ.ย. 69) — แท็บ 3 เพิ่มการ์ด ลิงก์หลักฐานฉบับ GAT: BU ลิงก์ติดสิทธิ์ → GAT ดาวน์โหลด+นำขึ้นชีต+แชร์ให้ openclaw → วางลิงก์ผูก Pack → ชุดคำสั่ง AI ใช้ลิงก์นี้แทนอัตโนมัติ (เก็บ localStorage gat_evidence)', // นิยาม PM=Process Management · WI=Work Instruction · SD=Supporting Document · FM=Form/Format ตามตารางที่พี่หนึ่งให้ 2 พ.ย. 69
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง — ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
   BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbwmSjODcZRoqLiYomSNtSwK1rZqSe9YTWRBFa1YaUdWdqr8I61aW7s4YAo1blzXRV2C/exec'), // BCT กลาง — deploy v1.5.1 ที่หนึ่ง deploy 4 พ.ย. 69 (standalone + SHEET_ID)
   SOURCES: {

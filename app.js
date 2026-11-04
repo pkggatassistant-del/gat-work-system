@@ -557,7 +557,7 @@ function loadProcessDocs() {
     var n = { NOTIF_ID: 'PLAN-' + (new Date().getFullYear() + 543) + '-' + String(seq).padStart(3, '0'), BU: bu, PERIOD: document.getElementById('notPeriod').value.trim(), ITEMS: items, BY: by, SAVED_AT: new Date().toLocaleString('th-TH') };
     list.push({ NOTIF_ID: n.NOTIF_ID, BU: n.BU, PERIOD: n.PERIOD, items: items, BY: n.BY, SAVED_AT: n.SAVED_AT });
     saveNotifs(list);
-    fillNotifPickers(); renderNotifList();
+    state.evidence = loadEvidence(); fillNotifPickers(); renderNotifList();
     if (st) st.textContent = '✅ บันทึกแล้ว ' + n.NOTIF_ID + ' (' + items.length + ' ประเด็น) — BU เห็นเลือกส่งที่ครึ่งล่าง';
     document.getElementById('notItems').value = '';
   }
@@ -606,7 +606,7 @@ function loadProcessDocs() {
       });
     }
     var selN = document.getElementById('notBu');
-    if (selN && selN.options.length <= 1) {
+    if (selN && selN.tagName === 'SELECT' && selN.options.length <= 1) {
       bus.forEach(function (b) {
         var o = document.createElement('option'); o.value = b; o.textContent = b; selN.appendChild(o);
       });
@@ -627,12 +627,14 @@ function loadProcessDocs() {
   function aiBuildPrompt(pid) {
     var pk = (state.packs || []).filter(function (x) { return x.PACK_ID === pid; })[0];
     if (!pk) { alert('เลือก Pack ก่อน'); return; }
+    var links = (state.evidence && state.evidence[pk.PACK_ID]) ? String(state.evidence[pk.PACK_ID]) : String(pk.LINKS || '');
+    var linksNote = (state.evidence && state.evidence[pk.PACK_ID]) ? '(ลิงก์ชีต GAT ที่แชร์ให้ AI แล้ว — ผูกแทนลิงก์ BU เดิม)' : '(ลิงก์เดิมจาก BU — ถ้าเปิดไม่ได้ ให้ GAT นำขึ้นชีต GAT + แชร์สิทธิ์ AI แล้ววางลิงก์ใหม่ในการ์ด "ลิงก์หลักฐานฉบับที่ AI อ่านได้")';
     var prompt = [
       'คุณคือ AI ผู้ช่วยตรวจสอบของ ทีม GAT (General Audit Team) PKG — สอดคลุมกฎบัตร v1.4',
       'ขอบเขตการตรวจ: ' + (pk.SCOPE || '-') + ' / รอบ: ' + (pk.PERIOD || '-') ,
       'ข้อเท็จจริงจาก BU: ' + (pk.TITLE || ''),
-      'ลิงก์หลักฐานที่ต้องวิเคราะห์ (เข้าอ่านโดย AI ผู้ตรวจ):',
-      String(pk.LINKS || '').split('\n').filter(Boolean).map(function (l, i) { return (i + 1) + '. ' + l.trim(); }).join('\n'),
+      'ลิงก์หลักฐานที่ต้องวิเคราะห์ ' + linksNote + ':',
+      links.split('\n').filter(Boolean).map(function (l, i) { return (i + 1) + '. ' + l.trim(); }).join('\n'),
       pk.NOTE ? 'หมายเหตุ: ' + pk.NOTE : '',
       '',
       'กติกาเหล็กของ GAT:',
@@ -645,6 +647,21 @@ function loadProcessDocs() {
     ].filter(Boolean).join('\n');
     document.getElementById('aiPrompt').value = prompt;
     aiStatus('✅ สร้างชุดคำสั่งจาก ' + pid + ' แล้ว — กดคัดลอกไปวางใน AI ตัวที่ใช้ตรวจ');
+  }
+  /* v1.18 — ลิงก์หลักฐานฉบับ GAT (ผูกแพ็ค) — localStorage: gat_evidence {PACK_ID: links} */
+  function loadEvidence() {
+    try { return JSON.parse(localStorage.getItem('gat_evidence') || '{}'); } catch (e) { return {}; }
+  }
+  function saveEvidenceLink() {
+    var st = document.getElementById('evidenceStatus');
+    var packId = document.getElementById('aiPackPick').value;
+    var txt = document.getElementById('aiEvidenceLinks').value.trim();
+    if (!packId) { if (st) st.textContent = '⚠️ เลือก Pack ก่อน'; return; }
+    if (!txt) { if (st) st.textContent = '⚠️ วางลิงก์ก่อน (ชีต GAT ที่แชร์ให้ openclaw แล้ว)'; return; }
+    var ev = loadEvidence(); ev[packId] = txt;
+    try { localStorage.setItem('gat_evidence', JSON.stringify(ev)); } catch (e) {}
+    state.evidence = ev;
+    if (st) st.textContent = '✅ บันทึกลิงก์สำหรับ ' + packId + ' — กด "สร้างชุดคำสั่ง AI" แล้วระบบใช้ลิงก์นี้แทนอัตโนมัติ';
   }
   function aiStatus(t) { var el = document.getElementById('aiStatus'); if (el) el.textContent = t; }
   function aiParse() {
@@ -1266,6 +1283,8 @@ function loadProcessDocs() {
     /* btnLoadPacksPick — ปุ่ม "รีเฟรชสถานะ" ในแท็บ 2 (ใช้ loadPacks เดิม + render ทั้ง 2 ตาราง) */
     var lp2 = id('btnLoadPacksPick'); if (lp2) lp2.addEventListener('click', function () { loadPacks(); });
     var rp = id('btnPickRemove'); if (rp) rp.addEventListener('click', removePickPacks);
+    var se = id('btnSaveEvidence'); if (se) se.addEventListener('click', saveEvidenceLink);
+    var spE = id('aiPackPick'); if (spE) spE.addEventListener('change', function () { var ev = loadEvidence(); document.getElementById('aiEvidenceLinks').value = ev[spE.value] || ''; var s2 = document.getElementById('evidenceStatus'); if (s2) s2.textContent = ev[spE.value] ? '✓ มีลิงก์ GAT ผูกไว้แล้วสำหรับ Pack นี้' : ''; });
     /* v1.14 P-01 แจ้งเรื่อง */
     var n1 = id('btnNotifyPlan'); if (n1) n1.addEventListener('click', saveNotifPlan);
     var n2 = id('btnNotifyDl'); if (n2) n2.addEventListener('click', downloadNotifDoc);

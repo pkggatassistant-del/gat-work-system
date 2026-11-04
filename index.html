@@ -371,6 +371,16 @@ ol.manual li{margin-bottom:8px}
         <select id="aiPackPick" style="flex:1;min-width:280px"><option value="">— เลือก Pack ที่ BU ส่ง —</option></select>
         <button class="button-lite" id="btnAiBuild">🧩 สร้างชุดคำสั่ง AI (จาก Pack ที่เลือก)</button>
       </div>
+      <!-- v1.18: ลิงก์หลักฐานให้ AI — จากคำอธิบายของหนึ่ง (BU ลิงก์ติดสิทธิ์ → GAT ดาวน์โหลด → นำขึ้นชีต GAT → แชร์ให้ OpenClaw) -->
+      <div class="card" style="margin:10px 0;border-left:4px solid #e8a13a">
+        <div class="card-hd"><b>🔗 ลิงก์หลักฐานฉบับที่ AI อ่านได้ — วางที่นี่</b></div>
+        <p class="desc">ลิงก์จาก BU มัก<b>ติดสิทธิ์การเข้าถึง</b> — ทีม GAT ต้อง: ①ดาวน์โหลดลงเครื่อง → ②นำขึ้น Google Sheet ของ GAT → ③กดแชร์สิทธิ์ให้ <b>openclaw (AI ตรวจ)</b> → ④วางลิงก์ชีต GAT ตรงนี้ — ระบบจะใช้ลิงก์นี้ในชุดคำสั่ง AI แทนลิงก์เดิมของ BU อัตโนมัติ</p>
+        <div class="filters">
+          <input id="aiEvidenceLinks" placeholder="ลิงก์ชีต/ไฟล์ GAT ที่แชร์แล้ว (ขึ้นบรรทัดใหม่ = หลายลิงก์)" style="flex:1;min-width:280px">
+          <button class="button-lite" id="btnSaveEvidence">💾 บันทึกลิงก์ (ผูก Pack นี้)</button>
+        </div>
+        <div id="evidenceStatus" class="status"></div>
+      </div>
       <div class="filters"><textarea id="aiPrompt" placeholder="ชุดคำสั่ง AI จะปรากฏที่นี่ — กดคัดลอก พาไปวางใน AI ที่ใช้ตรวจ" style="width:100%;min-height:150px" readonly></textarea></div>
       <div class="filters"><button class="button-lite" id="btnAiCopy">📋 คัดลอกชุดคำสั่ง</button></div>
       <div class="filters">
