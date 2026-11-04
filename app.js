@@ -526,7 +526,9 @@ function loadProcessDocs() {
     box.innerHTML = !list.length ? '<div class="empty">ยังไม่มีเรื่องที่แจ้ง — GAT กรอกด้านบน</div>' :
       list.map(function (n) {
         var rows = (n.items || []).map(function (it, i) {
-          return '<tr><td style="width:60px"><b>เรื่องที่ ' + (i + 1) + '</b></td><td>' + escP(it) + '</td></tr>';
+          var chkId = 'nChk-' + n.NOTIF_ID + '-' + i;
+          var on = state.planPick && state.planPick[n.NOTIF_ID + '#' + i];
+          return '<tr><td style="width:60px"><input type="checkbox" class="not-pick" id="' + chkId + '" data-idx="' + n.NOTIF_ID + '#' + i + '"' + (on ? ' checked' : '') + ' style="width:auto;margin:0 6px 0 0"> <b>เรื่องที่ ' + (i + 1) + '</b></td><td>' + escP(it) + '</td></tr>';
         }).join('');
         return '<div class="card" style="border-left:4px solid #0e8345;margin-bottom:8px"><b>' + escP(n.NOTIF_ID) + '</b> · ' + escP(n.BU) + ' · ' + escP(n.PERIOD || '') + ' <span style="font-size:12px;color:#8a97a8">บันทึกเมื่อ ' + escP(n.SAVED_AT) + ' โดย ' + escP(n.BY || 'GAT') + '</span><table class="tbl">' + rows + '</table></div>';
       }).join('');
@@ -557,7 +559,7 @@ function loadProcessDocs() {
     var n = { NOTIF_ID: 'PLAN-' + (new Date().getFullYear() + 543) + '-' + String(seq).padStart(3, '0'), BU: bu, PERIOD: document.getElementById('notPeriod').value.trim(), ITEMS: items, BY: by, SAVED_AT: new Date().toLocaleString('th-TH') };
     list.push({ NOTIF_ID: n.NOTIF_ID, BU: n.BU, PERIOD: n.PERIOD, items: items, BY: n.BY, SAVED_AT: n.SAVED_AT });
     saveNotifs(list);
-    state.evidence = loadEvidence(); fillNotifPickers(); renderNotifList();
+    state.evidence = loadEvidence(); fillNotifPickers(); renderNotifList(); fillPackSelectors(); /* v1.20: dropdown แท็บ 3 มี __PLAN__ หลังบันทึกแผน */
     if (st) st.textContent = '✅ บันทึกแล้ว ' + n.NOTIF_ID + ' (' + items.length + ' ประเด็น) — BU เห็นเลือกส่งที่ครึ่งล่าง';
     document.getElementById('notItems').value = '';
   }
@@ -617,7 +619,13 @@ function loadProcessDocs() {
     var sel3 = document.getElementById('aiPackPick');
     if (sel3) {
       var cur = sel3.value;
-      sel3.innerHTML = '<option value="">— เลือก Pack ที่ BU ส่ง —</option>' + (state.packs || []).filter(function (x) { return String(x.STATUS || '').indexOf('ตรวจแล้ว') < 0; }).map(function (x) {
+      var planOpt = '';
+      try {
+        var pp = state.planPick || JSON.parse(localStorage.getItem('gat_plan_pick') || '{}');
+        var pickedN = Object.keys(pp).length;
+        if (pickedN) planOpt = '<option value="__PLAN__">🧭 ตรวจตามเรื่องที่ติ๊กจากแผนแจ้ง (' + pickedN + ' เรื่อง)</option>';
+      } catch (e) {}
+      sel3.innerHTML = '<option value="">— เลือก Pack ที่ BU ส่ง —</option>' + planOpt + (state.packs || []).filter(function (x) { return String(x.STATUS || '').indexOf('ตรวจแล้ว') < 0; }).map(function (x) {
         return '<option value="' + escP(x.PACK_ID) + '">' + escP(x.PACK_ID + ' · ' + x.BU + ' · ' + String(x.TITLE || '').slice(0, 48)) + '</option>';
       }).join('');
       if (cur) sel3.value = cur;
@@ -626,13 +634,25 @@ function loadProcessDocs() {
   /* ---------- AI Review ---------- */
   function aiBuildPrompt(pid) {
     var pk = (state.packs || []).filter(function (x) { return x.PACK_ID === pid; })[0];
-    if (!pk) { alert('เลือก Pack ก่อน'); return; }
+    if (!pk && !(state.planPick && Object.keys(state.planPick).length)) { alert('เลือก Pack ก่อน (หรือติ๊กเรื่องที่จะตรวจที่แท็บ 1)'); return; }
+    var planBlock = '';
+    if (!pk || (state.planPick && Object.keys(state.planPick).length)) {
+      var pickedDesc = [];
+      (loadNotifs() || []).forEach(function (n) {
+        (n.items || []).forEach(function (it, i) {
+          if (state.planPick && state.planPick[n.NOTIF_ID + '#' + i]) pickedDesc.push(n.NOTIF_ID + ' / เรื่องที่ ' + (i + 1) + ': ' + it);
+        });
+      });
+      if (pickedDesc.length) planBlock = 'หัวข้อที่ GAT เลือกจากแผนแจ้ง (แทน/ควบคู่ Pack):\n' + pickedDesc.map(function (t, i) { return (i + 1) + '. ' + t; }).join('\n');
+    }
+    if (!pk) { pk = { PACK_ID: '(จากแผนแจ้ง — รอ BU ส่ง PACK)', SCOPE: 'ตามเรื่องที่ GAT เลือกจากแผน', PERIOD: (loadNotifs()[0] || {}).PERIOD || '', TITLE: 'รายเรื่องที่ติ๊กเลือก', LINKS: '', NOTE: planBlock ? 'มีรายละเอียดในหัวข้อแผนแจ้ง' : '' }; }
     var links = (state.evidence && state.evidence[pk.PACK_ID]) ? String(state.evidence[pk.PACK_ID]) : String(pk.LINKS || '');
     var linksNote = (state.evidence && state.evidence[pk.PACK_ID]) ? '(ลิงก์ชีต GAT ที่แชร์ให้ AI แล้ว — ผูกแทนลิงก์ BU เดิม)' : '(ลิงก์เดิมจาก BU — ถ้าเปิดไม่ได้ ให้ GAT นำขึ้นชีต GAT + แชร์สิทธิ์ AI แล้ววางลิงก์ใหม่ในการ์ด "ลิงก์หลักฐานฉบับที่ AI อ่านได้")';
     var prompt = [
       'คุณคือ AI ผู้ช่วยตรวจสอบของ ทีม GAT (General Audit Team) PKG — สอดคลุมกฎบัตร v1.4',
       'ขอบเขตการตรวจ: ' + (pk.SCOPE || '-') + ' / รอบ: ' + (pk.PERIOD || '-') ,
       'ข้อเท็จจริงจาก BU: ' + (pk.TITLE || ''),
+      planBlock,
       'ลิงก์หลักฐานที่ต้องวิเคราะห์ ' + linksNote + ':',
       links.split('\n').filter(Boolean).map(function (l, i) { return (i + 1) + '. ' + l.trim(); }).join('\n'),
       pk.NOTE ? 'หมายเหตุ: ' + pk.NOTE : '',
@@ -647,6 +667,18 @@ function loadProcessDocs() {
     ].filter(Boolean).join('\n');
     document.getElementById('aiPrompt').value = prompt;
     aiStatus('✅ สร้างชุดคำสั่งจาก ' + pid + ' แล้ว — กดคัดลอกไปวางใน AI ตัวที่ใช้ตรวจ');
+  }
+  /* v1.20 — แท็บ 1: GAT ติ๊กเรื่องที่จะตรวจ → ส่งเข้าขั้น 3 (ไม่รอ PACK) */
+  function gotoAiFromPlan() {
+    var st = document.getElementById('notStatus');
+    var chk = Array.from(document.querySelectorAll('.not-pick')).filter(function (c) { return c.checked; }).map(function (c) { return c.getAttribute('data-idx'); });
+    if (!chk.length) { if (st) st.textContent = '⚠️ ติ๊ก "เรื่องที่ 1/2/3…" ที่จะลงตรวจก่อน'; return; }
+    state.planPick = {};
+    chk.forEach(function (k) { try { state.planPick[k] = true; } catch (e) {} });
+    try { localStorage.setItem('gat_plan_pick', JSON.stringify(state.planPick)); } catch (e) {}
+    if (st) st.textContent = '✅ เลือก ' + chk.length + ' เรื่อง — ไปขั้น 3 แล้ว (ชุดคำสั่ง AI จะอ้างเรื่องที่เลือก)';
+    fillPackSelectors(); /* v1.20: dropdown มีโหมด __PLAN__ ทันที */
+    showTab('aiprompt');
   }
   /* v1.19 — แท็บ 3: แสดงลิงก์หลักฐานที่ BU ส่งมา (คลิกได้) — ที่ GAT ต้องดาวน์โหลด→นำขึ้นชีต→แชร์ AI */
   function renderBuLinks() {
@@ -1290,7 +1322,7 @@ function loadProcessDocs() {
     // v1.8 — Packs + AI Review
     var b1 = id('btnSendPack'); if (b1) b1.addEventListener('click', sendPack);
     var b2 = id('btnLoadPacks'); if (b2) b2.addEventListener('click', loadPacks);
-    var b3 = id('btnAiBuild'); if (b3) b3.addEventListener('click', function(){ aiBuildPrompt(id('aiPackPick').value); });
+    var b3 = id('btnAiBuild'); if (b3) b3.addEventListener('click', function(){ var v = id('aiPackPick').value; if (v === '__PLAN__') { aiBuildPrompt(''); } else { aiBuildPrompt(v); } });
     var b4 = id('btnAiCopy'); if (b4) b4.addEventListener('click', function(){ var t=id('aiPrompt'); t.select(); try{document.execCommand('copy'); status('📋 คัดลอกชุดคำสั่ง AI แล้ว');}catch(e){} });
     var b5 = id('btnAiParse'); if (b5) b5.addEventListener('click', aiParse);
     var b6 = id('btnAiEmit'); if (b6) b6.addEventListener('click', aiEmit);
@@ -1303,8 +1335,10 @@ function loadProcessDocs() {
     /* btnLoadPacksPick — ปุ่ม "รีเฟรชสถานะ" ในแท็บ 2 (ใช้ loadPacks เดิม + render ทั้ง 2 ตาราง) */
     var lp2 = id('btnLoadPacksPick'); if (lp2) lp2.addEventListener('click', function () { loadPacks(); });
     var rp = id('btnPickRemove'); if (rp) rp.addEventListener('click', removePickPacks);
+    var gpf = id('btnGotoAipFromPlan'); if (gpf) gpf.addEventListener('click', gotoAiFromPlan);
+    try { state.planPick = JSON.parse(localStorage.getItem('gat_plan_pick') || '{}'); } catch (e) { state.planPick = {}; }
     var se = id('btnSaveEvidence'); if (se) se.addEventListener('click', saveEvidenceLink);
-    var spE = id('aiPackPick'); if (spE) spE.addEventListener('change', function () { var ev = loadEvidence(); document.getElementById('aiEvidenceLinks').value = ev[spE.value] || ''; var s2 = document.getElementById('evidenceStatus'); if (s2) s2.textContent = ev[spE.value] ? '✓ มีลิงก์ GAT ผูกไว้แล้วสำหรับ Pack นี้' : ''; renderBuLinks(); });
+    var spE = id('aiPackPick'); if (spE) spE.addEventListener('change', function () { if (spE.value === '__PLAN__') { document.getElementById('aiEvidenceLinks').value = ''; var s2 = document.getElementById('evidenceStatus'); if (s2) s2.textContent = 'โหมดตามแผนแจ้ง — ลิงก์หลักฐานชีต GAT ใส่ที่การ์ดด้านล่าง (บังคับ)'; renderBuLinks(); return; } var ev = loadEvidence(); document.getElementById('aiEvidenceLinks').value = ev[spE.value] || ''; var s2 = document.getElementById('evidenceStatus'); if (s2) s2.textContent = ev[spE.value] ? '✓ มีลิงก์ GAT ผูกไว้แล้วสำหรับ Pack นี้' : ''; renderBuLinks(); });
     /* v1.14 P-01 แจ้งเรื่อง */
     var n1 = id('btnNotifyPlan'); if (n1) n1.addEventListener('click', saveNotifPlan);
     var n2 = id('btnNotifyDl'); if (n2) n2.addEventListener('click', downloadNotifDoc);

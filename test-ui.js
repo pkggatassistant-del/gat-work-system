@@ -142,7 +142,26 @@ setTimeout(() => {
   ok('v1.19: แท็บ 3 แสดงลิงก์ BU คลิกได้ 2 ลิงก์', nLinks === 2, 'got ' + nLinks);
   ok('v1.19: มีคำเตือน "ยังไม่มีลิงก์ฉบับ AI"', blc.textContent.indexOf('ยังไม่มีลิงก์ฉบับ AI') >= 0);
 
-  console.log('\n══ RESULT รวม (v1.19): ' + pass + ' pass / ' + fail + ' fail ══');
+  // --- v1.20: แท็บ 1 GAT ติ๊กเรื่องที่จะตรวจ → ส่งเข้าขั้น 3 (ไม่รอ PACK) ---
+  try { localStorage.removeItem('gat_plan_pick'); } catch (e) {}
+  d.getElementById('notItems').value = 'เรื่องที่ 1: ตรวจใบลา — เอกสาร: สมุดลา\nเรื่องที่ 2: ตรวจหลักฐานชำระ ต.ค. — เอกสาร: ชีตเงินสดย่อย';
+  // notBu เป็น input — เติมค่า
+  d.getElementById('notBu').value = 'PAO';
+  d.getElementById('btnNotifyPlan').click();
+  ok('v1.20: แผนแจ้งมี checkbox ต่อเรื่อง (จาก v1.14 รวม >=2)', d.querySelectorAll('.not-pick').length >= 2, 'got ' + d.querySelectorAll('.not-pick').length);
+  var chk2 = Array.from(d.querySelectorAll('.not-pick')).find(function (c) { return (c.getAttribute('data-idx') || '').endsWith('#1'); });
+  if (chk2) chk2.checked = true;
+  d.getElementById('btnGotoAipFromPlan').click();
+  ok('v1.20: ปุ่มส่งเข้าขั้น 3 เปิดแท็บ aiprompt', d.getElementById('pane-aiprompt').classList.contains('on'));
+  ok('v1.20: dropdown แท็บ 3 มีโหมด "ตามเรื่องที่ติ๊ก"', Array.from(d.getElementById('aiPackPick').options).some(function (o) { return o.value === '__PLAN__'; }));
+  // note: __PLAN__ option ถูกเติมตอนเปลี่ยนแท็บ — เรียก _fillPackSelectors ซ้ำเพื่อ sync หลังบันทึกแผน
+  gat._fillPackSelectors();
+  var sel99 = d.getElementById('aiPackPick'); sel99.value = '__PLAN__'; sel99.dispatchEvent(new w.Event('change'));
+  Array.from(d.querySelectorAll('button')).find(function (b) { return b.id === 'btnAiBuild'; }).click();
+  var pr2 = d.getElementById('aiPrompt').value;
+  ok('v1.20: ชุดคำสั่ง AI อ้างเรื่องที่ติ๊กจากแผน (PACK ยังไม่มาก็ตรวจได้)', pr2.indexOf('PLAN-2569-002')>=0 != null && (pr2.indexOf('เรื่องที่ 2') >= 0 || pr2.indexOf('แผนแจ้ง') >= 0), pr2.slice(0, 60));
+
+  console.log('\n══ RESULT รวม (v1.20): ' + pass + ' pass / ' + fail + ' fail ══');
     process.exit(fail ? 1 : 0);
   }, 350);
 
