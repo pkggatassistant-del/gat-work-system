@@ -21,7 +21,7 @@
  */
 
 var CONFIG = {
-  VERSION: 'v1.5 (4 พ.ย. 69) — วงจร 10 ขั้น: เพิ่มแท็บ GAT_Packs + action submit_pack/list_packs (BU ส่งข้อมูล → GAT/AI ตรวจ) โดย GAT(แดง)',
+  VERSION: 'v1.5.1 (4 พ.ย. 69) — วงจร 10 ขั้น + ผูกชีตกลางด้วย SHEET_ID (รองรับ standalone deploy) โดย GAT(แดง)',
   SHEETS: {
     REGISTERS: 'GAT_Registers',   // Master Register: รายการตรวจสอบ/ภาระต้องส่ง
     ENTRIES: 'GAT_Entries',       // รายการบันทึกผลตรวจสอบรายครั้ง (BU กรอก)
@@ -29,7 +29,8 @@ var CONFIG = {
     AUDIT_LOG: 'GAT_AuditLog',    // audit trail ทุกกระทำ
     PACKS: 'GAT_Packs'            // v1.5 — ข้อมูลที่ BU ส่งเพื่อเข้ารับการตรวจ (Pack)
   },
-  TZ: 'Asia/Bangkok',
+TZ: 'Asia/Bangkok',
+  SHEET_ID: '1MK4ufs2ycbJg81ZVaqeJb0z3MEaflAMVZmKqmhkrZ1E',  // ชีต BCT กลาง — standalone deploy ชี้มาที่นี่
   REC_PREFIX: 'GAT-REC-',
   REC_PAD: 4
 };
@@ -66,7 +67,7 @@ function cleanTestRowsPrompt() {
 }
 
 function cleanRecRange_(fromId, toId) {
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEETS.RECS);
+  var sh = getSS_().getSheetByName(CONFIG.SHEETS.RECS);
   if (!sh) throw new Error('ไม่พบชีท ' + CONFIG.SHEETS.RECS);
   var lastRow = sh.getLastRow();
   if (lastRow < 2) return 0;
@@ -83,8 +84,15 @@ function cleanRecRange_(fromId, toId) {
 }
 
 /* ================= SETUP (รันครั้งเดียว หรือรันใหม่เมื่ออัปเดตโครง) ================= */
+/* v1.5.1 — รองรับ deploy แบบ bound (ชีตที่ script แนบ) หรือ standalone (ชี้ SHEET_ID) */
+function getSS_() {
+  var ss = getSS_();
+  if (ss) return ss;
+  return SpreadsheetApp.openById(CONFIG.SHEET_ID);
+}
+
 function setupSheets() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSS_();
   ensureSheet(ss, CONFIG.SHEETS.REGISTERS, [
     'REG_ID', 'BU', 'PROCESS_TYPE', 'PROCESS_CODE', 'TITLE', 'REGULATOR',
     'LAW_RULE', 'REQUIREMENT', 'DOCUMENT', 'DUE_DATE', 'FREQUENCY',
@@ -113,7 +121,7 @@ function setupSheets() {
 
 /* โยกย้ายชีทเก่า v1.0 → เพิ่มคอลัมน์ที่ขาดโดยไม่ทำข้อมูลหาย */
 function migrateSheets() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSS_();
   addColumns_(ss, CONFIG.SHEETS.RECS, ['REC_NO', 'CREATED_BY', 'BU_DECISION', 'EVIDENCE_URL', 'NO_FIX_REASON', 'RESPONSIBLE', 'REF_PM_WI', 'APPROVER']);
   log_('system', 'migrate', CONFIG.SHEETS.RECS, 'เพิ่มคอลัมน์ v1.1 + FM 11 ช่อง: REF_PM_WI + APPROVER (ถ้ายังไม่มี)');
   // v1.5 — ensure แท็บ Packs (ถ้ายังไม่มี)
@@ -233,7 +241,7 @@ function doPost(e) {
 
 /* ===== เปิดข้อเสนอแนะใหม่ → รันเลขตามแถวที่มีอยู่จริงบนชีท ===== */
 function openIssue_(data) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSS_();
   var sh = ss.getSheetByName(CONFIG.SHEETS.RECS);
   if (!sh) throw new Error('ไม่พบชีท ' + CONFIG.SHEETS.RECS + ' — รัน setupSheets() ก่อน');
   var lastRow = sh.getLastRow();
@@ -264,7 +272,7 @@ function addIssue(payload) {
 
 /* ===== BU ตอบข้อเสนอแนะ: แก้ไข (แนบหลักฐาน) หรือ ไม่แก้ไข (เหตุผล+ผู้รับผิดชอบ) ===== */
 function respondIssue_(data) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSS_();
   var sh = ss.getSheetByName(CONFIG.SHEETS.RECS);
   var pos = findRow_(sh, 'REC_ID', or_(data.REC_ID));
   if (pos < 0) throw new Error('ไม่พบ REC_ID: ' + data.REC_ID);
@@ -292,7 +300,7 @@ function respondIssue_(data) {
 
 /* ===== GAT ปิดรายการหลังตรวจคำตอบ (ขั้น ⑤ ของ SOP) ===== */
 function closeIssue_(data) {
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEETS.RECS);
+  var sh = getSS_().getSheetByName(CONFIG.SHEETS.RECS);
   var pos = findRow_(sh, 'REC_ID', or_(data.REC_ID));
   if (pos < 0) throw new Error('ไม่พบ REC_ID: ' + data.REC_ID);
   var headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
@@ -305,7 +313,7 @@ function closeIssue_(data) {
 /* ===== v1.4 (GAT(แดง) 3 พ.ย. 69): บำรุงรักษาทางไกล ===== */
 /* เติม REF_PM_WI ให้แถวเก่าที่ว่าง (หลัง migrate เพิ่มคอลัมน์) */
 function backfillRefPmWi_(ref) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSS_();
   var sh = ss.getSheetByName(CONFIG.SHEETS.RECS);
   if (!sh) throw new Error('ไม่พบชีท ' + CONFIG.SHEETS.RECS);
   var headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
@@ -327,7 +335,7 @@ function backfillRefPmWi_(ref) {
 
 /* แก้ TIMESTAMP ใน GAT_AuditLog ที่เสียจากบั๊ก v1.2 (ค่าเป็นข้อความโค้ด) — ระบุหมายเหตุ ไม่ปลอมเวลา */
 function fixLogTimestamps_(note) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSS_();
   var sh = ss.getSheetByName(CONFIG.SHEETS.AUDIT_LOG);
   if (!sh) return 0;
   var rows = sh.getDataRange().getValues();
@@ -388,7 +396,7 @@ function overview_() {
 }
 
 function readAll_(sheetName) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSS_();
   var sh = ss.getSheetByName(sheetName);
   if (!sh) throw new Error('ไม่พบชีท ' + sheetName + ' — รัน setupSheets() ก่อน');
   var rows = sh.getDataRange().getValues();
@@ -405,7 +413,7 @@ function readAll_(sheetName) {
 
 /* v1.5 — BU ส่งข้อมูลเข้ารับตรวจ (1 pack = 1 แถว) — รันเลข PACK-000n กันชนด้วย LockService */
 function submitPack_(data) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSS_();
   var sh = ss.getSheetByName(CONFIG.SHEETS.PACKS);
   if (!sh) { setupSheets(); sh = ss.getSheetByName(CONFIG.SHEETS.PACKS); }
   var last = sh.getLastRow();
@@ -427,7 +435,7 @@ function submitPack_(data) {
 
 function log_(actor, action, target, detail) {
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var ss = getSS_();
     var sh = ss.getSheetByName(CONFIG.SHEETS.AUDIT_LOG);
     if (!sh) return;
     sh.appendRow(['LG-' + Date.now(), now_(), actor, action, target, detail]);
