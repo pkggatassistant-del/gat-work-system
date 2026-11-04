@@ -163,12 +163,26 @@ setTimeout(() => {
   gat.showTab('p02pick');
   ok('v1.22/23: การ์ด stepbox ไม่มีบนแท็บ 1 (ถอดตามสั่ง) + RUN_STEPS คงชื่อขั้น 1 = GAT', d.getElementById('stepbox') === null);
 
-  console.log('\n══ RESULT รวม (v1.23): ' + pass + ' pass / ' + fail + ' fail ══');
+  // --- v1.24: แท็บ 10 = รายงานวัดผล DTA (แบบฟอร์มตาม D1_DTA) ---
+  gat.showTab('summary'); // pane เดิม (สรุปผลงาน) ยังอยู่ — nav 10 ชี้ d10 แยก
+  ok('v1.24: pane-d10 มีในหน้า', !!d.getElementById('pane-d10'));
+  gat.showTab('d10');
+  ok('v1.24: หัวฟอร์ม = รายงานวัดผล DTA — PKG General Audit Team 2026', (d.getElementById('pane-d10').textContent || '').indexOf('รายงานวัดผล ระบบวัดผล DTA -- PKG General Audit Team 2026'.replace('--','—')) >= 0);
+  var d10Txt = d.getElementById('pane-d10').textContent || '';
+  ['จุดมุ่งหมายทีม (Purpose)', 'OKRs.', 'KR1', 'KR3', 'TMM', 'AP-Action plan', 'XP (Execution Plan)', 'Coach By'].forEach(function (k) {
+    ok('v1.24: ฟอร์มมีหัวข้อ "' + k + '"', d10Txt.indexOf(k) >= 0);
+  });
+  ok('v1.24: ตาราง TMM 12 แผน', d.querySelectorAll('[id^="dta_ap"]').length === 12);
+  ok('v1.24: XP checklist 15 ข้อ', d.querySelectorAll('[id^="dta_xp"]').length === 15);
+  ok('v1.24: ปุ่มดาวน์โหลดรายงาน .md อยู่', !!d.getElementById('btnD10Md'));
+  ok('v1.24: nav แท็บ 10 = "10. รายงานวัดผล DTA"', Array.from(d.querySelectorAll('nav a')).some(function (a) { return (a.textContent || '').indexOf('รายงานวัดผล DTA') >= 0; }));
+
+  console.log('\n══ RESULT รวม (v1.24): ' + pass + ' pass / ' + fail + ' fail ══');
     process.exit(fail ? 1 : 0);
   }, 350);
 
   // 5) ข้อความคัดลอก (buildSummaryText ผ่าน export)
-  ok('แท็บครบหลัง render (v1.13 = 17 pane)', d.querySelectorAll('.tabpane').length === 17);
+  ok('แท็บครบหลัง render (v1.24 = 18 pane — +pane-d10)', d.querySelectorAll('.tabpane').length === 18);
 
   // 6) Dashboard ยังแสดงแหล่งข้อมูล + BU chart (โดยไม่ crash)
   gat.showTab('dashboard');
@@ -185,7 +199,7 @@ setTimeout(() => {
 
   // 14) v1.13: 10 แท็บชื่อ 1..10 ตามหนึ่งสั่ง + checklist ติดบนแท็บ
   var navIds = Array.from(d.querySelectorAll('nav a[data-tab]')).map(function (a) { return a.getAttribute('data-tab'); });
-  ok('v1.13: nav หลักครบ 10 แท็บใหม่', ['packs','p02pick','aiprompt','aicand','aisel','aisend','bufix','buanswer','close','summary'].every(function (t) { return navIds.indexOf(t) >= 0; }));
+  ok('v1.13: nav หลักครบ 10 แท็บใหม่', ['packs','p02pick','aiprompt','aicand','aisel','aisend','bufix','buanswer','close','d10'].every(function (t) { return navIds.indexOf(t) >= 0; }));
   // v1.23: stepbox หายทั้ง 10 แท็บ — RUN_STEPS (ข้อมูล) ครบ 10 ขั้น
   var stepsOk = (gat.state && JSON.stringify(RUN_STEPS_LEN()) === '10');
   function RUN_STEPS_LEN() { return 10; }

@@ -1,7 +1,7 @@
 /* GAT Work System — shared config (โหลดก่อน app.js เสมอ) */
 window.GAT_CONFIG = {
   REC_SCOPE: ['GAT-REC-0042','GAT-REC-0043','GAT-REC-0044','GAT-REC-0045','GAT-REC-0046','GAT-REC-0047','GAT-REC-0048','GAT-REC-0049','GAT-REC-0050','GAT-REC-0051'], // v1.10 โหมดทดสอบเรื่องเดียว (GA-LC) — เคลียร์ [] เพื่อโชว์ทุกใบ
-  VERSION: 'v1.23 (4 พ.ย. 69) — ถอดการ์ด Checklist (stepbox) ออกจากทุกแท็บ ตามสั่ง 06:49 — ขั้นตอนคงอยู่ในข้อมูล RUN_STEPS + คู่มือ — หน้าแท็บเหลือแต่ฟอร์มทำงานจริง', 
+  VERSION: 'v1.24 (4 พ.ย. 69) — แท็บ 10 ใหม่: รายงานวัดผล ระบบวัดผลDTA_PKG General Audit Team 2026 — ฟอร์มตามชีต D1_DTA ครบ 6 ส่วน (นิยาม/OKRs Progress/วิเคราะห์ BP-LL-II/TMM 12 แผน/XP 15 ข้อ/Coach) + รอบรายงานรายศุกร์ (เสาร์→ศุกร์) + ดาวน์โหลด .md ส่งหนึ่ง', 
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง — ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
   BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbwmSjODcZRoqLiYomSNtSwK1rZqSe9YTWRBFa1YaUdWdqr8I61aW7s4YAo1blzXRV2C/exec'), // BCT กลาง — deploy v1.5.1 ที่หนึ่ง deploy 4 พ.ย. 69 (standalone + SHEET_ID)
   SOURCES: {

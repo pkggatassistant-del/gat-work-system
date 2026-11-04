@@ -905,6 +905,174 @@ function loadProcessDocs() {
     act.appendChild(b1); act.appendChild(b2); box.appendChild(act);
   }
 
+  /* ---------- v1.24: แท็บ 10 — รายงานวัดผล ระบบวัดผล DTA — PKG General Audit Team 2026 (แบบฟอร์ม D1_DTA) ---------- */
+  var DTA_LS = 'gat_dta_report';
+  var DTA_XP = [
+    'ทีมมีการเขียนจุดมุ่งหมาย และวัตถุประสงค์ เป้าหมาย/เข็มทิศ ของกิจกรรม ภาพความสำเร็จที่อยากเห็นร่วมกัน เพื่อความเข้าใจตรงกัน',
+    'กำหนดบทบาท หน้าที่ความรับผิดชอบ ให้กับสมาชิกได้อย่างเหมาะสม (จัดคนให้เหมาะกับงาน) อย่างชัดเจน และเปลี่ยนผู้รับผิดชอบให้ทราบก่อนทุกครั้ง',
+    'มีการกำหนดเงื่อนไขการจ่ายค่าตอบแทนและแรงจูงใจ ให้สอดรับกับเป้าหมาย/เข็มทิศ ที่ตั้งไว้',
+    'กำหนด เงื่อนไขความรับผิดชอบต่อผล และวินัยการทำงานร่วมกัน',
+    'มีการจัดเตรียม เครื่องมือ อุปกรณ์ที่จำเป็นต้องใช้ในการทำงาน ให้ครบถ้วนเหมาะสม',
+    'มีการวางแผนการใช้เงิน/ลงทุน และทบทวนแผนการใช้เงินในกิจกรรมทุกเดือน ร่วมกัน',
+    'จัดสรรสมาชิกที่เป็นแกนนำ ที่เหมาะสมมีทักษะการนำ มีภาวะผู้นำที่ดี และทีมสนับสนุน ในการวางระบบ/ขับเคลื่อนงาน',
+    'สร้างกลุ่มไลน์, TG ทำงานร่วมกัน มีการพูดคุย แลกเปลี่ยนให้เกิดความเข้าใจที่ตรงกัน สอบถามเมื่อเกิดปัญหา ใช้งานได้จริง',
+    'สมาชิกในทีมมีการประสานงาน และรับใช้ซึ่งกันและกัน อย่างเปิดเผยโปร่งใส ร่วมกันในกลุ่มไลน์ ถ่ายรูปบรรยากาศในกลุ่ม',
+    'ใช้ระบบ 3 ผ่าน สมาชิก เกี่ยวกับทักษะ/ทุนองค์กร อย่างมีวินัย ในทุกกระบวนการ',
+    'มีทีมกำกับประจำวันในแต่ละทีมและทีม agenda-based BU ดูแลรับใช้ 7F ทีละประเด็น ทีละราย จนกว่างานจะลุล่วง',
+    'ผู้นำทีม/โครงการ กล้าแลกเปลี่ยนความเห็น เมื่อประเมินแล้วว่างานไม่ได้ผล โดยการ Coach ผ่านไลน์, TG ประจำวัน',
+    'มีระบบ 7F กำกับและติดตามความก้าวหน้าผ่านเวที Gotogether, Coaching Session และอื่น ๆ ทุกสัปดาห์/เดือน',
+    'สมาชิก/ทีม (วิเคราะห์ ปิด ปรับ เปลี่ยน) สรุปสั้นผลการทำงานทางไลน์, TG ประจำวัน และสรุปภาษีวินัยประจำวัน',
+    'นำประเด็น action plan ในสรุปสั้นจ่ายประเด็นและรายงานความก้าวหน้าแผนงาน/โครงการอย่างเป็นระบบผ่านระบบ MS24'
+  ];
+  var DTA_TMM = [
+    { q: 'สำคัญ + เร่งด่วน', ap: 'Annual Audit Plan 2027 — แผนตรวจสอบรายปี', owner: 'อารีย์' },
+    { q: 'สำคัญ + ไม่เร่งด่วน', ap: 'Audit Dashboard', owner: '' },
+    { q: 'สำคัญ + เร่งด่วน', ap: 'PM/WI การ Audit', owner: '' },
+    { q: 'สำคัญ + เร่งด่วน', ap: 'กำหนดประเภทหมวดหมู่การ Audit', owner: '' },
+    { q: 'สำคัญ + เร่งด่วน', ap: 'รวบรวมข้อมูลความเสี่ยงจากทั้ง 4 กลุ่มธุรกิจ', owner: '' },
+    { q: 'สำคัญ + เร่งด่วน', ap: 'Checklist ข้อมูลประเด็นความเสี่ยงจาก Law+Compliance+Tax', owner: '' },
+    { q: 'สำคัญ + ไม่เร่งด่วน', ap: 'ประชุมยืนยัน Audit Scope กับ BU Head', owner: '' },
+    { q: 'สำคัญ + เร่งด่วน', ap: 'Audit Checklist & Working Paper — แบบฟอร์ม', owner: '' },
+    { q: 'สำคัญ + เร่งด่วน', ap: 'Audit Finding & Corrective Action Tracking', owner: '' },
+    { q: 'สำคัญ + เร่งด่วน', ap: 'สร้าง Work group ในการจ่ายประเด็นติดตาม', owner: '' },
+    { q: 'สำคัญ + เร่งด่วน', ap: 'กำหนดหัวข้อประเด็นติดตามในเวที S-day', owner: '' },
+    { q: 'สำคัญ + เร่งด่วน', ap: 'กำหนด KPI ของ LCT', owner: '' }
+  ];
+  function dtaDefaults() {
+    var recs = state.recs || [];
+    var recFixed = recs.filter(function (x) { var d = String(x.BU_DECISION || ''); return d.indexOf('แก้') >= 0 && d.indexOf('ไม่') < 0; }).length;
+    var recNoFix = recs.filter(function (x) { return String(x.BU_DECISION || '').indexOf('ไม่แก้') >= 0; }).length;
+    var recClosed = recs.filter(function (x) { return String(x.STATUS || '').indexOf('ปิด') >= 0; }).length;
+    var recAll = Math.max(recs.length, 1);
+    return {
+      purpose: 'General Audit = ตรวจติดตามเพื่อให้มั่นใจว่าการปฏิบัติงานของ BU เป็นไปตามกฎหมาย/ข้อกำหนด/WI โดยทีม GAT "ชี้จุด ไม่ตัดสิน" ให้ข้อเสนอแนะที่นำไปใช้ได้จริง',
+      vision: 'บริหารจัดการกฎหมาย การปฏิบัติตามข้อกำหนด และภาษีของกลุ่ม PKG เพื่อให้ทุกธุรกิจดำเนินงานได้อย่างถูกต้อง ลดความเสี่ยง ป้องกันความเสียหาย และสนับสนุนการเติบโตอย่างยั่งยืน',
+      account: 'Law+Compliance+Tax = Zero-breach Incidence = "การละเมิด/ความผิดพลาด/ผิดนัด" = ศูนย์',
+      kr1: Math.round(recFixed / recAll * 100), kr2: Math.round((recFixed + recNoFix) / recAll * 100), kr3: Math.round(recClosed / recAll * 100),
+      kr1note: 'จากประเด็นในชีต GAT_Issues — แก้แล้ว ' + recFixed + '/' + recs.length + ' ใบ', kr2note: 'ตอบกลับครบ (แก้+ไม่แก้) ' + (recFixed + recNoFix) + '/' + recs.length + ' ใบ', kr3note: 'ปิดสมบูรณ์ ' + recClosed + '/' + recs.length + ' ใบ',
+      bp: ['', '', ''], ll: ['', '', ''], ii: ['', '', ''], xp: DTA_XP.map(function () { return true; }),
+      tmm: DTA_TMM.map(function (t, i) { return { ap: t.ap, owner: t.owner, done: '', stat: 'เปิดใหม่', link: '' }; }),
+      coach: ['', '', '']
+    };
+  }
+  function dtaLoad() {
+    try { var raw = localStorage.getItem(DTA_LS); if (raw) return JSON.parse(raw); } catch (e) {}
+    return dtaDefaults();
+  }
+  function dtaSave() {
+    var d = dtaReadForm();
+    localStorage.setItem(DTA_LS, JSON.stringify(d));
+    var st = id('d10Status'); if (st) { st.textContent = '💾 บันทึกแล้ว — เฉพาะเครื่องนี้ (' + new Date().toLocaleTimeString('th-TH') + ')'; }
+  }
+  function dtaReadForm() {
+    var d = dtaLoad();
+    ['purpose', 'vision', 'account', 'kr1note', 'kr2note', 'kr3note'].forEach(function (k) { var el = id('dta_' + k); if (el) d[k] = el.value; });
+    var st = id('dtaStatus'); if (st) d.weekLabel = st.value;
+    ['bp', 'll', 'ii', 'coach'].forEach(function (grp) { for (var i = 1; i <= 3; i++) { var el = id('dta_' + grp + i); if (el) d[grp][i - 1] = el.value; } });
+    for (var j = 1; j <= 15; j++) { var el = id('dta_xp' + j); if (el) d.xp[j - 1] = !!el.checked; }
+    var tmm = [];
+    for (var t = 0; t < DTA_TMM.length; t++) {
+      tmm.push({ ap: (id('dta_ap' + t) || {}).value || '', owner: (id('dta_own' + t) || {}).value || '', done: (id('dta_done' + t) || {}).value || '', stat: (id('dta_stat' + t) || {}).value || 'เปิดใหม่', link: (id('dta_link' + t) || {}).value || '' });
+    }
+    d.tmm = tmm;
+    return d;
+  }
+  function renderDtaReport() {
+    var box = id('d10Form'); if (!box) return;
+    var d = dtaLoad();
+    var recs = state.recs || [];
+    var h = [];
+    h.push('<h3 style="margin:14px 0 6px">รอบรายงาน</h3><table class="tbl"><tr><th style="width:220px">สรุปรอบวันที่ (เช่น 29 ต.ค. – 4 พ.ย. 69)</th></tr><tr><td><input id="dtaStatus" style="width:100%" value="' + escHtml(d.weekLabel || '') + '" placeholder="รายงานประจำสัปดาห์ เสาร์–ศุกร์"></td></tr></table>');
+    h.push('<h3 style="margin:14px 0 6px">นิยามทีม</h3>');
+    [['purpose', 'จุดมุ่งหมายทีม (Purpose)'], ['vision', 'ภาพความสำเร็จที่อยากเห็น (รหัส DTA PKG-019)'], ['account', 'ความรับผิดชอบต่อผล (Accountability)']].forEach(function (f) {
+      h.push('<div style="margin:8px 0"><label style="font-size:13px;font-weight:700">' + f[1] + '</label><textarea id="dta_' + f[0] + '" rows="2" style="width:100%">' + escHtml(d[f[0]] || '') + '</textarea></div>');
+    });
+    h.push('<h3 style="margin:14px 0 6px">เป้าหมาย / เข็มทิศ (OKRs.) — Progress ("ทำได้" %)</h3><table class="tbl"><tr><th>รายการ</th><th style="width:110px">ทำได้ %</th><th>หมายเหตุ/รายละเอียด</th></tr>' +
+      dtaKrRow('Obj.', 'dta_objP', 'Law+Compliance+Tax = Zero-breach Incidence', (d.objP || 0)) +
+      dtaKrRow('KR1', 'dta_kr1', 'ข้อบกพร่องระดับ Critical ที่ได้รับการยกระดับทันเวลา มีผู้รับผิดชอบและกำหนดเวลาแก้ไข', d.kr1) + dtaKrRow('KR2', 'dta_kr2', 'ตรวจสอบกระบวนการทำงาน ประสิทธิภาพ และความถูกต้องของการปฏิบัติงาน', d.kr2) + dtaKrRow('KR3', 'dta_kr3', 'การตรวจยืนยันว่าการแก้ไขได้ผลจริง', d.kr3) + '</table>');
+    ['bp', 'll', 'ii'].forEach(function (g, gi) {
+      var hd = ['🌟 BP (สิ่งที่ทำได้ดีและต้องทำต่อ) :: ยึดมั่นในสิ่งที่ใช่', '🌟 LL (สิ่งที่ล้มเหลว) :: ละทิ้งในสิ่งที่ไม่ใช่', '🌟 II (ไอเดียเพื่อปรับปรุง) :: ค้นหาสิ่งที่ใช่ใหม่ ๆ ตลอดเวลา'][gi];
+      h.push('<h3 style="margin:14px 0 6px">' + hd + '</h3>');
+      for (var i = 1; i <= 3; i++) h.push('<div style="margin:4px 0"><input id="dta_' + g + i + '" style="width:100%" placeholder="' + i + '" value="' + escHtml((d[g] || [])[i - 1] || '') + '"></div>');
+    });
+    h.push('<h3 style="margin:14px 0 6px">TMM (Time Matrix Management) — Action Plan ของ GAT</h3><table class="tbl"><tr><th style="width:150px">ลำดับ (TMM)</th><th>AP-Action plan รายละเอียดกิจกรรม</th><th style="width:130px">ผู้รับผิดชอบ</th><th style="width:110px">แล้วเสร็จ</th><th style="width:130px">สถานะ</th><th style="width:170px">LinkMS24 (ถ้ามี)</th></tr>');
+    DTA_TMM.forEach(function (t, i) {
+      var row = d.tmm[i] || {};
+      h.push('<tr><td>' + t.q + '</td><td><input id="dta_ap' + i + '" style="width:100%" value="' + escHtml(row.ap || t.ap) + '"></td><td><input id="dta_own' + i + '" style="width:100%" value="' + escHtml(row.owner || '') + '"></td><td><input id="dta_done' + i + '" type="date" value="' + escHtml(row.done || '') + '"></td><td><select id="dta_stat' + i + '">' + ['เปิดใหม่', 'กำลังดำเนินการ', 'รอปิดงาน', 'แล้วเสร็จ'].map(function (o) { return '<option' + (o === (row.stat || 'เปิดใหม่') ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select></td><td><input id="dta_link' + i + '" placeholder="Link MS24" style="width:100%" value="' + escHtml(row.link || '') + '"></td></tr>');
+    });
+    h.push('</table>');
+    h.push('<h3 style="margin:14px 0 6px">♻ XP (Execution Plan) — checklist ประเมินการบริหารแผนงานให้ลุล่วง (OGC2.0)</h3><table class="tbl">');
+    DTA_XP.forEach(function (x, i) {
+      h.push('<tr><td style="width:34px;text-align:center"><input type="checkbox" id="dta_xp' + (i + 1) + '"' + (d.xp[i] !== false ? ' checked' : '') + '></td><td style="font-size:13px">' + (i + 1) + '. ' + escHtml(x) + '</td></tr>');
+    });
+    h.push('</table>');
+    h.push('<h3 style="margin:14px 0 6px">📢 Coach By ผู้รับใช้ทีม</h3>');
+    for (var c = 1; c <= 3; c++) h.push('<div style="margin:4px 0"><input id="dta_coach' + c + '" style="width:100%" placeholder="' + c + '" value="' + escHtml((d.coach || [])[c - 1] || '') + '"></div>');
+    var doneXp = d.xp.filter(function (x) { return x !== false; }).length;
+    h.push('<div id="d10Status" style="margin-top:8px;font-size:12px;color:#7d93b2">XP ทำแล้ว ' + doneXp + '/15 · ข้อเสนอแนะอ้างอิงจากชีต GAT_Issues ' + recs.length + ' ใบ · ข้อมูลฟอร์มเก็บเฉพาะเครื่อง (localStorage) — รอคำสั่งดันลงชีตเช่นเดียวกับแผนแจ้ง</div>');
+    box.innerHTML = h.join('');
+  }
+  function dtaKrRow(label, idk, desc, val) {
+    return '<tr><td><b>' + label + '</b> — ' + desc + '</td><td><input id="' + idk + '" type="number" min="0" max="100" style="width:90px" value="' + (val || 0) + '"></td><td style="font-size:12px;color:#7d93b2">' + ((label === 'Obj.' ? '' : (dtaLoad()['kr' + label.slice(2) + 'note']) || '')) + '</td></tr>';
+  }
+  function dtaDownload() {
+    var d = dtaReadForm();
+    var L = [];
+    L.push('# รายงานวัดผล ระบบวัดผล DTA — PKG General Audit Team 2026');
+    L.push('📍TEAM ::: GAT — ผู้รับผิดชอบส่งรายงาน 🚀 อารีย์ · ผู้รับผิดชอบ Coach 📝 อรุณี ปกรณ์');
+    L.push('รอบรายงาน: ' + (d.weekLabel || '(ระบุ)') + ' (วันเสาร์–วันศุกร์)');
+    L.push('');
+    L.push('## นิยามทีม');
+    L.push('- จุดมุ่งหมายทีม (Purpose): ' + d.purpose);
+    L.push('- ภาพความสำเร็จที่อยากเห็น: ' + d.vision + ' (รหัส DTA PKG-019)');
+    L.push('- ความรับผิดชอบต่อผล (Accountability): ' + d.account);
+    L.push('');
+    L.push('## เป้าหมาย / เข็มทิศ (OKRs.) — Progress ทำได้');
+    L.push('| รายการ | ทำได้ % |');
+    L.push('|---|---|');
+    L.push('| Obj. | ' + (id('dta_objP') || {}).value || 0);
+    L.push('| KR1 | ' + (id('dta_kr1') || {}).value || 0);
+    L.push('| KR2 | ' + (id('dta_kr2') || {}).value || 0);
+    L.push('| KR3 | ' + (id('dta_kr3') || {}).value || 0);
+    L.push((id('dta_kr1') ? ' — ' + d.kr1note : ''));
+    L.push('');
+    L.push('## 🎯 บทวิเคราะห์ปิดปรับเปลี่ยน / สถานการณ์ประจำวัน');
+    L.push('**🌟 BP (สิ่งที่ทำได้ดีและต้องทำต่อ):**');
+    ['bp', 'll', 'ii'].forEach(function (g) { });
+    ['bp', 'll', 'ii'].forEach(function (g, gi) { var hd = ['BP', 'LL', 'II'][gi]; });
+    L.push((d.bp || []).filter(Boolean).map(function (x, i) { return (i + 1) + '. ' + x; }).join('\n') || '(ยังไม่กรอก)');
+    L.push('**🌟 LL (สิ่งที่ล้มเหลว):**');
+    L.push((d.ll || []).filter(Boolean).map(function (x, i) { return (i + 1) + '. ' + x; }).join('\n') || '(ยังไม่กรอก)');
+    L.push('**🌟 II (ไอเดียเพื่อปรับปรุง):**');
+    L.push((d.ii || []).filter(Boolean).map(function (x, i) { return (i + 1) + '. ' + x; }).join('\n') || '(ยังไม่กรอก)');
+    L.push('');
+    L.push('## TMM (Time Matrix Management) — Action Plan');
+    L.push('| ลำดับ | AP-Action plan | ผู้รับผิดชอบ | แล้วเสร็จ | สถานะ | LinkMS24 |');
+    L.push('|---|---|---|---|---|---|');
+    (d.tmm || []).forEach(function (t) { L.push('| ' + t.q + ' | ' + t.ap + ' | ' + (t.owner || '-') + ' | ' + (t.done || '-') + ' | ' + (t.stat || 'เปิดใหม่') + ' | ' + (t.link || '-') + ' |'); });
+    L.push('');
+    L.push('## ♻ XP (Execution Plan) — checklist บริหารแผนให้ลุล่วง');
+    DTA_XP.forEach(function (x, i) { L.push('- [' + (d.xp[i] !== false ? 'x' : ' ') + '] ' + (i + 1) + '. ' + x); });
+    L.push('ทำแล้ว ' + d.xp.filter(function (x) { return x !== false; }).length + '/15');
+    L.push('');
+    L.push('## 📢 Coach By ผู้รับใช้ทีม');
+    (d.coach || []).forEach(function (c, i) { if (c) L.push((i + 1) + '. ' + c); });
+    L.push('');
+    L.push('---');
+    L.push('สร้างจาก GAT Work System v1.24 · แบบฟอร์มตามชีต D1_DTA · ส่งรายงานทุกวันศุกร์');
+    download('DTA-รายงานวัดผล-GAT-' + new Date().toISOString().slice(0, 10) + '.md', L.join('\n'));
+  }
+  function initD10() {
+    if (!id('d10Form')) return;
+    renderDtaReport();
+    var wk = id('d10Wk');
+    function wkTxt() {
+      try { var v = wk.value; if (!v) { id('d10WkTxt').textContent = '(ยังไม่เลือกสัปดาห์)'; return; } var p2 = v.split('-W'); var monday = new Date(p2[0] + '-01-01'); monday = new Date(monday.getTime() + ((parseInt(p2[1], 10) - 1) * 7 + [0,3,2,1,0,6,5,4,3,2,1,0,6][0]) * 864e5); } catch (e) {}
+      id('d10WkTxt').textContent = ''; }
+    var bsv = id('btnD10Save'); if (bsv) bsv.onclick = dtaSave;
+    var bmd = id('btnD10Md'); if (bmd) bmd.onclick = dtaDownload;
+  }
+
   function kpiHTML(label, val, cls) {
     return '<div class="kpi' + (cls ? ' ' + cls : '') + '"><div class="l">' + label + '</div><div class="b">' + val + '</div></div>';
   }
@@ -1355,7 +1523,7 @@ function loadProcessDocs() {
   }
   document.addEventListener('DOMContentLoaded', boot);
 
-  var TAB_NAMES = { packs: '2. BU ส่งข้อมูลที่จะตรวจ', p02pick: '1. GAT เลือกหัวข้อจากข้อมูลที่ส่ง', aiprompt: '3. GAT ตรวจด้วย AI', aicand: '4. AI ออกข้อเสนอแนะ', aisel: '5. GAT คัดเลือก', aisend: '6. GAT ส่งให้ BU', bufix: '7. BU นำไปแก้ไข', buanswer: '8. BU แก้/ไม่แก้ + หลักฐาน', close: '9. GAT พิจารณา+ปิดประเด็น', summary: '10. GAT สรุปรายงานผล', dashboard: 'Dashboard ภาพรวม', registers: 'Registers', universe: 'Regulatory Universe', recs: 'ทะเบียนข้อเสนอแนะ', manual: 'คู่มือการใช้งาน', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
+  var TAB_NAMES = { packs: '2. BU ส่งข้อมูลที่จะตรวจ', p02pick: '1. GAT เลือกหัวข้อจากข้อมูลที่ส่ง', aiprompt: '3. GAT ตรวจด้วย AI', aicand: '4. AI ออกข้อเสนอแนะ', aisel: '5. GAT คัดเลือก', aisend: '6. GAT ส่งให้ BU', bufix: '7. BU นำไปแก้ไข', buanswer: '8. BU แก้/ไม่แก้ + หลักฐาน', close: '9. GAT พิจารณา+ปิดประเด็น', summary: 'สรุปผลงาน GAT (เก็บอ้างอิง)', d10: '10. รายงานวัดผล ระบบวัดผลDTA_PKG General Audit Team 2026', dashboard: 'Dashboard ภาพรวม', registers: 'Registers', universe: 'Regulatory Universe', recs: 'ทะเบียนข้อเสนอแนะ', manual: 'คู่มือการใช้งาน', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
 
   /* ---------- แกนกลาง 10 กระบวนการ (P-01..P-10) — RUN_STEPS = แหล่งเดียว: แท็บงานจริงแต่ละขั้นอ่านจากนี้ ---------- */
   var RUN_STEPS = [
@@ -1368,7 +1536,7 @@ function loadProcessDocs() {
     { id: '7', name: 'ทีม BU นำข้อเสนอแนะไปแก้ไข', sla: 'SLA: ตอบใน 5 วันทำการ', check: ['ดาวน์โหลดรายการใบ (.md) แล้ว', 'BU ประสานทีมที่รับผิดชอบแต่ละใบแล้ว'], tab: 'bufix', tabNote: 'ทำที่แท็บ 7 (BU นำไปแก้)', act: 'bufix', actLabel: 'ไปแท็บ 7 — BU แก้ไข' },
     { id: '8', name: 'ทีม BU แก้ไข/ไม่แก้ไข + ส่งประเด็น/หลักฐาน', sla: 'SLA: ตอบใน 5 วันทำการ', check: ['แก้ไข = แนบลิงก์หลักฐาน', 'ไม่แก้ไข = เหตุผล + ผู้รับผิดชอบ ครบ', 'กรอกชื่อ-ตำแหน่งจริงผู้ตอบ'], tab: 'buanswer', tabNote: 'ทำที่แท็บ 8 (BU ตอบ)', act: 'buanswer', actLabel: 'ไปแท็บ 8 — BU ตอบ' },
     { id: '9', name: 'ทีม GAT พิจารณาและปิดประเด็น', sla: '', check: ['ตรวจหลักฐานการแก้ (พอ/ไม่พอ)', '🔴 ที่ไม่แก้ = ยืนยันกลับเป็นทางการ', 'ติดตามถดถอย 30/60/90 วัน'], tab: 'close', tabNote: 'ทำที่แท็บ 9 (ปิดประเด็น)', act: 'close', actLabel: 'ไปแท็บ 9 — ปิดประเด็น' },
-    { id: '10', name: 'ทีม GAT สรุปรายงานผลการออกข้อเสนอแนะ', sla: 'กำหนด: ก่อนวันที่ 5 เดือนถัดไป', check: ['สรุปผลรวบแฟ้ม .md แล้ว', 'ส่งผู้มีอำนาจ/OAC + ทบทวน 🔴 ค้าง'], tab: 'summary', tabNote: 'ทำที่แท็บ 10 (สรุปรายงาน)', act: 'summary', actLabel: 'ไปแท็บ 10 — สรุปรายงาน' }
+    { id: '10', name: 'ทีม GAT สรุปรายงานผล — รายงานวัดผล (ระบบวัดผล DTA — PKG General Audit Team 2026)', sla: 'รอบรายงาน: ทุกวันศุกร์ — ข้อมูลช่วงเสาร์–ศุกร์ (ปีก่อน: ก่อนวันที่ 5 เดือนถัดไป)', check: ['เติมฟอร์มรายงานวัดผล DTA ครบ (BP/LL/II + TMM + XP 15 + Coach)', 'กดอัปเดตข้อมูลเสาร์–ศุกร์ ก่อนส่งรายงานวันศุกร์', 'ดาวน์โหลด .md ส่งผู้มีอำนาจ/OAC + ทบทวน 🔴 ค้าง'], tab: 'd10', tabNote: 'ทำที่แท็บ 10 (รายงานวัดผล DTA)', act: 'd10', actLabel: 'ไปแท็บ 10 — รายงานวัดผล DTA' }
   ];
   function stepBoxHtml(sid, ix) {
     var s = RUN_STEPS.filter(function (x) { return x.id === sid; })[0];
@@ -1412,6 +1580,7 @@ function loadProcessDocs() {
     var sb = document.getElementById('sidebar'); if (sb && sb.classList) sb.classList.remove('open');
     if (name === 'manual' && !showTab._manLoaded) { showTab._manLoaded = true; loadManual(); loadProcessDocs(); /* v1.12: เอกสารกระบวนการเต็ม moved มาส่วนท้ายแท็บคู่มือ */ }
     if (name === 'aiprompt') renderBuLinks(); /* v1.19 — แท็บ 3: แสดงลิงก์หลักฐาน BU ทุกครั้งที่เข้าแท็บ */
+    if (name === 'd10') initD10(); /* v1.24 — แท็บ 10: ฟอร์มรายงานวัดผล DTA (render ทุกครั้ง ค่าจาก localStorage หรือ default จากชีต) */
     /* v1.12: แท็บ runner ถูกถอด — ตัด renderRunner() */
     /* v1.12 — 10 กระบวนการ: การ์ด Checklist ของขั้นนั้น ติดบนแท็บงานจริง */
     /* v1.12 — 10 กระบวนการ: การ์ด Checklist ของขั้นนั้น ติดบนแท็บงานจริง (แทรกก่อน card แรกของ pane) */
@@ -1448,6 +1617,6 @@ function loadProcessDocs() {
     status('ส่งออก CSV สำหรับวางลงชีท GAT_Registers บน BCT แล้ว (' + regs.length + ' รายการ)');
   }
 
-  return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess,
+  return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, initD10: initD10, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess,
     _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _aiBuildPrompt: aiBuildPrompt, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks, _renderRecs: renderRecs, _renderPickTable: renderPickTable, _removePickPacks: removePickPacks, _renderSentTable: renderSentTable, _renderFixTable: renderFixTable };
 })();
