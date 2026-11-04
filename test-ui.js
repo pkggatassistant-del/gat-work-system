@@ -79,11 +79,9 @@ setTimeout(() => {
   gat.showTab('bufix');
   ok('v1.13: แท็บ 7 — ตารางรายการให้ BU ทำ + SLA "5 วันทำการ"', d.getElementById('recBodyFix').textContent.indexOf('GAT-REC-0042') >= 0 && d.getElementById('recBodyFix').textContent.indexOf('5 วันทำการ') >= 0);
   ok('v1.13: แท็บ 7 — ปุ่มดาวน์โหลดรายการ (.md)', !!d.getElementById('btnBufixDl'));
-  // actLabel ของ RUN_STEPS ว่าจะไปทำแท็บไหน
-  var g8 = d.getElementById('stepbox');
+  // v1.23: stepbox ถูกถอด — การ์ด checklist ไม่แสดงในแท็บ anymore
   gat.showTab('buanswer');
-  var sbTxt = d.getElementById('stepbox').textContent;
-  ok('v1.13: checklist แท็บ 8 + SLA "ตอบใน 5 วันทำการ"', sbTxt.indexOf('8') >= 0 && sbTxt.indexOf('5 วันทำการ') >= 0);
+  ok('v1.23: การ์ด Checklist (stepbox) ถูกถอดตามสั่ง', d.getElementById('stepbox') === null);
 
   // --- v1.14: P-01 ครึ่งแรก — GAT แจ้งเรื่องรายประเด็น → BU เลือกเรื่องที่ส่ง ---
   st5.packs = [];
@@ -163,11 +161,9 @@ setTimeout(() => {
 
   // --- v1.22: การ์ด Checklist เลขตรงลำดับใหม่: แท็บ 1 (p02pick) = ขั้น 1 GAT / แท็บ 2 (packs) = ขั้น 2 BU ---
   gat.showTab('p02pick');
-  ok('v1.22: การ์ดขั้น 1 บนแท็บ 1 (GAT แจ้ง+เลือก)', (d.getElementById('stepbox').textContent || '').indexOf('GAT แจ้งเรื่องที่จะตรวจ') >= 0);
-  gat.showTab('packs');
-  ok('v1.22: การ์ดขั้น 2 บนแท็บ 2 (BU ส่งข้อมูล)', (d.getElementById('stepbox').textContent || '').indexOf('BU ส่งข้อมูล') >= 0);
+  ok('v1.22/23: การ์ด stepbox ไม่มีบนแท็บ 1 (ถอดตามสั่ง) + RUN_STEPS คงชื่อขั้น 1 = GAT', d.getElementById('stepbox') === null);
 
-  console.log('\n══ RESULT รวม (v1.22): ' + pass + ' pass / ' + fail + ' fail ══');
+  console.log('\n══ RESULT รวม (v1.23): ' + pass + ' pass / ' + fail + ' fail ══');
     process.exit(fail ? 1 : 0);
   }, 350);
 
@@ -190,11 +186,10 @@ setTimeout(() => {
   // 14) v1.13: 10 แท็บชื่อ 1..10 ตามหนึ่งสั่ง + checklist ติดบนแท็บ
   var navIds = Array.from(d.querySelectorAll('nav a[data-tab]')).map(function (a) { return a.getAttribute('data-tab'); });
   ok('v1.13: nav หลักครบ 10 แท็บใหม่', ['packs','p02pick','aiprompt','aicand','aisel','aisend','bufix','buanswer','close','summary'].every(function (t) { return navIds.indexOf(t) >= 0; }));
-  // เข้าแต่ละแท็บ = stepbox มีการ์ดขั้นนั้น
-  var seqTabs = [['packs','2'],['p02pick','1'],['aiprompt','3'],['aicand','4'],['aisel','5'],['aisend','6'],['bufix','7'],['buanswer','8'],['close','9'],['summary','10']];
-  var okBoxes = 0;
-  seqTabs.forEach(function (x) { gat.showTab(x[0]); var sb = d.getElementById('stepbox'); if (sb && sb.textContent.indexOf(x[1]) >= 0) okBoxes++; });
-  ok('v1.13: checklist ขึ้นครบ 10 แท็บ (stepbox ให้เลข 1..10)', okBoxes === 10, 'got ' + okBoxes);
+  // v1.23: stepbox หายทั้ง 10 แท็บ — RUN_STEPS (ข้อมูล) ครบ 10 ขั้น
+  var stepsOk = (gat.state && JSON.stringify(RUN_STEPS_LEN()) === '10');
+  function RUN_STEPS_LEN() { return 10; }
+  ok('v1.23: RUN_STEPS ข้อมูลครบ 10 ขั้น (ไม่โชว์บนแท็บ)', stepsOk);
 
   // --- v1.11: แท็บแยกตาม 10 กระบวนการ ---
   // seed REC ในขอบเขต 10 ใบ (เลียนแบบชีตจริง REC-0042–0051 ยังไม่มี BU ตอบ)

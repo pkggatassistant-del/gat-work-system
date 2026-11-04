@@ -1415,24 +1415,9 @@ function loadProcessDocs() {
     /* v1.12: แท็บ runner ถูกถอด — ตัด renderRunner() */
     /* v1.12 — 10 กระบวนการ: การ์ด Checklist ของขั้นนั้น ติดบนแท็บงานจริง */
     /* v1.12 — 10 กระบวนการ: การ์ด Checklist ของขั้นนั้น ติดบนแท็บงานจริง (แทรกก่อน card แรกของ pane) */
-    var SM = { packs: '2', p02pick: '1', aiprompt: '3', aicand: '4', aisel: '5', aisend: '6', bufix: '7', buanswer: '8', close: '9', summary: '10' };
-    if (SM[name]) {
-      var pane = id('pane-' + name);
-      var firstCard = pane ? pane.querySelector('.card') : null;
-      var box = document.getElementById('stepbox');
-      if (!box) {
-        box = document.createElement('div');
-        box.id = 'stepbox';
-        if (firstCard && firstCard.parentNode) firstCard.parentNode.insertBefore(box, firstCard);
-        else if (pane) pane.insertBefore(box, pane.firstChild);
-      }
-      if (box && showTab._lastStep !== SM[name]) {
-        showTab._lastStep = SM[name];
-        var ix = -1;
-        RUN_STEPS.forEach(function (x, i2) { if (x.id === SM[name]) ix = i2; });
-        box.innerHTML = stepBoxHtml(SM[name]);
-      }
-    }
+    /* v1.23: การ์ด Checklist (stepbox) ถูกถอดตามสั่ง — ขั้นตอนคงอยู่ใน RUN_STEPS (ข้อมูล) + คู่มือ */
+    var existingSb = document.getElementById('stepbox');
+    if (existingSb && existingSb.parentNode) existingSb.parentNode.removeChild(existingSb);
   }
   document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('nav a');
