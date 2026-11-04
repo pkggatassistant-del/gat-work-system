@@ -1,7 +1,7 @@
 /* GAT Work System — shared config (โหลดก่อน app.js เสมอ) */
 window.GAT_CONFIG = {
   REC_SCOPE: ['GAT-REC-0042','GAT-REC-0043','GAT-REC-0044','GAT-REC-0045','GAT-REC-0046','GAT-REC-0047','GAT-REC-0048','GAT-REC-0049','GAT-REC-0050','GAT-REC-0051'], // v1.10 โหมดทดสอบเรื่องเดียว (GA-LC) — เคลียร์ [] เพื่อโชว์ทุกใบ
-  VERSION: 'v1.21 (4 พ.ย. 69) — สลับลำดับแท็บตามหนึ่งสั่ง: ขั้น 1 = GAT แจ้ง+เลือกหัวข้อที่จะตรวจ (แท็บเดียว 2 การ์ด) · ขั้น 2 = BU ส่งข้อมูลตามเรื่องที่แจ้ง — ตารางสถานะส่งย้ายไปแท็บ 2', 
+  VERSION: 'v1.22 (4 พ.ย. 69) — การ์ด Checklist ให้เลขตรงลำดับใหม่: ขั้น 1 = GAT แจ้ง+เลือกหัวข้อ, ขั้น 2 = BU ส่งข้อมูล (ตามหนึ่งสั่ง 06:01+06:45)', 
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง — ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
   BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbwmSjODcZRoqLiYomSNtSwK1rZqSe9YTWRBFa1YaUdWdqr8I61aW7s4YAo1blzXRV2C/exec'), // BCT กลาง — deploy v1.5.1 ที่หนึ่ง deploy 4 พ.ย. 69 (standalone + SHEET_ID)
   SOURCES: {

@@ -161,7 +161,13 @@ setTimeout(() => {
   var pr2 = d.getElementById('aiPrompt').value;
   ok('v1.20: ชุดคำสั่ง AI อ้างเรื่องที่ติ๊กจากแผน (PACK ยังไม่มาก็ตรวจได้)', pr2.indexOf('PLAN-2569-002')>=0 != null && (pr2.indexOf('เรื่องที่ 2') >= 0 || pr2.indexOf('แผนแจ้ง') >= 0), pr2.slice(0, 60));
 
-  console.log('\n══ RESULT รวม (v1.20): ' + pass + ' pass / ' + fail + ' fail ══');
+  // --- v1.22: การ์ด Checklist เลขตรงลำดับใหม่: แท็บ 1 (p02pick) = ขั้น 1 GAT / แท็บ 2 (packs) = ขั้น 2 BU ---
+  gat.showTab('p02pick');
+  ok('v1.22: การ์ดขั้น 1 บนแท็บ 1 (GAT แจ้ง+เลือก)', (d.getElementById('stepbox').textContent || '').indexOf('GAT แจ้งเรื่องที่จะตรวจ') >= 0);
+  gat.showTab('packs');
+  ok('v1.22: การ์ดขั้น 2 บนแท็บ 2 (BU ส่งข้อมูล)', (d.getElementById('stepbox').textContent || '').indexOf('BU ส่งข้อมูล') >= 0);
+
+  console.log('\n══ RESULT รวม (v1.22): ' + pass + ' pass / ' + fail + ' fail ══');
     process.exit(fail ? 1 : 0);
   }, 350);
 
