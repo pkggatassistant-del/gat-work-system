@@ -98,13 +98,18 @@ setTimeout(() => {
   ok('v1.14: BU dropdown เห็นแผนที่แจ้ง', d.getElementById('packNotif').options.length >= 2);
   ok('v1.14: รายการ "เรื่องที่จะตรวจ" แสดง 2 เรื่อง', d.getElementById('notList').textContent.indexOf('เรื่องที่ 2') >= 0);
 
-  // --- v1.15: dropdown BU ทั้ง 2 การ์ด (ไม่เหมือนกัน) — ยอมรับรายชื่อจริงจาก seed ---
-  var optsN = Array.from(d.getElementById('notBu').options).map(function (o) { return o.value; });
+  // --- v1.15/16: notBu = ช่องกรอกได้ (ตามหนึ่งสั่ง) · packBu = dropdown จาก seed + PAO ---
+  var elN = d.getElementById('notBu');
+  ok('v1.16: การ์ดแจ้งใช้ช่องกรอก BU (input พิมพ์ได้)', elN && elN.tagName === 'INPUT');
   var optsP = Array.from(d.getElementById('packBu').options).map(function (o) { return o.value; });
-  ok('v1.15: notBu เติมรายชื่อ BU อัตโนมัติ (≥55 รายการ + PAO)', optsN.length >= 55 && optsN.indexOf('PAO') >= 0, 'got ' + optsN.length);
-  ok('v1.15: อัตราบรรจุ dropdown สองการ์ดชุดเดียวกัน', JSON.stringify(optsN) === JSON.stringify(optsP));
+  ok('v1.15: packBu dropdown รายชื่อครบ + PAO', optsP.length >= 55 && optsP.indexOf('PAO') >= 0, 'got ' + optsP.length);
+  // saveNotifPlan อ่าน notBu.value ได้เมื่อเป็น input
+  elN.value = 'PAO';
+  d.getElementById('notItems').value = 'เรื่องที่ 1: ทดสอบช่องกรอก';
+  d.getElementById('btnNotifyPlan').click();
+  ok('v1.16: บันทึกแผนจากช่องกรอก (ไม่ต้อง dropdown)', (d.getElementById('notStatus').textContent || '').indexOf('PLAN-2569-') >= 0);
 
-  console.log('\n══ RESULT รวม (v1.15): ' + pass + ' pass / ' + fail + ' fail ══');
+  console.log('\n══ RESULT รวม (v1.16): ' + pass + ' pass / ' + fail + ' fail ══');
     process.exit(fail ? 1 : 0);
   }, 350);
 
