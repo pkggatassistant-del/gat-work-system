@@ -21,7 +21,7 @@
  */
 
 var CONFIG = {
-  VERSION: 'v1.5.1 (4 พ.ย. 69) — วงจร 10 ขั้น + ผูกชีตกลางด้วย SHEET_ID (รองรับ standalone deploy) โดย GAT(แดง)',
+  VERSION: 'v1.5.2 (4 พ.ย. 69) — บังคับใช้ชีตกลางตาม SHEET_ID เสมอ (กันพลาด write คนละชีตตอน bound กับชีตอื่น) โดย GAT(แดง)',
   SHEETS: {
     REGISTERS: 'GAT_Registers',   // Master Register: รายการตรวจสอบ/ภาระต้องส่ง
     ENTRIES: 'GAT_Entries',       // รายการบันทึกผลตรวจสอบรายครั้ง (BU กรอก)
@@ -84,11 +84,12 @@ function cleanRecRange_(fromId, toId) {
 }
 
 /* ================= SETUP (รันครั้งเดียว หรือรันใหม่เมื่ออัปเดตโครง) ================= */
-/* v1.5.1 — รองรับ deploy แบบ bound (ชีตที่ script แนบ) หรือ standalone (ชี้ SHEET_ID) */
+/* v1.5.2 — บังคับชีตกลางตาม SHEET_ID เสมอ — กันกรณี script bound กับชีตอื่นแล้วเผลอเขียนผิดชีต
+ * (เหตุจริง 4 พ.ย. 69: deploy ใหม่ bound กับชีตอื่น → Packs ไปเกิดในชีตผิด — แก้โดยชี้ตรง)
+ */
 function getSS_() {
-  var ss = getSS_();
-  if (ss) return ss;
-  return SpreadsheetApp.openById(CONFIG.SHEET_ID);
+  var ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
+  return ss;
 }
 
 function setupSheets() {
