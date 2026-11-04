@@ -179,26 +179,27 @@ ol.manual li{margin-bottom:8px}
     </div>
   </div>
   <nav id="mainNav">
-    <div class="nav-hd">ภาพรวม</div>
-    <a data-tab="dashboard" class="on"><span class="ic">📊</span> Dashboard</a>
-    <a data-tab="summary"><span class="ic">🧭</span> สรุปผลงาน GAT</a>
-    <div class="nav-hd">งานตรวจสอบ (ขั้น P-03–P-06)</div>
-    <a data-tab="packs"><span class="ic">📤</span> P-03 BU ส่งข้อมูล (Pack)</a>
+    <div class="nav-hd">กระบวนการทำงาน 10 ขั้น (P-01 → P-10)</div>
+    <a data-tab="p01"><span class="ic">🗺</span> P-01 วางแผนรอบตรวจ</a>
+    <a data-tab="p02"><span class="ic">📨</span> P-02 แจ้งแผน+ขอข้อมูล</a>
+    <a data-tab="packs"><span class="ic">📤</span> P-03 รับ–เก็บข้อมูล</a>
     <a data-tab="aireview"><span class="ic">🤖</span> P-04 ตรวจ+ออกใบ</a>
     <a data-tab="buanswer"><span class="ic">✍️</span> P-05 BU ตอบใบ</a>
     <a data-tab="close"><span class="ic">🔒</span> P-06 ปิดประเด็น</a>
-    <a data-tab="recs"><span class="ic">🧾</span> ทะเบียนข้อเสนอแนะ</a>
-    <div class="nav-hd">การเชื่อมข้อมูล</div>
+    <a data-tab="p07"><span class="ic">⚖️</span> P-07 อุทธรณ์ OAC</a>
+    <a data-tab="summary"><span class="ic">🧭</span> P-08 รายงานรายเดือน</a>
+    <a data-tab="dashboard"><span class="ic">📊</span> P-09 คุมทะเบียน</a>
+    <a data-tab="bct"><span class="ic">🔄</span> P-10 ติดตั้งฐานใหม่</a>
+    <div class="nav-hd">ฐานข้อมูล</div>
     <a data-tab="registers"><span class="ic">🗂</span> Registers</a>
     <a data-tab="universe"><span class="ic">🗺</span> Regulatory Universe</a>
-    <a data-tab="bct"><span class="ic">🔄</span> BCT Import/Export</a>
+    <a data-tab="recs"><span class="ic">🧾</span> ทะเบียนข้อเสนอแนะ</a>
     <div class="nav-hd">เอกสารระบบ</div>
-    <a data-tab="process"><span class="ic">⚙</span> กระบวนการทีม GAT</a>
-    <a data-tab="runner"><span class="ic">🚦</span> เดินกระบวนการ (Runner)</a>
     <a data-tab="manual"><span class="ic">📖</span> คู่มือการใช้งาน</a>
     <a data-tab="report"><span class="ic">📤</span> รายงานผู้บริหาร</a>
     <a id="navQms" data-tab="qms" style="display:none"><span class="ic">📘</span> QMS Document</a>
   </nav>
+</nav>
   <div class="nav-foot"><span class="dot-ok"></span>ระบบออนไลน์ · <span class="v" id="ver"></span></div>
 </aside>
 
@@ -243,6 +244,75 @@ ol.manual li{margin-bottom:8px}
       </table>
       </div>
       <div class="pginfo" id="regPage"></div>
+    </div>
+  </section>
+
+  <!-- ============ P-01 วางแผน ============ -->
+  <section class="tabpane" id="pane-p01">
+    <div class="card">
+      <div class="card-hd"><h3>🗺 P-01 — วางแผนรอบตรวจรายเดือน</h3></div>
+      <p class="desc">เลือกขอบเขตจาก 3 แหล่ง (ปฏิทิน / ทะเบียน 🟡🔴 / เหตุเร่งด่วน) → ระบุเจ้าของด้าน (คน/ลูกค้า/การเงิน/กระบวนการ) → รอหัวหน้าสาย Audit อนุมัติแผน → จองเลขแผนรอบนี้ (เช่น PLAN-2569-11) แล้วบันทึก — แท็บ P-04 จะอ้างแผนนี้ในช่อง REF_PM_WI ทุกใบ</p>
+      <div class="filters">
+        <input id="planId" placeholder="เลขแผนรอบนี้ (เช่น PLAN-2569-11)" style="width:250px">
+        <input id="planScope" placeholder="ขอบเขตรอบนี้ (เช่น สวัสดิการพื้นฐาน — ประเทศไทย)" style="flex:1;min-width:240px">
+        <select id="planOwner">
+          <option value="">— เจ้าของด้าน —</option>
+          <option>คน (People)</option>
+          <option>ลูกค้า (Client)</option>
+          <option>การเงิน (Finance)</option>
+          <option>กระบวนการ (Process)</option>
+        </select>
+        <button id="btnSavePlan" class="gold">💾 บันทึกแผนรอบนี้ (รันเลข)</button>
+      </div>
+      <div id="planList" style="margin-top:10px"></div>
+      <p class="desc" id="planStatus" style="color:#0e8345;font-weight:600"></p>
+    </div>
+  </section>
+
+  <!-- ============ P-02 แจ้งแผน ============ -->
+  <section class="tabpane" id="pane-p02">
+    <div class="card">
+      <div class="card-hd"><h3>📨 P-02 — แจ้งแผน + ขอข้อมูล BU (ล่วงหน้า 14 วัน)</h3></div>
+      <p class="desc">เลือกแบบหนังสือ (ให้ข้อมูล / เรียกข้อมูลเพิ่ม) → กรอกผู้รับ + SLA (ข้อความ "ส่งใน 3 วันทำการ / ด่วน LCT 24 ชม." ขึ้นเอง) → กรอกเนื้อหา → ประกอบหนังสือ → คัดลอก/ดาวน์โหลดส่งตามช่องทางจริง (ระบบนี้ไม่ส่งเอง)</p>
+      <div class="filters">
+        <select id="p02Type" style="width:230px">
+          <option value="ให้ข้อมูล">แบบ ให้ข้อมูล (ปกติ)</option>
+          <option value="เรียกข้อมูลเพิ่ม">แบบ เรียกข้อมูลเพิ่ม (ขาด/เร่ง)</option>
+        </select>
+        <input id="p02To" placeholder="ผู้รับ (BU + ตำแหน่ง)" style="flex:1;min-width:200px">
+        <input id="p02RefPlan" placeholder="อ้างแผน (เช่น PLAN-2569-11)" style="width:230px">
+      </div>
+      <div class="filters"><input id="p02Title" placeholder="เรื่อง — เช่น แจ้งตรวจ สวัสดิการพื้นฐาน (ประเทศไทย)" style="flex:1;min-width:240px"><input id="p02Sla" placeholder="SLA — เช่น ส่งข้อมูลใน 3 วันทำการ" style="width:260px"></div>
+      <div class="filters"><textarea id="p02Body" rows="6" placeholder="เนื้อความนอกชื่อหัว: สรุปข้อมูลที่ขอ + กำหนดส่ง + ช่องทางติดต่อ..." style="width:100%;font-family:inherit;min-height:110px"></textarea></div>
+      <div class="filters"><input id="p02By" placeholder="ชื่อ-ตำแหน่งผู้แจ้ง (GAT)" style="width:280px"></div>
+      <div class="filters">
+        <button id="btnP02Generate" class="gold">✨ ประกอบหนังสือ</button>
+        <button class="button-lite" id="btnP02Copy">📋 คัดลอก</button>
+        <button class="button-lite" id="btnP02Download">⬇ ดาวน์โหลด .txt</button>
+      </div>
+      <div class="filters"><textarea id="p02Final" rows="12" placeholder="หนังสือฉบับเต็มจะปรากฏที่นี่ — แก้ไขได้ละคัดลอก/ดาวน์โหลดส่งตามช่องทางจริง" style="width:100%;font-family:inherit;min-height:150px"></textarea></div>
+    </div>
+  </section>
+
+  <!-- ============ P-07 อุทธรณ์ OAC ============ -->
+  <section class="tabpane" id="pane-p07">
+    <div class="card">
+      <div class="card-hd"><h3>⚖️ P-07 — อุทธรณ์ต่อ OAC (BU คัดค้านใบ)</h3></div>
+      <p class="desc">BU ไม่ตกลงกับใบใด: อุทธรณ์ <b>ภายใน 7 วัน</b>ที่ได้รับคำตอบ (กฎบัตรข้อ 9 — การตัดสิน OAC = ที่สุดของรอบ) · 🔴 ระหว่างอุทธรณ์ ต้องมีมาตรการป้องกันชั่วคราว</p>
+      <div class="filters"><select id="oacRecPick" style="flex:1;min-width:240px"><option value="">— เลือกใบที่คัดค้าน —</option></select></div>
+      <div class="filters">
+        <input id="oacDate" placeholder="วันที่ตัดสิน (เช่น 12 พ.ย. 69)" style="width:210px">
+        <select id="oacResult" style="flex:1;min-width:190px">
+          <option value="">— ผลตัดสิน —</option>
+          <option>อุทธรณ์ถูก — ปิดใบ</option>
+          <option>อุทธรณ์ไม่ถูก — รักษาเดิม</option>
+          <option>อยู่ระหว่างพิจารณา</option>
+        </select>
+      </div>
+      <div class="filters"><textarea id="oacReason" rows="3" placeholder="เหตุผลคัดค้าน / หมายเหตุการตัดสิน (อ้างกฎหมาย/ข้อเท็จจริง)" style="flex:1;min-width:280px;font-family:inherit"></textarea></div>
+      <div class="filters"><input id="oacBy" placeholder="ชื่อ-ตำแหน่งผู้อุทธรณ์ (BU)" style="width:280px"><button id="btnOacLog" class="gold">⚖️ บันทึกอุทธรณ์นี้ (ในเครื่องนี้)</button></div>
+      <div id="oacList" style="margin-top:10px"></div>
+      <p class="desc" id="oacStatus" style="color:#0e8345;font-weight:600">ฟอร์มส่งตรงถึง OAC กำลังจะมา (ตามใบแจ้งระบบ) — ตอนนี้บันทึกรายการได้ในเครื่องนี้</p>
     </div>
   </section>
 
@@ -447,10 +517,10 @@ ol.manual li{margin-bottom:8px}
     </div>
   </section>
 
-  <!-- ============ PROCESS ============ -->
-  <section class="tabpane" id="pane-process"><div id="procBody"></div></section>
-  <section class="tabpane" id="pane-runner"><div id="runBody"></div></section>
-  <section class="tabpane" id="pane-manual"><div id="manBody">กำลังโหลดคู่มือ…</div></section>
+  <section class="tabpane" id="pane-manual"><div id="manBody">กำลังโหลดคู่มือ…</div>
+    <!-- v1.12: เอกสารกระบวนการเต็ม (แผนภาพ + แม่แบบ PM/WI/SD/FM + PM_DOCS 10×18 + WI_DOCS 7×15) — moved จากแท็บ "กระบวนการทีม GAT" เดิม -->
+    <div id="processDocs"><div class="empty">กำลังโหลดเอกสารกระบวนการ…</div></div>
+  </section>
 
   <!-- ============ REPORT ============ -->
   <section class="tabpane" id="pane-report">

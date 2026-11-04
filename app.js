@@ -277,7 +277,7 @@ var GAT = (function () {
   /* ---------- renders ---------- */
   function status(msg) { id('statusBar').innerHTML = '<span class="ok">' + esc(msg) + '</span>'; }
   function renderAll() {
-    renderDash(); renderRegisters(); renderUniverse(); renderRecs(); renderSummary(); renderBctStatus(); loadProcess(); renderRunner();
+    renderDash(); renderRegisters(); renderUniverse(); renderRecs(); renderSummary(); renderBctStatus(); loadProcess(); // v1.12: renderRunner ถูกถอด
     try { renderPacks(); fillPackSelectors(); } catch (e) {}
   }
   function copyText(t, msg) {
@@ -288,11 +288,19 @@ var GAT = (function () {
 
   /* ---------- แท็บกระบวนการทีม GAT (PM/WI/SD/FM ของทีมเอง) ---------- */
   function loadProcess() {
-    var box = id('procBody'); if (!box) return;
+    /* v1.12 — แท็บ "กระบวนการทีม GAT" ถูกถอดออกตามคำสั่ง — แต่ gat-process.json ยังโหลดเสมอ (state.process ใช้ในหน้าสรุป/เอกสารอ้างอิง) */
+    fetch(window.GAT_CONFIG.SOURCES.PROCESS_SEED + '?v=' + Date.now())
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { if (j) state.process = j; })
+      .catch(function () {});
+  }
+
+function loadProcessDocs() {
+    var box = id('processDocs'); if (!box) return;
     fetch(window.GAT_CONFIG.SOURCES.PROCESS_SEED + '?v=' + Date.now())
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (j) {
-        if (!j) { box.innerHTML = '<div class="empty">โหลด gat-process.json ไม่ได้</div>'; return; }
+        if (!j) { box.innerHTML = '<div class="empty">โหลด gat-process.json ไม่ได้ — ดูไฟล์ใน repo</div>'; return; }
         state.process = j; // เก็บใน state — ใช้นับจำนวน PM/WI/SD/FM ในหน้าสรุป
         var h = [];
         h.push('<div class="hero"><div class="goldlbl">ระบบเอกสาร 4 ประเภท · PM / WI / SD / FM</div><h2>⚙ ' + esc(j.meta.title) + ' — ' + esc(String(j.meta.version).split('—')[0]) + '</h2><p>' + esc(j.meta.owner) + ' · PM=ภาพการไหลของงาน · WI=คำสั่งติดตำแหน่ง · SD=เอกสารสนับสนุน · FM=แบบฟอร์มบันทึกผล — ผูกกฎบัตร GAT v1.4 — SLA 3/5/7 วัน · อุทธรณ์ OAC · สถานะ 5 ระดับ 🟢🟡🟠🔴⚫ · เอกสารฉบับเต็ม: GAT-QMS-001 v1.0</p></div>');
@@ -395,6 +403,7 @@ var GAT = (function () {
       })
       .catch(function () { box.innerHTML = '<div class="empty">โหลดกระบวนการล้มเหลว</div>'; });
   }
+  /* v1.12 — bind ปุ่ม "เปิดภาพตัวอย่างได้ในแท็บคู่มือ" */
   function renderPmDoc(j, i) {
     var p = j.meta.PM_DOCS[i]; if (!p) return;
     var rows = [['Process Code', p.id], ['Process Name', p.name], ['Objective', p.objective], ['Scope', p.scope], ['Process Owner', p.owner], ['Related Parties', p.related], ['Input', p.input], ['Trigger', p.trigger],
@@ -1130,48 +1139,47 @@ var GAT = (function () {
   }
   document.addEventListener('DOMContentLoaded', boot);
 
-  var TAB_NAMES = { dashboard: 'Dashboard', summary: 'สรุปผลงาน GAT', packs: 'P-03 BU ส่งข้อมูล (Pack)', aireview: 'P-04 ตรวจ+ออกใบ', buanswer: 'P-05 BU ตอบใบ', close: 'P-06 ปิดประเด็น', recs: 'ทะเบียนข้อเสนอแนะ', registers: 'Registers', universe: 'Regulatory Universe', bct: 'BCT Import/Export', process: 'กระบวนการทีม GAT', runner: 'เดินกระบวนการ (Runner)', manual: 'คู่มือการใช้งาน', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
+  var TAB_NAMES = { dashboard: 'P-09 คุมทะเบียน (Dashboard)', summary: 'P-08 รายงาน (สรุปผลงาน)', packs: 'P-03 BU ส่งข้อมูล (Pack)', aireview: 'P-04 ตรวจ+ออกใบ', buanswer: 'P-05 BU ตอบใบ', close: 'P-06 ปิดประเด็น', p01: 'P-01 วางแผนรอบตรวจ', p02: 'P-02 แจ้งแผน+ขอข้อมูล', p07: 'P-07 อุทธรณ์ OAC', recs: 'ทะเบียนข้อเสนอแนะ', registers: 'Registers', universe: 'Regulatory Universe', bct: 'BCT Import/Export', process: 'กระบวนการทีม GAT', runner: 'เดินกระบวนการ (Runner)', manual: 'คู่มือการใช้งาน', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
 
-  /* ---------- แท็บเดินกระบวนการ (Process Runner) — ให้ทีมเดินตาม CORE ทีละขั้น ---------- */
+  /* ---------- แกนกลาง 10 กระบวนการ (P-01..P-10) — RUN_STEPS = แหล่งเดียว: แท็บงานจริงแต่ละขั้นอ่านจากนี้ ---------- */
   var RUN_STEPS = [
-    { id: 'P-01', check: ['เลือกขอบเขตจาก 3 แหล่ง (ปฏิทิน / ทะเบียน 🟡🔴 / เหตุเร่งด่วน) แล้ว', 'ระบุเจ้าของด้าน (คน/ลูกค้า/การเงิน) ครบทุกหัวข้อ', 'รอหัวหน้าสาย Audit อนุมัติแผนแล้ว'], act: null, actLabel: null },
-    { id: 'P-02', check: ['แจ้งแผน + รายการขอข้อมูลให้ BU แล้ว (ล่วงหน้า 14 วัน)', 'ระบุกำหนดส่ง (SLA 3 วันทำการ / ด่วน LCT 24 ชม.) ในหนังสือทุกครั้ง'], act: null, actLabel: null },
-    { id: 'P-03', check: ['BU ส่งสำเนาไฟล์เข้าระบบแล้ว (ห้ามแก้ต้นฉบับ)', 'จด «ชีท+แถว» ที่อ่านครบทุกไฟล์', 'บันทึกรอบส่งลง GAT_Entries แล้ว'], act: 'bct', actLabel: 'บันทึกที่แท็บ BCT → ชีท GAT_Entries' },
-    { id: 'P-04', check: ['ตรวจตาม Checklist ของขอบเขตนั้นแล้ว', 'ข้อพบมี หลักฐาน + เกณฑ์อ้างอิง + แนวทางบรรเทา ครบทุกใบ', 'อ้างกฎหมาย = ฉบับจริง + วันบังคับใช้ (ไม่พบ = เขียน «ไม่พบในไฟล์»)'], act: 'aireview', actLabel: 'ออกใบที่แท็บ P-04 ตรวจ+ออกใบ (รันเลข GAT-REC อัตโนมัติ)' },
-    { id: 'P-05', check: ['ส่งใบประเด็นให้ Process Owner/BU แล้ว', 'ติดตามคำตอบ (แก้=หลักฐาน / ไม่แก้=เหตุผล+ผู้รับผิดชอบ) ภายใน 5 วันทำการ', 'ช่องคำตอบครบทุกช่องแล้ว (ขาด = ยังไม่นับตอบ)'], act: 'buanswer', actLabel: 'ตอบใบที่แท็บ P-05 BU ตอบใบ' },
-    { id: 'P-06', check: ['ตรวจหลักฐานการแก้แล้ว (พอ/ไม่พอ ชัดเจน)', '🔴 ที่ไม่แก้ = ยืนยันกลับเป็นทางการแล้ว', 'ติดตามรอบถัดไป / ถดถอย 30/60/90 วัน ลงระบบแล้ว'], act: 'close', actLabel: 'ปิดรายการ (GAT ยืนยัน) ที่แท็บ P-06 ปิดประเด็น' },
-    { id: 'P-07', check: ['BU อุทธรณ์ภายใน 7 วัน (ถ้ามี)', 'OAC ตัดสิน = จบที่การตัดสิน (บันทึก GAT_AuditLog แล้ว)', 'High ระหว่างอุทธรณ์: มีมาตรการป้องกันชั่วคราวแล้ว'], act: null, actLabel: null },
-    { id: 'P-08', check: ['รายงานฉบับสมบูรณ์ก่อนวันที่ 5 ของเดือนถัดไป', 'คุมถดถอย 30/60/90 วัน ลงระบบแล้ว', 'ส่งผู้มีอำนาจ/OAC + นัดประชุมทบทวน 🔴 ค้าง'], act: 'summary', actLabel: 'สรุปที่แท็บ สรุปผลงาน (คัดลอก/ดาวน์โหลด .md)' },
-    { id: 'P-09', check: ['อัปเดตสถานะ 5 ระดับ (🟢🟡🟠🔴⚫) ให้ทะเบียนล่าสุดแล้ว', 'นำเข้าข้อมูล live จาก BCT แล้ว', 'ตรวจว่าไม่มีรายการสถานะตกยุค'], act: 'dashboard', actLabel: 'ตรวจที่แท็บ Dashboard (KPI สด)' },
-    { id: 'P-10', check: ['คัดลอก bct-template.xlsx แล้ว', 'ติดตั้ง GAS bridge + วาง Web App URL แล้ว', 'เว็บเชื่อม live ตรวจแล้ว (import สำเร็จ)'], act: 'bct', actLabel: 'ตั้งค่าที่แท็บ BCT Import/Export' }
+    { id: 'P-01', name: "วางแผนรอบตรวจรายเดือน", sla: "", check: ['เลือกขอบเขตจาก 3 แหล่ง (ปฏิทิน / ทะเบียน 🟡🔴 / เหตุเร่งด่วน) แล้ว', 'ระบุเจ้าของด้าน (คน/ลูกค้า/การเงิน) ครบทุกหัวข้อ', 'รอหัวหน้าสาย Audit อนุมัติแผนแล้ว'], tab: 'p01', tabNote: 'ทำที่แท็บ P-01 — จองเลข/กำหนดขอบเขต/ผู้รับผิดชอบ', act: null, actLabel: null },
+    { id: 'P-02', name: "แจ้งแผน + ขอข้อมูล BU", sla: "SLA: ส่งข้อมูล 3 วันทำการ / ด่วน LCT 24 ชม.", check: ['แจ้งแผน + รายการขอข้อมูลให้ BU แล้ว (ล่วงหน้า 14 วัน)', 'ระบุกำหนดส่ง (SLA 3 วันทำการ / ด่วน LCT 24 ชม.) ในหนังสือทุกครั้ง'], tab: 'p02', tabNote: 'ทำที่แท็บ P-02 — ร่างหนังสือแจ้ง (คัดลอกไปส่งตามช่องทางจริง)', act: null, actLabel: null },
+    { id: 'P-03', name: "รับ–เก็บข้อมูลจาก BU", sla: "", check: ['BU ส่งสำเนาไฟล์เข้าระบบแล้ว (ห้ามแก้ต้นฉบับ)', 'จด «ชีท+แถว» ที่อ่านครบทุกไฟล์', 'บันทึกรอบส่งลง GAT_Entries แล้ว'], tab: 'packs', tabNote: 'ทำที่แท็บ P-03 (Pack ของแต่ละ BU)', act: 'bct', actLabel: 'บันทึกที่แท็บ BCT → ชีท GAT_Entries' },
+    { id: 'P-04', name: "ตรวจ + ออกใบประเด็น", sla: "", check: ['ตรวจตาม Checklist ของขอบเขตนั้นแล้ว', 'ข้อพบมี หลักฐาน + เกณฑ์อ้างอิง + แนวทางบรรเทา ครบทุกใบ', 'อ้างกฎหมาย = ฉบับจริง + วันบังคับใช้ (ไม่พบ = เขียน «ไม่พบในไฟล์»)'], tab: 'aireview', tabNote: 'ทำที่แท็บ P-04 (AI Review / ออกใบ)', act: 'aireview', actLabel: 'ออกใบที่แท็บ P-04 ตรวจ+ออกใบ (รันเลข GAT-REC อัตโนมัติ)' },
+    { id: 'P-05', name: "สื่อสารกับ BU + BU ตัดสินใจ", sla: "SLA: ชี้แจง 5 วันทำการ", check: ['ส่งใบประเด็นให้ Process Owner/BU แล้ว', 'ติดตามคำตอบ (แก้=หลักฐาน / ไม่แก้=เหตุผล+ผู้รับผิดชอบ) ภายใน 5 วันทำการ', 'ช่องคำตอบครบทุกช่องแล้ว (ขาด = ยังไม่นับตอบ)'], tab: 'buanswer', tabNote: 'ทำที่แท็บ P-05 (BU ตอบใบ)', act: 'buanswer', actLabel: 'ตอบใบที่แท็บ P-05 BU ตอบใบ' },
+    { id: 'P-06', name: "ตรวจคำตอบ + ปิดประเด็น", sla: "", check: ['ตรวจหลักฐานการแก้แล้ว (พอ/ไม่พอ ชัดเจน)', '🔴 ที่ไม่แก้ = ยืนยันกลับเป็นทางการแล้ว', 'ติดตามรอบถัดไป / ถดถอย 30/60/90 วัน ลงระบบแล้ว'], tab: 'close', tabNote: 'ทำที่แท็บ P-06 (ปิดประเด็น)', act: 'close', actLabel: 'ปิดรายการ (GAT ยืนยัน) ที่แท็บ P-06 ปิดประเด็น' },
+    { id: 'P-07', name: "อุทธรณ์ต่อ OAC", sla: "SLA: อุทธรณ์ 7 วัน", check: ['BU อุทธรณ์ภายใน 7 วัน (ถ้ามี)', 'OAC ตัดสิน = จบที่การตัดสิน (บันทึก GAT_AuditLog แล้ว)', 'High ระหว่างอุทธรณ์: มีมาตรการป้องกันชั่วคราวแล้ว'], tab: 'p07', tabNote: 'ทำที่แท็บ P-07 — กรอกอุทธรณ์ (ส่ง OAC + แนบใบที่คัดค้าน)', act: null, actLabel: null },
+    { id: 'P-08', name: "รายงานรายเดือน + คุมถดถอย", sla: "กำหนด: ก่อนวันที่ 5 เดือนถัดไป", check: ['รายงานฉบับสมบูรณ์ก่อนวันที่ 5 ของเดือนถัดไป', 'คุมถดถอย 30/60/90 วัน ลงระบบแล้ว', 'ส่งผู้มีอำนาจ/OAC + นัดประชุมทบทวน 🔴 ค้าง'], tab: 'summary', tabNote: 'ทำที่แท็บ สรุปผลงาน GAT', act: 'summary', actLabel: 'สรุปที่แท็บ สรุปผลงาน (คัดลอก/ดาวน์โหลด .md)' },
+    { id: 'P-09', name: "คุมทะเบียน + แหล่งข้อมูลกลาง", sla: "", check: ['อัปเดตสถานะ 5 ระดับ (🟢🟡🟠🔴⚫) ให้ทะเบียนล่าสุดแล้ว', 'นำเข้าข้อมูล live จาก BCT แล้ว', 'ตรวจว่าไม่มีรายการสถานะตกยุค'], tab: 'dashboard', tabNote: 'ดูที่แท็บ Dashboard', act: 'dashboard', actLabel: 'ตรวจที่แท็บ Dashboard (KPI สด)' },
+    { id: 'P-10', name: "ติดตั้งฐานงานใหม่ (Onboarding)", sla: "", check: ['คัดลอก bct-template.xlsx แล้ว', 'ติดตั้ง GAS bridge + วาง Web App URL แล้ว', 'เว็บเชื่อม live ตรวจแล้ว (import สำเร็จ)'], tab: 'bct', tabNote: 'ทำที่แท็บ BCT Import/Export', act: 'bct', actLabel: 'ตั้งค่าที่แท็บ BCT Import/Export' }
   ];
-  function renderRunner() {
-    var box = id('runBody'); if (!box) return;
-    var j = state.process || {};
-    var core = j.CORE || [];
-    var prog = state.runState || {}; // { 'P-01': [true,true,false], ... }
-    var totalChk = 0, doneChk = 0;
-    RUN_STEPS.forEach(function (s) { (prog[s.id] || []).forEach(function (v) { totalChk++; if (v) doneChk++; }); });
+  function stepBoxHtml(sid, ix) {
+    var s = RUN_STEPS.filter(function (x) { return x.id === sid; })[0];
+    if (!s) return '';
+    var prog = state.runState || {};
+    var checks = prog[sid] || [];
+    var done = checks.length > 0 && s.check.every(function (_, i) { return checks[i]; });
     var h = [];
-    h.push('<div class="hero"><div class="goldlbl">Process Runner · เดินตามกระบวนการทุกขั้น</div><h2>🚦 เดินกระบวนการ CORE 10 (P-01 → P-10)</h2><p>แต่ละขั้นมี Checklist ให้ติ๊ก — ครบทุกข้อ = ผ่านขั้น · ปุ่มข้างการ์ดกระโดไปทำจริงในแท็บนั้นทันที · ความคืบหน้าบันทึกในเครื่องนี้ (localStorage)</p></div>');
-    h.push('<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px">');
-    h.push(kpi('ผ่านแล้ว', fmt(doneChk) + ' / ' + fmt(totalChk), 'ข้อที่ติ๊กครบ') + kpi('ขั้นที่ผ่านหมด', fmt(RUN_STEPS.filter(function (s) { var c = prog[s.id] || []; return c.length && c.every(function (v) { return v; }); }).length) + ' / 10', 'ครบทุก checklist') + kpi('ขั้นถัดไป', (RUN_STEPS.filter(function (s) { var c = prog[s.id] || []; return !c.length || !c.every(function (v) { return v; }); })[0] || {}).id || 'ครบทุกขั้น 🎉', 'ทำต่อจากนี้'));
-    h.push('</div>');
-    RUN_STEPS.forEach(function (s, ix) {
-      var meta = core.filter(function (c) { return c.id === s.id; })[0] || {};
-      var checks = prog[s.id] || [];
-      var done = checks.length > 0 && s.check.every(function (_, i) { return checks[i]; });
-      h.push('<div class="card" style="border-left:5px solid ' + (done ? '#0e8345' : '#b48a3c') + '">');
-      h.push('<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3 style="margin:0">' + (done ? '✅' : '▶️') + ' ขั้นที่ ' + (ix + 1) + ' — ' + esc(s.id) + ' ' + esc(meta.name || '') + (meta.sla ? ' <span style="font-size:12px;color:#b48a3c;font-weight:600">' + esc(meta.sla) + '</span>' : '') + '</h3><div style="display:flex;gap:6px;flex-wrap:wrap">' +
-        '<button class="rb-act" data-rundoc="' + s.id + '" style="margin-bottom:6px">📄 เอกสาร PM เต็ม</button>' +
-        (s.act ? '<button class="rb-act" data-runact="' + s.act + '" style="margin-bottom:6px">' + esc(s.actLabel || 'ไปทำจริง') + '</button>' : '') + '</div></div>');
-      h.push('<div style="font-size:13px;color:#51617a;margin-bottom:8px">PM: ' + esc(String(meta.pm || '').slice(0, 120)) + (String(meta.pm || '').length > 120 ? '…' : '') + '</div>');
-      h.push('<table class="tbl">' + s.check.map(function (c, i) {
-        return '<tr><td style="width:34px;text-align:center"><input type="checkbox" class="rb-chk" data-rstep="' + s.id + '" data-rchk="' + i + '"' + (checks[i] ? ' checked' : '') + '></td><td style="font-size:13.5px">' + esc(c) + '</td></tr>';
-      }).join('') + '</table></div>');
-    });
-    h.push('<div class="note">การทำจริงยังเกิดในแท็บปลายทาง (P-03 Packs / P-04 ออกใบ / P-05 BU ตอบ / P-06 ปิดประเด็น / สรุปผลงาน / Dashboard) — Runner ช่วยลำดับ+ไม่พลาดขั้น+ไม่พลาดหลักฐาน ตามหลัก «ผู้ปฏิบัติต้องอ่านแล้วทำตามได้จริง» ของ WI</div>');
-    box.innerHTML = h.join('');
+    h.push('<div class="card" style="border-left:5px solid ' + (done ? '#0e8345' : '#b48a3c') + '">');
+    h.push('<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3 style="margin:0">' + (done ? '✅' : '▶️') + ' ' + esc(s.id) + (s.name ? ' · ' + esc(s.name) : '') + (s.sla ? ' <span style="font-size:12px;color:#b48a3c;font-weight:600">' + esc(s.sla) + '</span>' : '') + '</h3>' + (s.act ? '<button class="rb-act" data-runact="' + s.act + '" style="margin-bottom:6px">' + esc(s.actLabel || 'ไปทำจริง') + '</button>' : '') + '</div>');
+    h.push('<div style="font-size:13px;color:#51617a;margin-bottom:8px">' + esc(s.tabNote || '') + '</div>');
+    h.push('<table class="tbl">' + s.check.map(function (c, i) {
+      return '<tr><td style="width:34px;text-align:center"><input type="checkbox" class="rb-chk" data-rstep="' + s.id + '" data-rchk="' + i + '"' + (checks[i] ? ' checked' : '') + '></td><td style="font-size:13.5px">' + esc(c) + '</td></tr>';
+    }).join('') + '</table></div>');
+    return h.join('');
+  }
+  function renderRunner() {
+    /* v1.12 — Runner ถูกถอดออก: checklist 10 ขั้นไปอยู่บนแท็บงานจริงแต่ละขั้น (stepBoxHtml) */
+    var box = id('runBody'); if (!box) return;
+    var doneCnt = 0;
+    RUN_STEPS.forEach(function (s) { var c = (state.runState || {})[s.id] || []; if (c.length && s.check.every(function (_, i) { return c[i]; })) doneCnt++; });
+    box.innerHTML = '<div class="hero"><div class="goldlbl">Process Model</div><h2>🚦 10 กระบวนการ (P-01 → P-10) = แท็บทำงานจริง</h2><p>แต่ละขั้นมี Checklist อยู่บนแท็บงานของขั้นนั้นเอง — ติ๊กให้ครบทุกข้อ = ผ่านขั้น · ความคืบหน้าเก็บในเครื่องนี้ (localStorage) · ผ่านแล้ว ' + fmt(doneCnt) + ' / 10 ขั้น</p></div>' +
+      '<div class="card"><h3>📊 ภาพรวม 10 ขั้น</h3><table class="tbl">' + RUN_STEPS.map(function (s, ix) {
+        var c = (state.runState || {})[s.id] || [];
+        var done = c.length && s.check.every(function (_, i) { return c[i]; });
+        return '<tr><td style="width:34px;text-align:center">' + (done ? '✅' : '▶️') + '</td><td class="mono">' + esc(s.id) + '</td><td>' + esc(s.name || '') + '</td><td><a href="#" data-runact="' + (s.tab || 'dashboard') + '">' + esc(TAB_NAMES[s.tab] || s.tab || '') + '</a></td></tr>';
+      }).join('') + '</table></div>';
   }
   function saveRunState() {
     try { localStorage.setItem('gat_run_state', JSON.stringify(state.runState || {})); } catch (e) {}
@@ -1186,8 +1194,28 @@ var GAT = (function () {
     document.querySelectorAll('nav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-tab') === name); });
     var c = id('crumbTab'); if (c) c.textContent = TAB_NAMES[name] || name;
     var sb = document.getElementById('sidebar'); if (sb && sb.classList) sb.classList.remove('open');
-    if (name === 'manual' && !showTab._manLoaded) { showTab._manLoaded = true; loadManual(); }
-    if (name === 'runner') { renderRunner(); }
+    if (name === 'manual' && !showTab._manLoaded) { showTab._manLoaded = true; loadManual(); loadProcessDocs(); /* v1.12: เอกสารกระบวนการเต็ม moved มาส่วนท้ายแท็บคู่มือ */ }
+    /* v1.12: แท็บ runner ถูกถอด — ตัด renderRunner() */
+    /* v1.12 — 10 กระบวนการ: การ์ด Checklist ของขั้นนั้น ติดบนแท็บงานจริง */
+    /* v1.12 — 10 กระบวนการ: การ์ด Checklist ของขั้นนั้น ติดบนแท็บงานจริง (แทรกก่อน card แรกของ pane) */
+    var SM = { p01: 'P-01', p02: 'P-02', packs: 'P-03', aireview: 'P-04', buanswer: 'P-05', close: 'P-06', p07: 'P-07', summary: 'P-08', dashboard: 'P-09', bct: 'P-10' };
+    if (SM[name]) {
+      var pane = id('pane-' + name);
+      var firstCard = pane ? pane.querySelector('.card') : null;
+      var box = document.getElementById('stepbox');
+      if (!box) {
+        box = document.createElement('div');
+        box.id = 'stepbox';
+        if (firstCard && firstCard.parentNode) firstCard.parentNode.insertBefore(box, firstCard);
+        else if (pane) pane.insertBefore(box, pane.firstChild);
+      }
+      if (box && showTab._lastStep !== SM[name]) {
+        showTab._lastStep = SM[name];
+        var ix = -1;
+        RUN_STEPS.forEach(function (x, i2) { if (x.id === SM[name]) ix = i2; });
+        box.innerHTML = stepBoxHtml(SM[name]);
+      }
+    }
   }
   document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('nav a');
@@ -1200,24 +1228,11 @@ var GAT = (function () {
       var rs = e.target.getAttribute('data-rstep'), ri = parseInt(e.target.getAttribute('data-rchk'), 10);
       state.runState = state.runState || {};
       var arr = state.runState[rs] || [];
-      arr[ri] = e.target.checked; state.runState[rs] = arr; saveRunState(); renderRunner();
+      arr[ri] = e.target.checked; state.runState[rs] = arr; saveRunState(); /* v1.12: renderRunner() ถูกถอด */
       return;
     }
     var ra = e.target.getAttribute && e.target.getAttribute('data-runact');
     if (ra) { showTab(ra); return; }
-    var rd = e.target.getAttribute && e.target.getAttribute('data-rundoc');
-    if (rd) { // เปิดเอกสาร PM เต็มของขั้นนั้น (แท็บกระบวนการ → เลข index ใน PM_DOCS)
-      var pd = (state.process || {}).meta ? (state.process.meta.PM_DOCS || []) : [];
-      var ix = -1;
-      pd.forEach(function (p, i2) { if (p.id === rd) ix = i2; });
-      showTab('process');
-      setTimeout(function () {
-        var btn = document.querySelector('[data-pmdoc="' + ix + '"]');
-        if (btn) btn.click();
-        var card = id('pmdocs'); if (card) card.scrollIntoView({ behavior: 'smooth' });
-      }, 50);
-      return;
-    }
   });
 
   /* export ชุด register ปัจจุบันกลับเข้ารูปแบบ BCT (CSV คอลัมน์ตรง GAT_Registers) */
@@ -1231,6 +1246,6 @@ var GAT = (function () {
     status('ส่งออก CSV สำหรับวางลงชีท GAT_Registers บน BCT แล้ว (' + regs.length + ' รายการ)');
   }
 
-  return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess, renderRunner: renderRunner,
+  return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess,
     _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _aiBuildPrompt: aiBuildPrompt, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks, _renderRecs: renderRecs };
 })();
