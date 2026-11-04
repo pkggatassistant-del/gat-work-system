@@ -249,19 +249,40 @@ ol.manual li{margin-bottom:8px}
 
   <!-- ============ PACKS (BU ส่งข้อมูล) ============ -->
   <section class="tabpane" id="pane-packs">
+    <!-- ============ P-01 ครึ่งบน: GAT แจ้งเรื่องที่จะตรวจ (รายประเด็น) ============ -->
     <div class="card">
-      <div class="card-hd"><b>📤 BU ส่งข้อมูลเพื่อเข้ารับการตรวจ (Pack)</b></div>
-      <p class="desc">ขั้น ① ของวงจร: BU กรอกข้อมูลที่ GAT แจ้งว่าจะตรวจ + แนบลิงก์หลักฐาน → ระบบรันเลข PACK-xxxx ลงชีตกลางทันที — GAT เลือกลงตรวจในแท็บ "🤖 AI Review" ต่อ — SLA: ส่งข้อมูลให้ครบภายใน 3 วันทำการนับจากได้รับแจ้ง (WI-01)</p>
+      <div class="card-hd"><b>🧭 P-01 ครึ่งแรก — GAT แจ้งเรื่องที่จะตรวจ (รายประเด็น)</b></div>
+      <p class="desc">GAT ใส่เรื่องที่ 1, 2, 3, … <b>แยกทีละประเด็น (1 บรรทัด = 1 เรื่อง)</b>: ประเด็นที่ตรวจ + หัวข้อเอกสารหลักฐานที่ต้องส่ง + ผู้รับผิดชอบ + กำหนดวันส่งข้อมูล — บันทึกแล้วเป็นรายการที่ BU เห็นและส่งตาม</p>
+      <div class="filters">
+        <select id="notBu" style="width:180px"><option value="">— เลือก BU —</option></select>
+        <input id="notPeriod" placeholder="งวด เช่น ต.ค. 69" style="width:170px">
+        <input id="notBy" placeholder="ชื่อ-ตำแหน่ง GAT ผู้แจ้ง" style="flex:1;min-width:200px">
+      </div>
+      <div class="filters"><textarea id="notItems" placeholder="เรื่องที่ 1: [ประเด็น] — เอกสาร: [...] — ผู้รับผิดชอบ: [...] — กำหนดส่ง: [...]
+เรื่องที่ 2: …
+เรื่องที่ 3: …" style="width:100%;min-height:140px;font-family:inherit"></textarea></div>
+      <div class="filters">
+        <button id="btnNotifyPlan" class="gold">🧭 บันทึกเรื่องที่จะตรวจ (รันเลขแผน)</button>
+        <button class="button-lite" id="btnNotifyDl">⬇ ดาวน์โหลดหนังสือแจ้ง (.txt)</button>
+      </div>
+      <div id="notStatus" class="status" style="margin-top:8px"></div>
+      <div id="notList"></div>
+    </div>
+
+    <!-- ============ P-01 ครึ่งล่าง: BU ส่งข้อมูลตามเรื่องที่แจ้ง ============ -->
+    <div class="card">
+<div class="card">
+      <div class="card-hd"><b>📤 P-01 ครึ่งหลัง — BU ส่งข้อมูลตามเรื่องที่ GAT แจ้ง</b></div>
+      <p class="desc">เลือก <b>เรื่องที่ส่ง</b> (dropdown จากที่ GAT บันทึกไว้ด้านบน) → กรอกหัวเรื่อง + แนบลิงก์หลักฐาน → ระบบรันเลข PACK-xxxx ลงชีตกลาง — SLA: ส่งให้ครบ <b>ภายในกำหนดวันส่ง</b>ที่ GAT แจ้งไว้ทุกเรื่อง (WI-01)</p>
       <div class="filters">
         <select id="packBu" style="width:180px"><option value="">— เลือก BU —</option></select>
-        <select id="packScope" style="min-width:260px"><option value="">— ขอบเขตที่ GAT แจ้งจะตรวจ —</option></select>
-        <input id="packPeriod" placeholder="รอบ/งวด เช่น ต.ค. 69" style="width:180px">
+        <select id="packNotif" style="flex:1;min-width:260px"><option value="">— เรื่องที่ GAT แจ้ง (เลือกเรื่องที่ส่ง) —</option></select>
+        <input id="packPeriod" placeholder="งวด เช่น ต.ค. 69" style="width:170px">
       </div>
       <div class="filters"><input id="packTitle" placeholder="หัวเรื่องการส่ง เช่น รายละเอียดเงินสดย่อย ต.ค. 69 (บังคับ)" style="flex:1;min-width:280px"></div>
-      <div class="filters"><textarea id="packLinks" placeholder="ลิงก์ไฟล์/เอกสารที่ส่ง (ขึ้นบรรทัดใหม่ = หลายลิงก์)  เช่น Drive: …, ชีต: …" style="width:100%;min-height:84px"></textarea></div>
-      <div class="filters"><textarea id="packNote" placeholder="หมายเหตุถึง GAT (ไม่บังคับ) เช่น ลิงก์ชีตใหญ่เปิดช้าให้นำเข้าเฉพาะแถบ…" style="width:100%;min-height:56px"></textarea></div>
-      <div class="filters">
-        <input id="packBy" placeholder="ชื่อ-ตำแหน่งจริงผู้ส่ง (BU)" style="width:240px">
+      <div class="filters"><textarea id="packLinks" placeholder="ลิงก์ไฟล์/เอกสารที่ส่ง (ขึ้นบรรทัดใหม่ = หลายลิงก์) เช่น Drive: …, ชีต: …" style="width:100%;min-height:84px"></textarea></div>
+      <div class="filters"><textarea id="packNote" placeholder="หมายเหตุถึง GAT (ไม่บังคับ)" style="width:100%;min-height:56px"></textarea></div>
+      <div class="filters"><input id="packBy" placeholder="ชื่อ-ตำแหน่งจริงผู้ส่ง (BU)" style="width:240px">
         <button id="btnSendPack" class="gold">📤 ส่งข้อมูลเข้าระบบ (รันเลข PACK)</button>
       </div>
       <div id="packStatus" class="status" style="margin-top:8px"></div>

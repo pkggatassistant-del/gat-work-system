@@ -85,7 +85,20 @@ setTimeout(() => {
   var sbTxt = d.getElementById('stepbox').textContent;
   ok('v1.13: checklist แท็บ 8 + SLA "ตอบใน 5 วันทำการ"', sbTxt.indexOf('8') >= 0 && sbTxt.indexOf('5 วันทำการ') >= 0);
 
-  console.log('\n══ RESULT รวม (v1.13): ' + pass + ' pass / ' + fail + ' fail ══');
+  // --- v1.14: P-01 ครึ่งแรก — GAT แจ้งเรื่องรายประเด็น → BU เลือกเรื่องที่ส่ง ---
+  st5.packs = [];
+  var nb2 = d.getElementById('notBu'); if (nb2) { nb2.innerHTML += '<option>PAO</option>'; }
+  ok('v1.14: แท็บ 1 มีการ์ดแจ้งเรื่อง + ส่งข้อมูล แยกครึ่ง', !!d.getElementById('notItems') && !!d.getElementById('btnNotifyPlan') && !!d.getElementById('packNotif') && !!d.getElementById('btnSendPack'));
+  if (nb2) {
+    nb2.value = 'PAO';
+    d.getElementById('notItems').value = 'เรื่องที่ 1: ตรวจสวัสดิการ — เอกสาร: ใบลา — ผู้รับผิดชอบ: PAO — กำหนดส่ง: 11 พ.ย.\nเรื่องที่ 2: ตรวจ IPD';
+    d.getElementById('btnNotifyPlan').click();
+  }
+  ok('v1.14: บันทึกแผน รันเลข PLAN-2569-', (d.getElementById('notStatus').textContent || '').indexOf('PLAN-2569-') >= 0);
+  ok('v1.14: BU dropdown เห็นแผนที่แจ้ง', d.getElementById('packNotif').options.length >= 2);
+  ok('v1.14: รายการ "เรื่องที่จะตรวจ" แสดง 2 เรื่อง', d.getElementById('notList').textContent.indexOf('เรื่องที่ 2') >= 0);
+
+  console.log('\n══ RESULT รวม (v1.14): ' + pass + ' pass / ' + fail + ' fail ══');
     process.exit(fail ? 1 : 0);
   }, 350);
 

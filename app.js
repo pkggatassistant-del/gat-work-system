@@ -277,7 +277,7 @@ var GAT = (function () {
   /* ---------- renders ---------- */
   function status(msg) { id('statusBar').innerHTML = '<span class="ok">' + esc(msg) + '</span>'; }
   function renderAll() {
-    renderDash(); renderRegisters(); renderUniverse(); renderRecs(); renderSummary(); renderBctStatus(); renderPickTable(); renderSentTable(); renderFixTable(); loadProcess(); // v1.13 เพิ่ม render แท็บ 2/6/7
+    renderDash(); renderRegisters(); renderUniverse(); renderRecs(); renderSummary(); renderBctStatus(); renderPickTable(); renderSentTable(); renderFixTable(); fillNotifPickers(); renderNotifList(); loadProcess(); // v1.13 เพิ่ม render แท็บ 2/6/7
     try { renderPacks(); fillPackSelectors(); } catch (e) {}
   }
   function copyText(t, msg) {
@@ -497,19 +497,80 @@ function loadProcessDocs() {
       else if (st) st.textContent = '❌ GAS ยังไม่รองรับ list_packs — ต้อง deploy โค้ด v1.5 (ส่งให้พี่หนึ่งแล้ว)';
     }).catch(function (e) { if (st) st.textContent = '❌ ' + e; });
   }
+  /* ============ v1.14 — P-01 ครึ่งแรก: GAT แจ้งเรื่องที่จะตรวจ (รายประเด็น) — เก็บ localStorage + dropdown ให้ BU ============ */
+  function loadNotifs() {
+    try { return JSON.parse(localStorage.getItem('gat_notifs') || '[]'); } catch (e) { return []; }
+  }
+  function saveNotifs(list) { try { localStorage.setItem('gat_notifs', JSON.stringify(list)); } catch (e) {} }
+  function renderNotifList() {
+    var box = document.getElementById('notList'); if (!box) return;
+    var list = loadNotifs();
+    box.innerHTML = !list.length ? '<div class="empty">ยังไม่มีเรื่องที่แจ้ง — GAT กรอกด้านบน</div>' :
+      list.map(function (n) {
+        var rows = (n.items || []).map(function (it, i) {
+          return '<tr><td style="width:60px"><b>เรื่องที่ ' + (i + 1) + '</b></td><td>' + escP(it) + '</td></tr>';
+        }).join('');
+        return '<div class="card" style="border-left:4px solid #0e8345;margin-bottom:8px"><b>' + escP(n.NOTIF_ID) + '</b> · ' + escP(n.BU) + ' · ' + escP(n.PERIOD || '') + ' <span style="font-size:12px;color:#8a97a8">บันทึกเมื่อ ' + escP(n.SAVED_AT) + ' โดย ' + escP(n.BY || 'GAT') + '</span><table class="tbl">' + rows + '</table></div>';
+      }).join('');
+  }
+  function fillNotifPickers() {
+    var list = loadNotifs();
+    ['packNotif'].forEach(function (id2) {
+      var sel = document.getElementById(id2); if (!sel) return;
+      var cur = sel.value;
+      sel.innerHTML = '<option value="">— เรื่องที่ GAT แจ้ง (เลือกเรื่องที่ส่ง) —</option>' + list.map(function (n) {
+        return '<option value="' + escP(n.NOTIF_ID) + '">' + escP(n.NOTIF_ID + ' · ' + n.BU + ' · ' + (n.PERIOD || '') + ' · ' + (n.items || []).length + ' เรื่อง') + '</option>';
+      }).join('');
+      if (cur) sel.value = cur;
+    });
+  }
+  function parseNotifItems(text) {
+    return String(text || '').split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+  }
+  function saveNotifPlan() {
+    var st = document.getElementById('notStatus');
+    var bu = document.getElementById('notBu').value;
+    var items = parseNotifItems(document.getElementById('notItems').value);
+    var by = document.getElementById('notBy').value.trim() || 'GAT';
+    if (!bu) { if (st) st.textContent = '⚠️ เลือก BU ก่อน'; return; }
+    if (!items.length) { if (st) st.textContent = '⚠️ ใส่ประเด็นอย่างน้อย 1 เรื่อง (1 บรรทัด = 1 เรื่อง)'; return; }
+    var list = loadNotifs();
+    var seq = list.length + 1;
+    var n = { NOTIF_ID: 'PLAN-' + (new Date().getFullYear() + 543) + '-' + String(seq).padStart(3, '0'), BU: bu, PERIOD: document.getElementById('notPeriod').value.trim(), ITEMS: items, BY: by, SAVED_AT: new Date().toLocaleString('th-TH') };
+    list.push({ NOTIF_ID: n.NOTIF_ID, BU: n.BU, PERIOD: n.PERIOD, items: items, BY: n.BY, SAVED_AT: n.SAVED_AT });
+    saveNotifs(list);
+    fillNotifPickers(); renderNotifList();
+    if (st) st.textContent = '✅ บันทึกแล้ว ' + n.NOTIF_ID + ' (' + items.length + ' ประเด็น) — BU เห็นเลือกส่งที่ครึ่งล่าง';
+    document.getElementById('notItems').value = '';
+  }
+  function downloadNotifDoc() {
+    var list = loadNotifs(); if (!list.length) { status('⚠️ ยังไม่มีเรื่องที่บันทึก'); return; }
+    var l = list[list.length - 1]; // อันล่าสุด
+    var lines = ['หนังสือแจ้งเรื่องที่จะตรวจ ' + l.NOTIF_ID, 'ถึง: ' + l.BU, 'งวด: ' + (l.PERIOD || '—'), '', 'เรื่องที่ GAT ขอตรวจ (รายประเด็น):', ''];
+    (l.items || []).forEach(function (it, i) { lines.push('เรื่องที่ ' + (i + 1) + ': ' + it); });
+    lines.push('', 'กรุณาส่งข้อมูลประกอบทุกประเด็นตามกำหนดวันส่งข้อมูลที่ระบุ — ส่งผ่านเว็บ GAT (แท็บ 1 — ครึ่งหลัง)', '', 'ลงชื่อ: ' + (l.BY || 'GAT'));
+    download('gat-notify-' + l.NOTIF_ID + '.txt', lines.join('\n'), 'text/plain;charset=utf-8');
+    status('⬇ ดาวน์โหลดหนังสือแจ้งแล้ว — ส่งให้ BU ตามช่องทางจริง');
+  }
+
   function sendPack() {
     var st = document.getElementById('packStatus');
     var bu = document.getElementById('packBu').value;
-    var scope = document.getElementById('packScope').value;
     var title = document.getElementById('packTitle').value.trim();
     var links = document.getElementById('packLinks').value.trim();
     var note = document.getElementById('packNote').value.trim();
+    var notifId = document.getElementById('packNotif').value;
+    var notifObj = loadNotifs().filter(function (n) { return n.NOTIF_ID === notifId; })[0] || {};
+    var hasPlans = loadNotifs().length > 0;
+    if (notifId) { note = (note ? note + '\n' : '') + 'อ้างแผน: ' + notifId + ' — ส่งตามเรื่อง: ' + String(notifObj.items || []).join(' | '); }
+    else if (hasPlans) { if (st) st.textContent = '⚠️ เครื่องนี้มีแผนแจ้งแล้ว — เลือก "เรื่องที่ GAT แจ้ง" ก่อน'; return; }
+    else { note = (note ? note + '\n' : '') + '(หมายเหตุระบบ: ยังไม่มีแผนแจ้งในเครื่องนี้ — ส่งแบบยังไม่ผูกแผน)'; }
     var by = document.getElementById('packBy').value.trim() || 'BU';
     if (!bu) { if (st) st.textContent = '⚠️ เลือก BU ก่อน'; return; }
     if (!title) { if (st) st.textContent = '⚠️ กรอกหัวเรื่องการส่งก่อน'; return; }
     if (!links) { if (st) st.textContent = '⚠️ ต้องแนบลิงก์หลักฐานอย่างน้อย 1 ลิงก์ (Drive/ชีต/ภาพ)'; return; }
     if (st) st.textContent = 'กำลังส่ง…';
-    postToBCT('submit_pack', { BU: bu, SCOPE: scope, PERIOD: document.getElementById('packPeriod').value.trim(), TITLE: title, LINKS: links, NOTE: note, BY: by }, function (res) {
+    postToBCT('submit_pack', { BU: bu, SCOPE: notifId ? 'แผน ' + notifId + (notifObj.PERIOD ? ' (' + notifObj.PERIOD + ')' : '') : '(ยังไม่ผูกแผน)', PERIOD: document.getElementById('packPeriod').value.trim(), TITLE: title, LINKS: links, NOTE: note, BY: by }, function (res) {
       if (res.ok) {
         if (st) st.textContent = '✅ รันเลขสำเร็จ: ' + res.PACK_ID + ' — บันทึกชีต + AuditLog แล้ว — รอ GAT เลือกตรวจ';
         document.getElementById('packTitle').value = ''; document.getElementById('packLinks').value = ''; document.getElementById('packNote').value = '';
@@ -1179,6 +1240,10 @@ function loadProcessDocs() {
     var g5 = id('btnBufixDl'); if (g5) g5.addEventListener('click', downloadBufixList);
     /* btnLoadPacksPick — ปุ่ม "รีเฟรชสถานะ" ในแท็บ 2 (ใช้ loadPacks เดิม + render ทั้ง 2 ตาราง) */
     var lp2 = id('btnLoadPacksPick'); if (lp2) lp2.addEventListener('click', function () { loadPacks(); });
+    /* v1.14 P-01 แจ้งเรื่อง */
+    var n1 = id('btnNotifyPlan'); if (n1) n1.addEventListener('click', saveNotifPlan);
+    var n2 = id('btnNotifyDl'); if (n2) n2.addEventListener('click', downloadNotifDoc);
+    fillNotifPickers(); renderNotifList();
     id('respDecision').addEventListener('change', function () {
       var noFix = this.value === 'ไม่แก้ไข';
       id('respReason').disabled = !noFix; id('respResponsible').disabled = !noFix;
