@@ -21,12 +21,13 @@
  */
 
 var CONFIG = {
-  VERSION: 'v1.4 (3 พ.ย. 69) — เพิ่ม action clean_recs + backfill_ref_pm_wi + fix_log_timestamps (โดย GAT(แดง))',
+  VERSION: 'v1.5 (4 พ.ย. 69) — วงจร 10 ขั้น: เพิ่มแท็บ GAT_Packs + action submit_pack/list_packs (BU ส่งข้อมูล → GAT/AI ตรวจ) โดย GAT(แดง)',
   SHEETS: {
     REGISTERS: 'GAT_Registers',   // Master Register: รายการตรวจสอบ/ภาระต้องส่ง
     ENTRIES: 'GAT_Entries',       // รายการบันทึกผลตรวจสอบรายครั้ง (BU กรอก)
     RECS: 'GAT_Issues',           // เก็บชื่อเดิม — ตอนนี้หมายถึง "ใบประเด็น/ข้อเสนอแนะ GAT"
-    AUDIT_LOG: 'GAT_AuditLog'     // audit trail ทุกกระทำ
+    AUDIT_LOG: 'GAT_AuditLog',    // audit trail ทุกกระทำ
+    PACKS: 'GAT_Packs'            // v1.5 — ข้อมูลที่ BU ส่งเพื่อเข้ารับการตรวจ (Pack)
   },
   TZ: 'Asia/Bangkok',
   REC_PREFIX: 'GAT-REC-',
@@ -94,6 +95,10 @@ function setupSheets() {
     'ENTRY_ID', 'REG_ID', 'ENTRY_DATE', 'BU', 'PROCESS_CODE', 'PERIOD',
     'RESULT', 'SCORE', 'FINDINGS', 'EVIDENCE_URL', 'SUBMITTED_BY', 'SUBMITTED_AT', 'STATUS'
   ]);
+  // v1.5 — แท็บข้อมูลที่ BU ส่งเพื่อเข้ารับการตรวจ (1 pack = 1 แถว)
+  ensureSheet(ss, CONFIG.SHEETS.PACKS, [
+    'PACK_ID', 'BU', 'SCOPE', 'PERIOD', 'TITLE', 'LINKS', 'NOTE', 'STATUS', 'CREATED_BY', 'CREATED_AT', 'AI_REVIEW_AT', 'AI_NOTE'
+  ]);
   // ข้อเสนอแนะ — รันเลข + การตัดสินของ BU + หลักฐาน/เหตุผล/ผู้รับผิดชอบ + FM มาตรฐาน 11 ช่อง (REF_PM_WI/ผู้อนุมัติ)
   ensureSheet(ss, CONFIG.SHEETS.RECS, [
     'REC_ID', 'REC_NO', 'CREATED_AT', 'CREATED_BY', 'REG_ID', 'PROCESS_TYPE',
@@ -144,6 +149,7 @@ function doGet(e) {
     var payload;
     switch (action) {
       case 'list_registers': payload = readAll_(CONFIG.SHEETS.REGISTERS); break;
+      case 'list_packs':     payload = readAll_(CONFIG.SHEETS.PACKS); break;
       case 'list_entries':   payload = readAll_(CONFIG.SHEETS.ENTRIES);   break;
       case 'list_recs':
       case 'list_issues':    payload = readAll_(CONFIG.SHEETS.RECS);      break;
@@ -201,10 +207,19 @@ function doPost(e) {
         var nFixed = fixLogTimestamps_(data.NOTE || '2 พ.ย. 69 (แก้ย้อนหลัง — ค่าเดิมเสียจากบั๊ก v1.2)');
         return json_({ ok: true, fixed: nFixed });
       }
+      case 'submit_pack': {
+        var lock2 = LockService.getScriptLock();
+        lock2.waitLock(10000);
+        try {
+          var pk = submitPack_(data);
+          log_(data.BY || 'BU', 'submit_pack', pk.PACK_ID, or_(data.TITLE));
+          return json_({ ok: true, PACK_ID: pk.PACK_ID });
+        } finally { lock2.releaseLock(); }
+      }
       case 'migrate':
         return json_({ ok: true, result: migrateSheets() });
       case 'ping':
-        return json_({ ok: true, version: (typeof CONFIG !== 'undefined' && CONFIG.VERSION) || 'gas-v1.2+ping', actions: 'open_issue,respond_issue,close_issue,migrate,ping,clean_recs,backfill_ref_pm_wi,fix_log_timestamps' });
+        return json_({ ok: true, version: (typeof CONFIG !== 'undefined' && CONFIG.VERSION) || 'gas-v1.2+ping', actions: 'open_issue,respond_issue,close_issue,submit_pack,migrate,ping,clean_recs,backfill_ref_pm_wi,fix_log_timestamps' });
       default:
         throw new Error('unknown action: ' + action);
     }
@@ -383,6 +398,28 @@ function readAll_(sheetName) {
     headers.forEach(function (h, i) { o[h] = r[i]; });
     return o;
   });
+}
+
+/* v1.5 — BU ส่งข้อมูลเข้ารับตรวจ (1 pack = 1 แถว) — รันเลข PACK-000n กันชนด้วย LockService */
+function submitPack_(data) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(CONFIG.SHEETS.PACKS);
+  if (!sh) { setupSheets(); sh = ss.getSheetByName(CONFIG.SHEETS.PACKS); }
+  var last = sh.getLastRow();
+  var maxNo = 0;
+  if (last > 1) {
+    var ids = sh.getRange(2, 1, last - 1, 1).getValues();
+    ids.forEach(function (r) {
+      var m = String(r[0]).match(/PACK-(\d+)/);
+      if (m) { var n = parseInt(m[1], 10); if (n > maxNo) maxNo = n; }
+    });
+  }
+  var pad = 4;
+  var no = String(maxNo + 1); while (no.length < pad) no = '0' + no;
+  var packId = 'PACK-' + no;
+  var now = Utilities.formatDate(new Date(), CONFIG.TZ, 'yyyy-MM-dd HH:mm');
+  sh.appendRow([packId, or_(data.BU), or_(data.SCOPE), or_(data.PERIOD), or_(data.TITLE), or_(data.LINKS), or_(data.NOTE), 'รอ GAT เลือกตรวจ', or_(data.BY || 'BU'), now, '', '']);
+  return { PACK_ID: packId };
 }
 
 function log_(actor, action, target, detail) {
