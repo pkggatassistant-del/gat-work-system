@@ -277,14 +277,15 @@ ol.manual li{margin-bottom:8px}
     <!-- ============ ขั้น 2: BU ส่งข้อมูลตามเรื่องที่แจ้ง ============ -->
     <div class="card">
       <div class="card-hd"><b>📤 ขั้น 2 — BU ส่งข้อมูลตามเรื่องที่ GAT แจ้ง</b></div>
-      <p class="desc">เลือก <b>เรื่องที่ส่ง</b> (dropdown จากที่ GAT บันทึกไว้ด้านบน) → กรอกหัวเรื่อง + แนบลิงก์หลักฐาน → ระบบรันเลข PACK-xxxx ลงชีตกลาง — SLA: ส่งให้ครบ <b>ภายในกำหนดวันส่ง</b>ที่ GAT แจ้งไว้ทุกเรื่อง (WI-01)</p>
+      <p class="desc">เลือก <b>เรื่องที่ GAT แจ้ง (ขั้น 1)</b> → ระบบแสดง <b>ประเด็นที่ต้องส่ง</b> → ติ๊กประเด็นที่ส่ง + <b>แนบหลักฐานบังคับต่อประเด็น</b> → ระบบรันเลข PACK-xxxx ลงชีตกลาง → เข้า <b>ขั้น 3</b> ให้ GAT เลือกตรวจ — SLA: ส่งให้ครบ <b>ภายในกำหนดวันส่ง</b>ที่ GAT แจ้งไว้ทุกเรื่อง (WI-01)</p>
       <div class="filters">
         <select id="packBu" style="width:180px"><option value="">— เลือก BU —</option></select>
-        <select id="packNotif" style="flex:1;min-width:260px"><option value="">— เรื่องที่ GAT แจ้ง (เลือกเรื่องที่ส่ง) —</option></select>
         <input id="packPeriod" placeholder="งวด เช่น ต.ค. 69" style="width:170px">
       </div>
+      <div class="filters"><b>① เลือกประเด็นที่ GAT แจ้ง (จากขั้น 1):</b> <select id="packNotif" style="flex:1;min-width:260px"><option value="">— เลือกเรื่องที่ GAT แจ้ง —</option></select></div>
+      <div id="packItemBox" style="margin:6px 0"></div>
       <div class="filters"><input id="packTitle" placeholder="หัวเรื่องการส่ง เช่น รายละเอียดเงินสดย่อย ต.ค. 69 (บังคับ)" style="flex:1;min-width:280px"></div>
-      <div class="filters"><textarea id="packLinks" placeholder="ลิงก์ไฟล์/เอกสารที่ส่ง (ขึ้นบรรทัดใหม่ = หลายลิงก์) เช่น Drive: …, ชีต: …" style="width:100%;min-height:84px"></textarea></div>
+      <div id="packEvidBox"></div>
       <div class="filters"><textarea id="packNote" placeholder="หมายเหตุถึง GAT (ไม่บังคับ)" style="width:100%;min-height:56px"></textarea></div>
       <div class="filters"><input id="packBy" placeholder="ชื่อ-ตำแหน่งจริงผู้ส่ง (BU)" style="width:240px">
         <button id="btnSendPack" class="gold">📤 ส่งข้อมูลเข้าระบบ (รันเลข PACK)</button>

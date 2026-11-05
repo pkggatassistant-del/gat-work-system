@@ -111,7 +111,7 @@ function setupSheets() {
   ]);
   // v1.5 — แท็บข้อมูลที่ BU ส่งเพื่อเข้ารับการตรวจ (1 pack = 1 แถว)
   ensureSheet(ss, CONFIG.SHEETS.PACKS, [
-    'PACK_ID', 'BU', 'SCOPE', 'PERIOD', 'TITLE', 'LINKS', 'NOTE', 'STATUS', 'CREATED_BY', 'CREATED_AT', 'AI_REVIEW_AT', 'AI_NOTE'
+    'PACK_ID', 'BU', 'SCOPE', 'PERIOD', 'TITLE', 'LINKS', 'NOTE', 'STATUS', 'CREATED_BY', 'CREATED_AT', 'AI_REVIEW_AT', 'AI_NOTE', 'ITEM'
   ]);
   // ข้อเสนอแนะ — รันเลข + การตัดสินของ BU + หลักฐาน/เหตุผล/ผู้รับผิดชอบ + FM มาตรฐาน 11 ช่อง (REF_PM_WI/ผู้อนุมัติ)
   ensureSheet(ss, CONFIG.SHEETS.RECS, [
@@ -129,13 +129,14 @@ function setupSheets() {
 function migrateSheets() {
   var ss = getSS_();
   addColumns_(ss, CONFIG.SHEETS.RECS, ['REC_NO', 'CREATED_BY', 'BU_DECISION', 'EVIDENCE_URL', 'NO_FIX_REASON', 'RESPONSIBLE', 'REF_PM_WI', 'APPROVER']);
+  addColumns_(ss, CONFIG.SHEETS.PACKS, ['ITEM']);
   log_('system', 'migrate', CONFIG.SHEETS.RECS, 'เพิ่มคอลัมน์ v1.1 + FM 11 ช่อง: REF_PM_WI + APPROVER (ถ้ายังไม่มี)');
   // v1.5 — ensure แท็บ Packs (ถ้ายังไม่มี)
   var pk = ensureSheet(ss, CONFIG.SHEETS.PACKS, ['PACK_ID', 'BU', 'SCOPE', 'PERIOD', 'TITLE', 'LINKS', 'NOTE', 'STATUS', 'CREATED_BY', 'CREATED_AT', 'AI_REVIEW_AT', 'AI_NOTE']);
   log_('system', 'migrate', CONFIG.SHEETS.PACKS, 'v1.5: เตรียมแท็บ GAT_Packs (BU ส่งข้อมูลเพื่อเข้ารับการตรวจ)');
   var tabs = setupProcessTabs();
   log_('system', 'migrate', 'process_tabs', 'v1.7: เตรียมแท็บกระบวนการ 10 ขั้น เรียบร้อย');
-  return 'OK + Packs + แท็บ10ขั้น ' + tabs;
+  return 'OK + Packs(ITEM คอลัมน์ 13) + แท็บ10ขั้น ' + tabs;
 }
 
 
@@ -244,9 +245,13 @@ function updateProcessTabs() {
     appendProcessRow_(1, { NOTIF_ID: p.NOTIF_ID, BU: p.BU, PERIOD: p.PERIOD, ITEMS: p.ITEMS, N_ITEMS: p.N_ITEMS, STATUS: '✅ แจ้งแล้ว' }); n.P1++;
   });
   packs.forEach(function (p) {
-    appendProcessRow_(2, { PACK_ID: p.PACK_ID, BU: p.BU, SCOPE: p.SCOPE, PERIOD: p.PERIOD, TITLE: p.TITLE, STATUS: p.STATUS }); n.P2++;
-    appendProcessRow_(3, { PACK_ID: 'แท็บ3→' + p.PACK_ID, DETAIL: 'พร้อมเลือกตรวจ (ดู ' + p.PACK_ID + ')', STATUS: p.STATUS });
-    appendProcessRow_(4, { PACK_ID: 'แท็บ4→' + p.PACK_ID, DETAIL: 'หัวเรื่องที่ AI จะตรวจ: ' + (p.TITLE || ''), STATUS: p.STATUS });
+    var stP = String(p.STATUS || '');
+    appendProcessRow_(2, { PACK_ID: p.PACK_ID, BU: p.BU, SCOPE: p.SCOPE, PERIOD: p.PERIOD, TITLE: p.TITLE + (p.ITEM ? ' — ตามประเด็น: ' + p.ITEM : ''), STATUS: stP }); n.P2++;
+    // v1.7.1 — ขั้น ③ = เฉพาะ PACK ที่ส่ง "ตามประเด็นจากขั้น ①" (มี ITEM)
+    if (p.ITEM) {
+      appendProcessRow_(3, { PACK_ID: p.PACK_ID, DETAIL: 'ส่งตามประเด็น: ' + p.ITEM + ' — ' + (p.TITLE || ''), STATUS: stP });
+    }
+    appendProcessRow_(4, { PACK_ID: 'แท็บ4→' + p.PACK_ID, DETAIL: 'หัวเรื่องที่ AI จะตรวจ: ' + (p.TITLE || ''), STATUS: stP });
   });
   recs.forEach(function (r) {
     var st = String(r.STATUS || '');
@@ -692,8 +697,17 @@ function submitPack_(data) {
   var no = String(maxNo + 1); while (no.length < pad) no = '0' + no;
   var packId = 'PACK-' + no;
   var now = Utilities.formatDate(new Date(), CONFIG.TZ, 'yyyy-MM-dd HH:mm');
-  sh.appendRow([packId, or_(data.BU), or_(data.SCOPE), or_(data.PERIOD), or_(data.TITLE), or_(data.LINKS), or_(data.NOTE), 'รอ GAT เลือกตรวจ', or_(data.BY || 'BU'), now, '', '']);
+  var item = or_(data.ITEM);
+  if (item !== '') {
+    var st_ = String(item);
+    if (st_.length > 300) st_ = st_.slice(0, 300);
+    item = st_;
+  }
+  if (!or_(data.LINKS)) throw new Error('ต้องแนบลิงก์หลักฐานอย่างน้อย 1 ลิงก์ — ระบบบันทึกไม่ได้ถ้าไม่มีหลักฐาน (กติกาขั้น ②)');
+  var now = Utilities.formatDate(new Date(), CONFIG.TZ, 'yyyy-MM-dd HH:mm');
+  sh.appendRow([packId, or_(data.BU), or_(data.SCOPE), or_(data.PERIOD), or_(data.TITLE), or_(data.LINKS), or_(data.NOTE), 'รอ GAT เลือกตรวจ', or_(data.BY || 'BU'), now, '', '', item]);
   return { PACK_ID: packId };
+
 }
 
 /* v1.5.2 — เปลี่ยนสถานะ Pack (เช่น mark "ทดสอบระบบ — ปิด" หรือ "ตรวจแล้ว") */

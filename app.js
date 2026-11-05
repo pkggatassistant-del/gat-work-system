@@ -509,11 +509,13 @@ function loadProcessDocs() {
     }).join('');
   }
   function loadPacks() {
-    var st = document.getElementById('packStatus'); if (st) st.textContent = 'กำลังดึงสถานะจากชีต…';
+    var st = document.getElementById('packStatus');
+    var keepOk = st && String(st.textContent).indexOf('รันเลขสำเร็จ') >= 0; /* v1.26 — อย่าทับสถานะสำเร็จที่เพิ่งส่ง */
+    if (st && !keepOk) st.textContent = 'กำลังดึงสถานะจากชีต…';
     gasGet('list_packs').then(function (res) {
-      if (res.ok) { state.packs = res.data; renderPacks(); renderPickTable(); fillPackSelectors(); renderSentTable(); renderFixTable(); var ps = document.getElementById('pickStatus'); if (ps) ps.textContent = '✅ โหลด ' + res.data.length + ' การส่ง'; if (st) st.textContent = '✅ โหลด ' + res.data.length + ' รายการจากชีตจริง'; }
-      else if (st) st.textContent = '❌ GAS ยังไม่รองรับ list_packs — ต้อง deploy โค้ด v1.5 (ส่งให้พี่หนึ่งแล้ว)';
-    }).catch(function (e) { if (st) st.textContent = '❌ ' + e; });
+      if (res.ok) { state.packs = res.data || []; var nP = state.packs.length; renderPacks(); renderPickTable(); fillPackSelectors(); renderSentTable(); renderFixTable(); var ps = document.getElementById('pickStatus'); if (ps) ps.textContent = '✅ โหลด ' + nP + ' การส่ง'; if (st && !keepOk) st.textContent = '✅ โหลด ' + nP + ' รายการจากชีตจริง'; }
+      else if (st && !keepOk) st.textContent = '❌ GAS ยังไม่รองรับ list_packs — ต้อง deploy โค้ด v1.5 (ส่งให้พี่หนึ่งแล้ว)';
+    }).catch(function (e) { if (st && !keepOk) st.textContent = '❌ ' + e; });
   }
   /* ============ v1.14 — P-01 ครึ่งแรก: GAT แจ้งเรื่องที่จะตรวจ (รายประเด็น) — เก็บ localStorage + dropdown ให้ BU ============ */
   function loadNotifs() {
@@ -543,6 +545,7 @@ function loadProcessDocs() {
       }).join('');
       if (cur) sel.value = cur;
     });
+    try { renderPackItemPicker(); renderPackEvid(); } catch (e) {}
   }
   function parseNotifItems(text) {
     return String(text || '').split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
@@ -573,32 +576,95 @@ function loadProcessDocs() {
     status('⬇ ดาวน์โหลดหนังสือแจ้งแล้ว — ส่งให้ BU ตามช่องทางจริง');
   }
 
+    /* v1.26 — ขั้น 2 ใหม่: เลือกประเด็นจากขั้น 1 → ช่องแนบหลักฐานบังคับต่อประเด็น (localStorage: gat_pack_item_sel) */
+  function packSelItems() {
+    try { return JSON.parse(localStorage.getItem('gat_pack_item_sel') || '{}'); } catch (e) { return {}; }
+  }
+  function packSelItemsSave(o) { localStorage.setItem('gat_pack_item_sel', JSON.stringify(o || {})); }
+  function currentPackNotif() {
+    var el = document.getElementById('packNotif');
+    var notifId = el ? el.value : '';
+    return loadNotifs().filter(function (n) { return n.NOTIF_ID === notifId; })[0] || null;
+  }
+  function renderPackItemPicker() {
+    var box = document.getElementById('packItemBox'); if (!box) return;
+    var n = currentPackNotif();
+    if (!n) { box.innerHTML = '<i style="color:#7d93b2">เลือกเรื่องที่ GAT แจ้งด้านบน → ระบบจะแสดงประเด็นที่ต้องส่งข้อมูล</i>'; return; }
+    var sel = packSelItems();
+    var rows = (n.items || []).map(function (it, i) {
+      var id2 = n.NOTIF_ID + '::' + i;
+      var c = sel[id2] ? ' checked' : '';
+      return '<label style="display:block;padding:6px 10px;border-radius:8px;cursor:pointer"><input type="checkbox" data-itemid="' + escP(id2) + '"' + c + ' style="margin-right:8px"> <b>' + (i + 1) + '.</b> ' + escP(it) + '</label>';
+    }).join('');
+    box.innerHTML = '<div style="background:#0b1526;border:1px solid #2a4570;border-radius:10px;padding:10px"><div style="margin-bottom:6px"><b>ประเด็นที่ BU ต้องส่งข้อมูล (ตาม ' + escP(n.NOTIF_ID) + ' — งวด ' + escP(n.PERIOD || '—') + '):</b> <span style="color:#7d93b2;font-size:12.5px">ติ๊กเฉพาะประเด็นที่ส่งครั้งนี้</span></div>' + rows + '</div>';
+    box.querySelectorAll('input[data-itemid]').forEach(function (cb) {
+      cb.addEventListener('change', function () {
+        var s = packSelItems();
+        if (cb.checked) s[cb.getAttribute('data-itemid')] = 1; else delete s[cb.getAttribute('data-itemid')];
+        packSelItemsSave(s);
+        renderPackEvid();
+      });
+    });
+  }
+  function renderPackEvid() {
+    var box = document.getElementById('packEvidBox'); if (!box) return;
+    var n = currentPackNotif(); if (!n) { box.innerHTML = ''; return; }
+    var sel = packSelItems();
+    var picked = (n.items || []).map(function (it, i) { return { i: i, t: it }; }).filter(function (x) { return sel[n.NOTIF_ID + '::' + x.i]; });
+    if (!picked.length) { box.innerHTML = '<i style="color:#7d93b2">ติ๊กประเด็นด้านบน → ช่องแนบหลักฐานจะเกิดต่อประเด็น (บังคับ)</i>'; return; }
+    var rows = picked.map(function (x) {
+      var eid = 'ev_' + n.NOTIF_ID + '_' + x.i;
+      return '<div style="margin:6px 0"><label style="display:block;font-size:13px;margin-bottom:3px"><b>📎 หลักฐานประเด็น ' + (x.i + 1) + ':</b> ' + escP(x.t) + ' <i style="color:#d4a648">(บังคับ)</i></label>' +
+        '<textarea id="' + escP(eid) + '" data-evrid="' + escP(String(x.i)) + '" placeholder="ลิงก์ไฟล์/เอกสารหลักฐานประเด็นนี้ (ขึ้นบรรทัดใหม่ = หลายลิงก์)" style="width:100%;min-height:52px"></textarea></div>';
+    }).join('');
+    box.innerHTML = rows;
+  }
+  function packEvidValues() {
+    var box = document.getElementById('packEvidBox'); if (!box) return [];
+    var tas = box.querySelectorAll('textarea[data-evrid]');
+    return Array.prototype.map.call(tas, function (t) { return { idx: t.getAttribute('data-evrid'), text: t.value.trim() }; });
+  }
   function sendPack() {
     var st = document.getElementById('packStatus');
     var bu = document.getElementById('packBu').value;
     var title = document.getElementById('packTitle').value.trim();
-    var links = document.getElementById('packLinks').value.trim();
     var note = document.getElementById('packNote').value.trim();
-    var notifId = document.getElementById('packNotif').value;
-    var notifObj = loadNotifs().filter(function (n) { return n.NOTIF_ID === notifId; })[0] || {};
-    var hasPlans = loadNotifs().length > 0;
-    if (notifId) { note = (note ? note + '\n' : '') + 'อ้างแผน: ' + notifId + ' — ส่งตามเรื่อง: ' + String(notifObj.items || []).join(' | '); }
-    else if (hasPlans) { if (st) st.textContent = '⚠️ เครื่องนี้มีแผนแจ้งแล้ว — เลือก "เรื่องที่ GAT แจ้ง" ก่อน'; return; }
-    else { note = (note ? note + '\n' : '') + '(หมายเหตุระบบ: ยังไม่มีแผนแจ้งในเครื่องนี้ — ส่งแบบยังไม่ผูกแผน)'; }
+    var notif = currentPackNotif();
+    var notifId = notif ? notif.NOTIF_ID : '';
+    var notifObj = notif || {};
+    var selItems = packSelItems();
     var by = document.getElementById('packBy').value.trim() || 'BU';
     if (!bu) { if (st) st.textContent = '⚠️ เลือก BU ก่อน'; return; }
-    if (!title) { if (st) st.textContent = '⚠️ กรอกหัวเรื่องการส่งก่อน'; return; }
-    if (!links) { if (st) st.textContent = '⚠️ ต้องแนบลิงก์หลักฐานอย่างน้อย 1 ลิงก์ (Drive/ชีต/ภาพ)'; return; }
-    if (st) st.textContent = 'กำลังส่ง…';
-    postToBCT('submit_pack', { BU: bu, SCOPE: notifId ? 'แผน ' + notifId + (notifObj.PERIOD ? ' (' + notifObj.PERIOD + ')' : '') : '(ยังไม่ผูกแผน)', PERIOD: document.getElementById('packPeriod').value.trim(), TITLE: title, LINKS: links, NOTE: note, BY: by }, function (res) {
-      if (res.ok) {
-        if (st) st.textContent = '✅ รันเลขสำเร็จ: ' + res.PACK_ID + ' — บันทึกชีต + AuditLog แล้ว — รอ GAT เลือกตรวจ';
-        document.getElementById('packTitle').value = ''; document.getElementById('packLinks').value = ''; document.getElementById('packNote').value = '';
-        loadPacks();
-      } else if (st) st.textContent = '❌ ' + (res.error || 'ส่งไม่สำเร็จ — ตรวจว่า GAS เป็น v1.5');
+    /* v1.26 — บังคับเลือกเรื่องจากขั้น 1 (ถ้าระบบมีแผนแจ้ง) */
+    var hasPlans = loadNotifs().length > 0;
+    if (!notifId && hasPlans) { if (st) st.textContent = '⚠️ เลือกประเด็นที่ GAT แจ้ง (ขั้น 1) ก่อน — ขาดไม่ได้'; return; }
+    var picked = (notifObj.items || []).map(function (it, i) { return { i: i, t: it }; }).filter(function (x) { return selItems[notifId + '::' + x.i]; });
+    if (!picked.length) { if (st) st.textContent = '⚠️ ติ๊กประเด็นที่ส่งครั้งนี้อย่างน้อย 1 ประเด็น'; return; }
+    /* v1.26 — บังคับหลักฐานต่อประเด็น (ไม่มี = ไม่บันทึก) */
+    var evs = packEvidValues();
+    var missing = [];
+    picked.forEach(function (x) {
+      var ev = evs.filter(function (e) { return e.idx === String(x.i); })[0];
+      if (!ev || !ev.text) missing.push('ประเด็น ' + (x.i + 1));
     });
-  }
-  function fillPackSelectors() {
+    if (missing.length) { if (st) st.textContent = '⚠️ ต้องแนบหลักฐานให้ครบ: ' + missing.join(', ') + ' (กติกา: ไม่มีหลักฐาน = ไม่บันทึก)'; return; }
+    if (!title) { if (st) st.textContent = '⚠️ กรอกหัวเรื่องการส่งก่อน'; return; }
+    var item = picked.map(function (x) { return (x.i + 1) + '. ' + x.t; }).join(' | ');
+    var links = picked.map(function (x) {
+      var ev = evs.filter(function (e) { return e.idx === String(x.i); })[0] || { text: '' };
+      return '[ประเด็น ' + (x.i + 1) + ': ' + x.t + ']\n' + ev.text;
+    }).join('\n\n');
+    note = (note ? note + '\n' : '') + 'อ้างแผน: ' + notifId + ' — ส่งตามประเด็น (' + picked.length + '/' + (notifObj.items || []).length + ')';
+    if (st) st.textContent = 'กำลังส่ง…';
+    postToBCT('submit_pack', { BU: bu, SCOPE: notifId ? 'แผน ' + notifId + (notifObj.PERIOD ? ' (' + notifObj.PERIOD + ')' : '') : '', PERIOD: document.getElementById('packPeriod').value.trim(), TITLE: title, LINKS: links, NOTE: note, ITEM: item, BY: by }, function (res) {
+      if (res.ok) {
+        if (st) st.textContent = '✅ รันเลขสำเร็จ: ' + res.PACK_ID + ' — ส่งตามประเด็น ' + picked.length + ' รายการ + หลักฐานครบ → เข้าขั้น 3 (GAT เลือกตรวจ)';
+        document.getElementById('packTitle').value = ''; if (document.getElementById('packNote')) document.getElementById('packNote').value = '';
+        renderPackEvid();
+        loadPacks();
+      } else if (st) st.textContent = '❌ ' + (res.error || 'ส่งไม่สำเร็จ — ตรวจว่า GAS เป็น v1.7');
+    });
+  }  function fillPackSelectors() {
     var bus = (state.seed && state.seed.companies || []).map(function (c) { return c.BU || c.name || c; }).filter(Boolean);
     bus = (bus.length ? bus : ['AAMG', 'PMSG', 'CPDG', 'LDC', 'TNR']).concat(['PAO']);
     var sel = document.getElementById('packBu');
@@ -1131,7 +1197,6 @@ function loadProcessDocs() {
     var bmd = id('btnD10Md'); if (bmd) bmd.onclick = dtaDownload;
     var bup = id('btnD10Wk'); if (bup) bup.onclick = dtaApplyWeek;
     var bp1 = id('btnD10Push'); if (bp1) bp1.onclick = pushDtaToSheet;
-    var bp2 = id('btnNotifPush'); if (bp2) bp2.onclick = pushPlansToSheet;
   }
 
   function kpiHTML(label, val, cls) {
@@ -1211,7 +1276,6 @@ function loadProcessDocs() {
     });
     var byType = { PM: 0, WI: 0, SD: 0, FM: 0 };
     regs.forEach(function (r) { if (byType[r.PROCESS_TYPE] !== undefined) byType[r.PROCESS_TYPE]++; });
-    var buby = {};
     var buby = {};
     regs.forEach(function (r) { buby[r.BU] = (buby[r.BU] || 0) + 1; });
     var buRows = Object.keys(buby).sort().map(function (bu) {
@@ -1550,6 +1614,7 @@ function loadProcessDocs() {
 
     // v1.8 — Packs + AI Review
     var b1 = id('btnSendPack'); if (b1) b1.addEventListener('click', sendPack);
+    var pn = id('packNotif'); if (pn) pn.addEventListener('change', function () { renderPackItemPicker(); renderPackEvid(); });
     var b2 = id('btnLoadPacks'); if (b2) b2.addEventListener('click', loadPacks);
     var b3 = id('btnAiBuild'); if (b3) b3.addEventListener('click', function(){ var v = id('aiPackPick').value; if (v === '__PLAN__') { aiBuildPrompt(''); } else { aiBuildPrompt(v); } });
     var b4 = id('btnAiCopy'); if (b4) b4.addEventListener('click', function(){ var t=id('aiPrompt'); t.select(); try{document.execCommand('copy'); status('📋 คัดลอกชุดคำสั่ง AI แล้ว');}catch(e){} });
@@ -1680,5 +1745,5 @@ function loadProcessDocs() {
   }
 
   return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, initD10: initD10, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess,
-    _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _aiBuildPrompt: aiBuildPrompt, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks, _renderRecs: renderRecs, _renderPickTable: renderPickTable, _removePickPacks: removePickPacks, _renderSentTable: renderSentTable, _renderFixTable: renderFixTable };
+    _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _notifs: function (l) { if (l) saveNotifs(l); return loadNotifs(); }, _aiBuildPrompt: aiBuildPrompt, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks, _renderRecs: renderRecs, _renderPickTable: renderPickTable, _removePickPacks: removePickPacks, _renderSentTable: renderSentTable, _renderFixTable: renderFixTable };
 })();

@@ -9,13 +9,18 @@ const SEED = JSON.parse(fs.readFileSync('gat-seed.json', 'utf8'));
 const PROC = JSON.parse(fs.readFileSync('gat-process.json', 'utf8'));
 
 w.fetch = (u) => {
-  if (String(u).indexOf('gat-process.json') >= 0) return Promise.resolve({ ok: true, json: () => Promise.resolve(PROC) });
+  const s = String(u);
+  if (s.indexOf('gat-process.json') >= 0) return Promise.resolve({ ok: true, json: () => Promise.resolve(PROC) });
+  if (s.indexOf('GAT-MANUAL.md') >= 0) return Promise.resolve({ ok: true, text: () => Promise.resolve(fs.readFileSync('GAT-MANUAL.md', 'utf8')) });
+  if (s.indexOf('gat-rec-migration') >= 0) return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
   return Promise.resolve({ ok: true, json: () => Promise.resolve(SEED) });
 };
 w.GAT_CONFIG = { VERSION: 'v1.2-test', BCT_API: '', SOURCES: { SEED: 'x', REC_SEED: 'x', PROCESS_SEED: 'gat-process.json' }, PROCESS_TYPES: { PM: { label: 'PM', color: '#2563eb' }, WI: { label: 'WI', color: '#0891b2' }, SD: { label: 'SD', color: '#7c3aed' }, FM: { label: 'FM', color: '#b45309' } } };
 
 w.eval(fs.readFileSync('gat-config.js', 'utf8'));
 w.eval(fs.readFileSync('app.js', 'utf8'));
+/* v1.26 — เตรียมแผนแจ้ง 2 ประเด็นก่อน init (จำลองเครื่องที่มีแผนค้างใน localStorage) */
+try { w.localStorage.setItem('gat_notifs', JSON.stringify([{ NOTIF_ID: 'PLAN-2569-001', BU: 'สอยดาว', PERIOD: 'พ.ย. 69', items: ['ตรวจรายการขายน้ำมันเครื่อง', 'ตรวจใบเสร็จรายรับ'], BY: 'GAT(แดง)', SAVED_AT: '5 พ.ย.' }])); } catch (e) {}
 w.document.dispatchEvent(new w.Event('DOMContentLoaded'));
 
 setTimeout(() => {
@@ -199,9 +204,11 @@ setTimeout(() => {
   var rr = d.getElementById('dtaStatus');
   a('week picker เติมช่องรอบรายงานอัตโนมัติ', (rr.value || '').indexOf('7 พ.ย.') >= 0);
 })();
-console.log('\n══ RESULT รวม (v1.25): ' + pass + ' pass / ' + fail + ' fail ══');
-    process.exit(fail ? 1 : 0);
-  }, 350);
+/* v1.26 — รวมผลบล็อกย่อย (packFormRes จาก setTimeout ปลายไฟล์) */
+    var p2 = (typeof packFormRes !== 'undefined' && packFormRes) ? packFormRes : { p: 0, f: 0 };
+    console.log('\n══ RESULT รวม (v1.26): ' + pass + ' pass / ' + fail + ' fail · v1.26-ฟอร์มขั้น2: ' + p2.p + ' pass / ' + p2.f + ' fail ══');
+    process.exit((fail + p2.f) ? 1 : 0);
+  }, 700);
 
   // 5) ข้อความคัดลอก (buildSummaryText ผ่าน export)
   ok('แท็บครบหลัง render (v1.24 = 18 pane — +pane-d10)', d.querySelectorAll('.tabpane').length === 18);
@@ -258,3 +265,54 @@ console.log('\n══ RESULT รวม (v1.25): ' + pass + ' pass / ' + fail + '
 
   /* ผลรวม print ในบล็อก async (หลังบล็อก 4 เสร็จ) — บล็อกนี้รอ scheduler */
 }, 400);
+// ===== v1.26 ทดสอบเพิ่ม: แท็บ 2 ใหม่ (เลือกประเด็นจากขั้น 1 + หลักฐานบังคับต่อประเด็น) =====
+setTimeout(() => {
+  const d = w.document, gat = w.GAT;
+  let p2 = 0, f2 = 0;
+  const ok2 = (name, cond, note) => { if (cond) p2++; else { f2++; console.error('❌ ' + name + ' :: ' + (note || '')); } };
+
+  // โครงฟอร์มใหม่ครบ
+  ok2('v1.26: มี packItemBox + packEvidBox', !!d.getElementById('packItemBox') && !!d.getElementById('packEvidBox'));
+  ok2('v1.26: packLinks textarea เดิมถูกลบ (แทนด้วยต่อประเด็น)', !d.getElementById('packLinks'));
+
+  // จำลองแผนแจ้ง (ผ่าน internal API เดียวกับ closure) + เลือก dropdown
+  gat._notifs([{ NOTIF_ID: 'PLAN-2569-001', BU: 'สอยดาว', PERIOD: 'พ.ย. 69', items: ['ตรวจรายการขายน้ำมันเครื่อง', 'ตรวจใบเสร็จรายรับ'], BY: 'GAT(แดง)', SAVED_AT: '5 พ.ย.' }]);
+  // dropdown ควรถูกเติมจาก init แล้ว (เราตั้ง notifs ก่อน DOMContentLoaded)
+  const selPre = d.getElementById('packNotif');
+  const sel = d.getElementById('packNotif');
+  ok2('v1.26: dropdown packNotif มีแผนจาก localStorage', sel.options.length >= 2, sel.options.length);
+  const planOpt = Array.from(sel.options).find(function (o) { return o.value.indexOf('PLAN-2569-') === 0; });
+  ok2('v1.26: dropdown มีแผนจากขั้น 1', !!planOpt, Array.from(sel.options).map(function (o) { return o.value; }).join(','));
+  sel.value = planOpt.value;
+  sel.dispatchEvent(new w.Event('change'));
+  const itemsBox = d.getElementById('packItemBox').textContent;
+  ok2('v1.26: item picker แสดงประเด็นตามแผน', itemsBox.indexOf('เรื่องที่') >= 0 || itemsBox.indexOf('ประเด็น') >= 0, itemsBox.slice(0, 80));
+
+  // ส่งโดยยังไม่ติ๊กประเด็น → ต้อง block (เลือก option BU แรกที่มีจริง)
+  if (d.getElementById('packBu').options.length > 1) d.getElementById('packBu').selectedIndex = 1;
+  d.getElementById('packTitle').value = 'ทดสอบ';
+  d.getElementById('packBy').value = 'ทดสอบ ผบ.';
+  let fired = 0;
+  const baseFetch = w.fetch;
+  w.fetch = (u, o) => { if (o && o.body && String(o.body).indexOf('submit_pack') >= 0) { fired++; return Promise.resolve({ ok: true, json: () => Promise.resolve({ ok: true, PACK_ID: 'PACK-9999' }) }); } return baseFetch(u, o); };
+  d.getElementById('btnSendPack').click();
+  ok2('v1.26: block ส่งเมื่อไม่ติ๊กประเด็น', fired === 0 && d.getElementById('packStatus').textContent.includes('ติ๊กประเด็น'), d.getElementById('packStatus').textContent);
+
+  // ติ๊กประเด็น 1 → ช่องหลักฐานเกิด → ยังไม่ใส่ → block
+  const cb = d.querySelector('#packItemBox input[data-itemid]');
+  cb.checked = true; cb.dispatchEvent(new w.Event('change'));
+  ok2('v1.26: ช่องหลักฐานเกิดต่อประเด็น', d.getElementById('packEvidBox').querySelector('textarea[data-evrid]') !== null);
+  d.getElementById('btnSendPack').click();
+  ok2('v1.26: block ส่งเมื่อหลักฐานว่าง', fired === 0 && d.getElementById('packStatus').textContent.includes('ไม่มีหลักฐาน'), d.getElementById('packStatus').textContent);
+
+  // ใส่หลักฐาน → ส่งผ่าน + เรียก submit_pack พร้อม ITEM
+  d.getElementById('packEvidBox').querySelector('textarea[data-evrid]').value = 'https://drive.google.com/file/d/TEST';
+  d.getElementById('btnSendPack').click();
+  setTimeout(() => {
+    ok2('v1.26: ส่งผ่านเมื่อหลักฐานครบ (submit_pack ถูกยิง 1 ครั้ง)', fired === 1, fired);
+    ok2('v1.26: สถานะสำเร็จบอก เข้าขั้น 3', d.getElementById('packStatus').textContent.includes('เข้าขั้น 3'), d.getElementById('packStatus').textContent);
+
+    /* v1.26 — เก็บผลให้ main init (350ms) สรุปรวมแทน (ไม่ process.exit ก่อนเวลา) */
+    globalThis.packFormRes = { p: p2, f: f2 };
+  }, 30);
+}, 0);

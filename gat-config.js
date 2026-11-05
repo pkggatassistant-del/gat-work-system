@@ -1,9 +1,9 @@
 /* GAT Work System — shared config (โหลดก่อน app.js เสมอ) */
 window.GAT_CONFIG = {
   REC_SCOPE: ['GAT-REC-0042','GAT-REC-0043','GAT-REC-0044','GAT-REC-0045','GAT-REC-0046','GAT-REC-0047','GAT-REC-0048','GAT-REC-0049','GAT-REC-0050','GAT-REC-0051'], // v1.10 โหมดทดสอบเรื่องเดียว (GA-LC) — เคลียร์ [] เพื่อโชว์ทุกใบ
-  VERSION: 'v1.25 (4 พ.ย. 69) — เพิ่ม "บทวิเคราะห์ปิดปรับเปลี่ยน/สถานการณ์ประจำวัน" ก่อน BP + ปุ่มอัปเดตข้อมูลเสาร์–ศุกร์ + ดันแผนแจ้ง/รายงาน DTA ลงชีต (รอ GAS v1.6)',
+  VERSION: 'v1.26 (5 พ.ย. 69) — ขั้น 2 ใหม่: BU เลือกประเด็นจากขั้น 1 + แนบหลักฐานบังคับต่อประเด็น (ไม่มี = ไม่บันทึก) → เข้าขั้น 3 ตามประเด็น; default BCT_API = deploy ③',
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง — ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
-  BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbwmSjODcZRoqLiYomSNtSwK1rZqSe9YTWRBFa1YaUdWdqr8I61aW7s4YAo1blzXRV2C/exec'), // BCT กลาง — deploy v1.5.1 ที่หนึ่ง deploy 4 พ.ย. 69 (standalone + SHEET_ID)
+  BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbxNc3kI6eb2S7zEkZ-ZL51lsx9QP9OnQ3WEfnV0bJEDscndZ4CqGSIXqsPeSHj7PB-n/exec'), // v1.26 default = deploy ③ (GAS v1.7 — ใช้จริงเมื่อหนึ่ง deploy v1.7 แล้ว; เปลี่ยนเองได้ในแท็บ BCT Import/Export)
   SOURCES: {
     // อ้างไฟล์เทียบตำแหน่ง index.html (ทำงานได้ทั้งบน GitHub Pages และ local)
     SEED: 'gat-seed.json',            // ข้อมูลตั้งต้นจาก PKG_Compliance_plan_2026-30.xlsx
