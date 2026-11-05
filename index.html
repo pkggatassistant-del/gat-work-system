@@ -120,6 +120,15 @@ code{background:var(--blue-soft);color:var(--blue);padding:1px 6px;border-radius
 ol.manual li{margin-bottom:8px}
 .empty{color:var(--muted);text-align:center;padding:22px;font-size:13px}
 
+/* ---------- v1.27: ฟอร์มลำดับ ①–⑤ (แท็บ 2) ---------- */
+.fmline{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.fmline input,.fmline select,.fmline textarea{padding:9px 12px;border:1px solid #cdd8e6;border-radius:9px;font-size:13px;background:#fff;color:var(--ink);font-family:inherit}
+.fmline input:focus,.fmline select:focus,.fmline textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(23,92,211,.12)}
+.fmnum{width:26px;height:26px;border-radius:99px;background:linear-gradient(135deg,var(--gold),#e5c558);color:var(--navy-900);display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex:0 0 26px;box-shadow:0 2px 6px rgba(201,162,39,.3)}
+.fmhint{color:var(--muted);font-size:12px}
+.fmcount{margin-left:auto;background:var(--blue-soft);color:var(--blue);font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:99px}
+.fmmeta{margin:0 0 10px 36px;background:var(--blue-soft);border:1px solid #c9dcf8;border-radius:9px;padding:8px 12px;font-size:12.5px;color:#123f8f}
+
 /* ---------- Flow (9 ขั้น) ---------- */
 .flow{list-style:none;display:flex;flex-wrap:wrap;gap:6px;padding:0;margin:8px 0}
 .flow li{background:var(--blue-soft);border:1px solid #c9dcf8;color:#123f8f;border-radius:8px;padding:6px 11px;font-size:12px;font-weight:600}
@@ -169,6 +178,18 @@ ol.manual li{margin-bottom:8px}
 </style>
 </head>
 <body>
+<div id="loginGate" style="display:none;position:fixed;inset:0;z-index:100;background:linear-gradient(135deg,#0a1628 0%,#16304f 65%,#1c3d63 100%);align-items:center;justify-content:center;padding:20px">
+  <div style="background:rgba(255,255,255,.05);border:1px solid rgba(201,162,39,.35);border-radius:20px;padding:36px 34px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.45)">
+    <div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#c9a227,#e5c558);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 18px;box-shadow:0 8px 24px rgba(201,162,39,.35)">&#128737;</div>
+    <h2 style="margin:0 0 4px;color:#fff;font-size:21px;text-align:center">GAT Audit Intelligence</h2>
+    <p style="margin:0 0 22px;color:#8fa7c7;font-size:12.5px;text-align:center">เข้าสู่ระบบด้วยบัญชีในชีต GAT_Users (หน้าที่ 12 ชม.)</p>
+    <div style="margin-bottom:12px"><label style="display:block;color:#c8d6ea;font-size:12.5px;font-weight:700;margin-bottom:5px">ชื่อผู้ใช้</label><input id="lgUser" autocomplete="username" placeholder="ตาม USERNAME ในแท็บ GAT_Users" style="width:100%;padding:11px 13px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;outline:none;box-sizing:border-box" onfocus="this.style.borderColor='rgba(201,162,39,.6)'"></div>
+    <div style="margin-bottom:16px"><label style="display:block;color:#c8d6ea;font-size:12.5px;font-weight:700;margin-bottom:5px">ค่าลับ</label><input id="lgKey" type="password" autocomplete="current-password" placeholder="AUTH_KEY จากชีต" style="width:100%;padding:11px 13px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;outline:none;box-sizing:border-box"></div>
+    <button id="lgGo" style="width:100%;padding:13px;border-radius:10px;border:0;background:linear-gradient(135deg,#c9a227,#d9b53a);color:#0a1628;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 6px 18px rgba(201,162,39,.3)">เข้าสู่ระบบ</button>
+    <div id="lgMsg" style="margin-top:13px;font-size:13px;color:#ffb4a8;min-height:18px;text-align:center"></div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);font-size:11.5px;color:#6c86ad;text-align:center">บทบาท: GAT (จัดการครบ) · BU (ส่ง/ตอบของหน่วยงานตัวเอง) · VIEWER (ดูอย่างเดียว)<br>ขอบัญชี/เปลียนค่าลับ — ติดต่อทีม GAT (แก้ในแท็บ GAT_Users ของชีต)</div>
+  </div>
+</div>
 <div class="app">
 <aside id="sidebar">
   <div class="brand">
@@ -278,16 +299,18 @@ ol.manual li{margin-bottom:8px}
     <div class="card">
       <div class="card-hd"><b>📤 ขั้น 2 — BU ส่งข้อมูลตามเรื่องที่ GAT แจ้ง</b></div>
       <p class="desc">เลือก <b>เรื่องที่ GAT แจ้ง (ขั้น 1)</b> → ระบบแสดง <b>ประเด็นที่ต้องส่ง</b> → ติ๊กประเด็นที่ส่ง + <b>แนบหลักฐานบังคับต่อประเด็น</b> → ระบบรันเลข PACK-xxxx ลงชีตกลาง → เข้า <b>ขั้น 3</b> ให้ GAT เลือกตรวจ — SLA: ส่งให้ครบ <b>ภายในกำหนดวันส่ง</b>ที่ GAT แจ้งไว้ทุกเรื่อง (WI-01)</p>
-      <div class="filters">
-        <select id="packBu" style="width:180px"><option value="">— เลือก BU —</option></select>
-        <input id="packPeriod" placeholder="งวด เช่น ต.ค. 69" style="width:170px">
-      </div>
-      <div class="filters"><b>① เลือกประเด็นที่ GAT แจ้ง (จากขั้น 1):</b> <select id="packNotif" style="flex:1;min-width:260px"><option value="">— เลือกเรื่องที่ GAT แจ้ง —</option></select></div>
-      <div id="packItemBox" style="margin:6px 0"></div>
-      <div class="filters"><input id="packTitle" placeholder="หัวเรื่องการส่ง เช่น รายละเอียดเงินสดย่อย ต.ค. 69 (บังคับ)" style="flex:1;min-width:280px"></div>
-      <div id="packEvidBox"></div>
-      <div class="filters"><textarea id="packNote" placeholder="หมายเหตุถึง GAT (ไม่บังคับ)" style="width:100%;min-height:56px"></textarea></div>
-      <div class="filters"><input id="packBy" placeholder="ชื่อ-ตำแหน่งจริงผู้ส่ง (BU)" style="width:240px">
+      <!-- v1.27 — ฟอร์มเรียงตามลำดับ ①–⑤ -->
+      <div class="fmline"><span class="fmnum">①</span><select id="packBu" style="width:210px"><option value="">— เลือก BU —</option></select><span class="fmhint">หน่วยงานของคุณ (ล็อกตามบัญชี)</span></div>
+      <div class="fmline"><span class="fmnum">②</span><select id="packNotif" style="flex:1;min-width:260px"><option value="">— เลือกเรื่องที่ GAT แจ้ง —</option></select></div>
+      <div id="packPlanMeta" class="fmmeta" style="display:none"></div>
+      <div class="fmline"><span class="fmnum">③</span><b style="font-size:13.5px">ติ๊กประเด็นที่ส่งครั้งนี้</b><span id="packItemCnt" class="fmcount">0 รายการ</span></div>
+      <div id="packItemBox" style="margin:4px 0 8px 34px"></div>
+      <div class="fmline"><span class="fmnum">④</span><b style="font-size:13.5px">แนบหลักฐานต่อประเด็น</b><span class="fmhint" style="color:#b48a3c">บังคับ — ไม่มีหลักฐาน = ไม่บันทึก</span><span id="packEvidCnt" class="fmcount">0/0</span></div>
+      <div id="packEvidBox" style="margin:4px 0 8px 34px"></div>
+      <div class="fmline"><span class="fmnum">⑤</span><input id="packTitle" placeholder="หัวเรื่องการส่ง เช่น รายละเอียดเงินสดย่อย ต.ค. 69 (บังคับ)" style="flex:1;min-width:280px"></div>
+      <div class="fmline" style="margin-left:34px"><input id="packPeriod" placeholder="งวด (เติมให้อัตโนมัติจากแผน — แก้ได้)" style="width:230px"></div>
+      <div class="fmline" style="margin-left:34px"><textarea id="packNote" placeholder="หมายเหตุถึง GAT (ไม่บังคับ)" style="width:100%;min-height:56px;flex:1;font-family:inherit"></textarea></div>
+      <div class="fmline" style="margin-left:34px"><input id="packBy" placeholder="ชื่อ-ตำแหน่งจริงผู้ส่ง (BU)" style="width:250px">
         <button id="btnSendPack" class="gold">📤 ส่งข้อมูลเข้าระบบ (รันเลข PACK)</button>
       </div>
       <div id="packStatus" class="status" style="margin-top:8px"></div>

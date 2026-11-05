@@ -19,8 +19,43 @@ var GAT = (function () {
     registersBCT: [], packs: [], packsLoaded: false,
     lastImport: null,
     filter: { bu: '', type: '', q: '' },
-    page: 1
+    page: 1,
+    /* v1.27 — สิทธิ์ผู้ใช้ (จาก GAS v1.8): {TOKEN,USER,ROLE,BU,GRACE} เก็บ localStorage gat_auth */
+    auth: null
   };
+
+  /* ================= v1.27 — Auth (รองรับ GAS v1.8; grace mode สำหรับ v1.6/v1.7) ================= */
+  function loadAuth() {
+    try { return JSON.parse(localStorage.getItem('gat_auth') || 'null'); } catch (e) { return null; }
+  }
+  function saveAuth(a) { try { a ? localStorage.setItem('gat_auth', JSON.stringify(a)) : localStorage.removeItem('gat_auth'); } catch (e) {} }
+  function auth() { return state.auth || loadAuth() || null; }
+  function authIsGAT() { var a = auth(); return !a || a.ROLE === 'GAT'; } /* ยังไม่มีระบบสิทธิ์ = ทุกอย่างเหมือนเดิม */
+  function authIsBU() { var a = auth(); return !!a && a.ROLE === 'BU'; }
+  function authIsViewer() { var a = auth(); return !!a && a.ROLE === 'VIEWER'; }
+  function authBU() { var a = auth(); return (a && a.BU) || ''; }
+  function authTok() { var a = auth(); return (a && a.TOKEN) || ''; }
+  function gatLogin(u, key) {
+    return fetch(apiBase(), {
+      method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'login', data: { U: u, V: key } })
+    }).then(function (r) { return r.json(); }).then(function (res) {
+      if (res.ok && res.token) {
+        var a = { TOKEN: res.token, USER: res.USER || u, ROLE: res.role || 'GAT', BU: res.BU || '' };
+        saveAuth(a); state.auth = a;
+      }
+      return res;
+    });
+  }
+  function gatLogout() {
+    var a = auth();
+    if (a && a.TOKEN) { try { fetch(apiBase(), { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'logout', data: { TOKEN: a.TOKEN } }), keepalive: true }); } catch (e) {} }
+    saveAuth(null); state.auth = null; applyRoleUI();
+  }
+  function pingGAS() {
+    return fetch(apiBase(), { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'ping', data: {} }) }).then(function (r) { return r.json(); }).catch(function () { return { ok: false } });
+  }
+  function apiBase() { return window.GAT_CONFIG.BCT_API || ''; }
 
   /* ---------- util ---------- */
   function esc(s) {
@@ -228,7 +263,9 @@ var GAT = (function () {
   function gasGet(action) {
     var base = apiURL();
     if (!base) { alert('ใส่ Web app URL ของ GAS (จาก Google Sheet BCT) ก่อน — ดูคู่มือในแท็บ BCT Import'); return Promise.reject('no url'); }
-    return fetch(base + '?action=' + action).then(function (r) { return r.json(); });
+    /* v1.27 — ถ้าล็อกอินแล้ว (GAS v1.8) แนบ TOKEN ทุกครั้ง */
+    var tok = authTok();
+    return fetch(base + '?action=' + action + (tok ? '&TOKEN=' + encodeURIComponent(tok) : '')).then(function (r) { return r.json(); });
   }
   function importBCT() {
     status('กำลังดึงข้อมูลจาก BCT…');
@@ -547,6 +584,25 @@ function loadProcessDocs() {
     });
     try { renderPackItemPicker(); renderPackEvid(); } catch (e) {}
   }
+  /* v1.27 — meta แผน (ขั้น ②) + เติมงวดอัตโนมัติ (⑤) */
+  function renderPackMeta() {
+    var box = document.getElementById('packPlanMeta'); if (!box) return;
+    var n = currentPackNotif();
+    if (!n) { box.style.display = 'none'; box.innerHTML = ''; return; }
+    box.style.display = 'block';
+    box.innerHTML = '🧭 <b>' + escP(n.NOTIF_ID) + '</b> · หน่วยงาน: <b>' + escP(n.BU || '-') + '</b> · งวด: <b>' + escP(n.PERIOD || '-') + '</b> · ประเด็นรวม ' + (n.items || []).length + ' · แจ้งโดย: ' + escP(n.BY || 'GAT');
+    var pp = document.getElementById('packPeriod');
+    if (pp && !pp.value.trim() && n.PERIOD) pp.value = n.PERIOD;
+  }
+  function updatePackCounts() {
+    var ci = document.getElementById('packItemCnt');
+    var sel = packSelItems();
+    var n = currentPackNotif();
+    var picked = n ? (n.items || []).filter(function (_, i) { return sel[n.NOTIF_ID + '::' + i]; }).length : 0;
+    if (ci) ci.textContent = picked + ' รายการ';
+    var ce = document.getElementById('packEvidCnt');
+    if (ce) { var evs = packEvidValues().filter(function (e) { return e.text; }).length; ce.textContent = evs + '/' + picked; }
+  }
   function parseNotifItems(text) {
     return String(text || '').split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
   }
@@ -602,9 +658,10 @@ function loadProcessDocs() {
         var s = packSelItems();
         if (cb.checked) s[cb.getAttribute('data-itemid')] = 1; else delete s[cb.getAttribute('data-itemid')];
         packSelItemsSave(s);
-        renderPackEvid();
+        renderPackEvid(); updatePackCounts();
       });
     });
+    updatePackCounts();
   }
   function renderPackEvid() {
     var box = document.getElementById('packEvidBox'); if (!box) return;
@@ -618,6 +675,7 @@ function loadProcessDocs() {
         '<textarea id="' + escP(eid) + '" data-evrid="' + escP(String(x.i)) + '" placeholder="ลิงก์ไฟล์/เอกสารหลักฐานประเด็นนี้ (ขึ้นบรรทัดใหม่ = หลายลิงก์)" style="width:100%;min-height:52px"></textarea></div>';
     }).join('');
     box.innerHTML = rows;
+    updatePackCounts();
   }
   function packEvidValues() {
     var box = document.getElementById('packEvidBox'); if (!box) return [];
@@ -659,6 +717,7 @@ function loadProcessDocs() {
     postToBCT('submit_pack', { BU: bu, SCOPE: notifId ? 'แผน ' + notifId + (notifObj.PERIOD ? ' (' + notifObj.PERIOD + ')' : '') : '', PERIOD: document.getElementById('packPeriod').value.trim(), TITLE: title, LINKS: links, NOTE: note, ITEM: item, BY: by }, function (res) {
       if (res.ok) {
         if (st) st.textContent = '✅ รันเลขสำเร็จ: ' + res.PACK_ID + ' — ส่งตามประเด็น ' + picked.length + ' รายการ + หลักฐานครบ → เข้าขั้น 3 (GAT เลือกตรวจ)';
+        packSelItemsSave({}); /* v1.27 — เคลียร์ติ๊กหลังส่งสำเร็จ */
         document.getElementById('packTitle').value = ''; if (document.getElementById('packNote')) document.getElementById('packNote').value = '';
         renderPackEvid();
         loadPacks();
@@ -1539,13 +1598,21 @@ function loadProcessDocs() {
   function postToBCT(action, payload, cb) {
     var base = apiURL();
     if (!base) { alert('ตั้งค่า BCT API URL ก่อน (แท็บ BCT Import/Export)'); return; }
+    /* v1.27 — แนบ TOKEN อัตโนมัติเมื่อล็อกอินแล้ว; BU ถูก GAS บังคับ BY = บัญชีตัวเอง */
+    if (auth() && action !== 'login' && action !== 'logout' && action !== 'ping') {
+      payload = payload || {}; payload.TOKEN = authTok();
+      if (authIsBU()) { if (payload.BY) payload.BY = auth().USER; if (typeof payload.BU === 'string' && payload.BU) payload.BU = authBU(); }
+    }
     status('กำลังส่งเข้า BCT…');
     fetch(base, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action: action, data: payload })
-    }).then(function (r) { return r.json(); }).then(cb)
-      .catch(function (e) { status('❌ ผิดพลาด: ' + e); });
+    }).then(function (r) { return r.json(); }).then(function (res) {
+      /* v1.27 — token หมดอายุ/ถูกเผา → กลับหน้าล็อกอิน */
+      if (res && res.needLogin) { saveAuth(null); state.auth = null; showLoginGate('เซสชันหมดอายุ — ล็อกอินใหม่'); }
+      if (cb) cb(res);
+    }).catch(function (e) { status('❌ ผิดพลาด: ' + e); });
   }
 
   /* ---------- แท็บคู่มือ (โหลด GAT-MANUAL.md) ---------- */
@@ -1569,9 +1636,63 @@ function loadProcessDocs() {
     }).catch(function () { box.innerHTML = '<div class="empty">โหลดคู่มือไม่สำเร็จ — ดูไฟล์ GAT-MANUAL.md ใน repo</div>'; });
   }
 
+  /* ---------- v1.27 — หน้าล็อกอิน + role gating ---------- */
+  function showLoginGate(msg) {
+    var g = document.getElementById('loginGate'); if (!g) return;
+    g.style.display = 'flex';
+    var m = document.getElementById('lgMsg'); if (m && msg) m.textContent = msg;
+  }
+  function hideLoginGate() { var g = document.getElementById('loginGate'); if (g) g.style.display = 'none'; }
+  function applyRoleUI() {
+    var a = auth();
+    var b = document.body;
+    if (!a) { b.removeAttribute('data-role'); return; }
+    b.setAttribute('data-role', a.ROLE || 'GAT');
+    /* BU — ล็อกกลุ่มงาน + ซ่อนแท็บที่ใช้ไม่ได้ (เหลือ 2/8 + dashboard + คู่มือ) */
+    if (a.ROLE === 'BU') {
+      var sel = document.getElementById('packBu');
+      if (sel) { sel.value = a.BU || ''; sel.disabled = true; }
+      var hideForBU = ['p02pick', 'aiprompt', 'aicand', 'aisel', 'aisend', 'bufix', 'close', 'd10', 'registers', 'universe', 'recs', 'report', 'qms'];
+      document.querySelectorAll('nav a[data-tab]').forEach(function (el) {
+        var t = el.getAttribute('data-tab');
+        if (hideForBU.indexOf(t) >= 0) el.style.display = 'none';
+      });
+      if (a.BU) { var f = document.getElementById('buFilter'); if (f) f.value = a.BU; }
+    }
+    /* VIEWER — ปิดปุ่มเขียนทั้งหมด (ยกเว้น .btn-keep) */
+    if (a.ROLE === 'VIEWER') {
+      document.querySelectorAll('.card button').forEach(function (btn) { if (!btn.classList.contains('btn-keep')) btn.disabled = true; });
+    }
+    /* ป้ายชื่อ + ปุ่มออก (แทนกล่อง LIVE ใน topbar) */
+    var live = document.querySelector('.top-live');
+    if (live && !document.getElementById('whoBar')) {
+      var who = document.createElement('span');
+      who.id = 'whoBar';
+      who.style.cssText = 'display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;margin-right:8px';
+      var roleLbl = { GAT: 'ผู้ดูแลระบบ', BU: 'BU: ' + (a.BU || ''), VIEWER: 'ดูอย่างเดียว' }[a.ROLE] || a.ROLE;
+      who.innerHTML = '<span style="background:var(--blue-soft);color:var(--blue);padding:5px 12px;border-radius:99px;border:1px solid #c9dcf8">👤 ' + esc(a.USER) + ' · ' + esc(roleLbl) + '</span>';
+      var out = document.createElement('button'); out.className = 'btn-keep button-lite'; out.textContent = 'ออกจากระบบ';
+      out.style.cssText = 'padding:5px 12px;font-size:12px';
+      out.addEventListener('click', function () { gatLogout(); location.reload(); });
+      live.insertBefore(who, live.firstChild);
+      live.appendChild(out);
+    }
+  }
+
   /* ---------- events / boot ---------- */
   function boot() {
     loadRunState();
+    /* v1.27 — auth: ถ้ามี session → hide gate + role UI; ถ้า GAS = v1.8 และยังไม่ล็อกอิน → บังคับ */
+    state.auth = loadAuth();
+    id('lgGo').addEventListener('click', doLogin);
+    id('lgKey').addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
+    pingGAS().then(function (p) {
+      var isV18 = p && p.ok && String(p.version || '').indexOf('v1.8') >= 0;
+      state.gasV18 = isV18;
+      if (!state.auth && isV18) showLoginGate('');
+      else if (!state.auth) hideLoginGate(); /* v1.6/v1.7 — grace: ใช้แบบเดิม */
+      if (state.auth) applyRoleUI();
+    });
     id('btnImport').addEventListener('click', importBCT);
     id('btnSeed').addEventListener('click', function () { status('โหลด seed…'); loadSeed().then(function () { status('✅ seed (xlsx) โหลดแล้ว ' + state.registers.length + ' รายการ'); }); });
     id('buFilter').addEventListener('change', function () { state.filter.bu = this.value; state.page = 1; renderAll(); });
@@ -1614,7 +1735,7 @@ function loadProcessDocs() {
 
     // v1.8 — Packs + AI Review
     var b1 = id('btnSendPack'); if (b1) b1.addEventListener('click', sendPack);
-    var pn = id('packNotif'); if (pn) pn.addEventListener('change', function () { renderPackItemPicker(); renderPackEvid(); });
+    var pn = id('packNotif'); if (pn) pn.addEventListener('change', function () { renderPackMeta(); renderPackItemPicker(); renderPackEvid(); });
     var b2 = id('btnLoadPacks'); if (b2) b2.addEventListener('click', loadPacks);
     var b3 = id('btnAiBuild'); if (b3) b3.addEventListener('click', function(){ var v = id('aiPackPick').value; if (v === '__PLAN__') { aiBuildPrompt(''); } else { aiBuildPrompt(v); } });
     var b4 = id('btnAiCopy'); if (b4) b4.addEventListener('click', function(){ var t=id('aiPrompt'); t.select(); try{document.execCommand('copy'); status('📋 คัดลอกชุดคำสั่ง AI แล้ว');}catch(e){} });
@@ -1648,6 +1769,20 @@ function loadProcessDocs() {
     loadSeed();
     if (window.GAT_CONFIG.BCT_API) { id('bctApiUrl').value = window.GAT_CONFIG.BCT_API; }
   }
+  function doLogin() {
+    var u = id('lgUser').value.trim();
+    var k = id('lgKey').value;
+    var m = id('lgMsg');
+    if (!u || !k) { m.textContent = 'กรอกชื่อผู้ใช้และค่าลับให้ครบ'; return; }
+    m.textContent = 'กำลังตรวจสอบ…';
+    gatLogin(u, k).then(function (res) {
+      if (res.ok) {
+        hideLoginGate(); applyRoleUI(); importBCT();
+        status('✅ เข้าสู่ระบบแล้ว: ' + auth().USER + ' (' + auth().ROLE + ')');
+      } else { m.textContent = '❌ ' + (res.error || 'เข้าสู่ระบบไม่สำเร็จ'); }
+    }).catch(function (e) { m.textContent = '❌ เชื่อมต่อไม่ได้ — ตรวจ BCT API URL'; });
+  }
+
   document.addEventListener('DOMContentLoaded', boot);
 
   var TAB_NAMES = { packs: '2. BU ส่งข้อมูลที่จะตรวจ', p02pick: '1. GAT เลือกหัวข้อจากข้อมูลที่ส่ง', aiprompt: '3. GAT ตรวจด้วย AI', aicand: '4. AI ออกข้อเสนอแนะ', aisel: '5. GAT คัดเลือก', aisend: '6. GAT ส่งให้ BU', bufix: '7. BU นำไปแก้ไข', buanswer: '8. BU แก้/ไม่แก้ + หลักฐาน', close: '9. GAT พิจารณา+ปิดประเด็น', summary: 'สรุปผลงาน GAT (เก็บอ้างอิง)', d10: '10. รายงานวัดผล ระบบวัดผลDTA_PKG General Audit Team 2026', dashboard: 'Dashboard ภาพรวม', registers: 'Registers', universe: 'Regulatory Universe', recs: 'ทะเบียนข้อเสนอแนะ', manual: 'คู่มือการใช้งาน', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };

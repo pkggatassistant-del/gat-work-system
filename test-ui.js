@@ -204,10 +204,68 @@ setTimeout(() => {
   var rr = d.getElementById('dtaStatus');
   a('week picker เติมช่องรอบรายงานอัตโนมัติ', (rr.value || '').indexOf('7 พ.ย.') >= 0);
 })();
-/* v1.26 — รวมผลบล็อกย่อย (packFormRes จาก setTimeout ปลายไฟล์) */
-    var p2 = (typeof packFormRes !== 'undefined' && packFormRes) ? packFormRes : { p: 0, f: 0 };
-    console.log('\n══ RESULT รวม (v1.26): ' + pass + ' pass / ' + fail + ' fail · v1.26-ฟอร์มขั้น2: ' + p2.p + ' pass / ' + p2.f + ' fail ══');
-    process.exit((fail + p2.f) ? 1 : 0);
+/* v1.27 — ล็อกอิน + บทบาท + token + ฟอร์มลำดับ */
+(function () {
+  var ok27 = function (name, cond, note) { if (cond) { pass++; console.log('✅ v1.27: ' + name); } else { fail++; console.error('❌ v1.27: ' + name + (note !== undefined ? ' :: ' + note : '')); } };
+  var d = w.document;
+  ok27('มีหน้า loginGate ซ่อนใน DOM', !!d.getElementById('loginGate') && d.getElementById('loginGate').style.display === 'none');
+  ok27('gate มีช่อง lgUser/lgKey/ปุ่ม lgGo', !!d.getElementById('lgUser') && !!d.getElementById('lgKey') && !!d.getElementById('lgGo'));
+  ok27('ฟอร์มแท็บ 2 มีแถว ① (fmnum 5 วง)', d.querySelectorAll('#pane-packs .fmnum').length === 5, d.querySelectorAll('#pane-packs .fmnum').length);
+  ok27('ฟอร์มแท็บ 2: packTitle อยู่หลัง evidBox (ลำดับ ⑤)', (function () {
+    var ev = d.getElementById('packEvidBox'), ti = d.getElementById('packTitle');
+    return !!(ev && ti && ti.closest('.fmline') && (ti.closest('.fmline').compareDocumentPosition(ev) & 2));
+  })());
+  ok27('มีแถบ meta แผน (packPlanMeta) + ตัวนับ 2 ตัว', !!d.getElementById('packPlanMeta') && !!d.getElementById('packItemCnt') && !!d.getElementById('packEvidCnt'));
+  ok27('postToBCT แนบ TOKEN (อ่านโค้ดจริง)', fs.readFileSync('app.js', 'utf8').indexOf("payload.TOKEN = authTok()") >= 0);
+  ok27('gasGet แนบ TOKEN ทาง query', fs.readFileSync('app.js', 'utf8').indexOf("'&TOKEN=' + encodeURIComponent(tok)") >= 0);
+  ok27('จัดการ needLogin (หมดอายุ → กลับ gate)', fs.readFileSync('app.js', 'utf8').indexOf('res.needLogin') >= 0);
+  // ล็อกอินจริงผ่าน mock GAS v1.8
+  var tokenFired = 0;
+  var baseFetch = w.fetch;
+  w.fetch = function (u, o) {
+    var b = o && o.body ? String(o.body) : '';
+    if (b.indexOf('"login"') >= 0) {
+      var bd = JSON.parse(b);
+      if (bd.data && bd.data.U === 'นักตรวจทดสอบ' && String(bd.data.V || '').length >= 4) { return Promise.resolve({ ok: true, json: () => Promise.resolve({ ok: true, token: 'TK-test-' + Date.now(), role: 'BU', BU: 'PAO', USER: 'นักตรวจทดสอบ' }) }); }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ ok: false, error: 'ชื่อผู้ใช้หรือค่าลับไม่ถูกต้อง' }) });
+    }
+    if (b.indexOf('TOKEN') >= 0) tokenFired++;
+    if (String(u).indexOf('TOKEN=') >= 0) tokenFired++;
+    return baseFetch(u, o);
+  };
+  // กรณีผิด → ข้อความผิด
+  d.getElementById('lgUser').value = 'นักตรวจทดสอบ';
+  d.getElementById('lgKey').value = 'ผิดแน่นอน';
+  d.getElementById('lgGo').click();
+  // กรณีถูก → gate ปิด + role UI
+  setTimeout(function () {
+    d.getElementById('lgKey').value = 'KX-test-' + Date.now();
+    d.getElementById('lgGo').click();
+    setTimeout(function () {
+      var a = JSON.parse(w.localStorage.getItem('gat_auth') || 'null');
+      ok27('ล็อกอินผ่าน mock → session เก็บ ROLE=BU', !!a && a.ROLE === 'BU' && String(a.TOKEN).indexOf('TK-') === 0, w.localStorage.getItem('gat_auth'));
+      ok27('ล็อกอินผ่าน → gate ปิด', d.getElementById('loginGate').style.display === 'none', d.getElementById('loginGate').style.display);
+      ok27('body data-role = bu', d.body.getAttribute('data-role') === 'BU', d.body.getAttribute('data-role'));
+      var selBu = d.getElementById('packBu');
+      ok27('BU: packBu ล็อกค่าตัวเอง', selBu.disabled === true && selBu.value === 'PAO', selBu.value + '/' + selBu.disabled);
+      var hiddenNav = ['p02pick', 'aiprompt', 'close', 'd10'].filter(function (t) { var el = d.querySelector('nav a[data-tab="' + t + '"]'); return el && el.style.display === 'none'; });
+      ok27('BU: ซ่อนแท็บ 1,3,9,10 (sample)', hiddenNav.length === 4, hiddenNav.join(','));
+      ok27('แถบชื่อผู้ใช้ขึ้นบน topbar (whoBar)', !!d.getElementById('whoBar') && d.getElementById('whoBar').textContent.indexOf('นักตรวจทดสอบ') >= 0);
+      ok27('ปุ่มออกจากระบบมี (.btn-keep)', !!d.querySelector('#whoBar .btn-keep, .top-live .btn-keep'));
+      /* ping ครั้งแรก (boot) หรือ import หลังล็อกอิน ต้องยิง token ไปแล้วอย่างน้อย 1 */
+      ok27('TOKEN ถูกแนบไปกับคำสั่งแล้ว (นับจาก mock)', tokenFired >= 1, tokenFired);
+      /* สรุปรวมจริงท้ายบล็อกล็อกอิน: หลัก + ฟอร์มขั้น 2 */
+      globalThis._g127done = true;
+      var p2 = (typeof packFormRes !== 'undefined' && packFormRes) ? packFormRes : { p: 0, f: 0 };
+      console.log('\n══ RESULT รวม: ' + (pass + p2.p) + ' pass / ' + (fail + p2.f) + ' fail (หลัก+ฟอร์มขั้น2+v1.27) ══');
+      process.exit((fail + p2.f) ? 1 : 0);
+    }, 60);
+  }, 60);
+})();
+    /* v1.27 — สรุป/exit จริงเกิดในบล็อกล็อกอิน (_g127done); ที่นี่ fallback ถ้าบล็อกล็อกอินพัง */
+    setTimeout(function () {
+      if (!globalThis._g127done) { console.log('\n══ RESULT (fallback): ' + pass + ' pass / ' + fail + ' fail ══'); process.exit(fail ? 1 : 0); }
+    }, 1600);
   }, 700);
 
   // 5) ข้อความคัดลอก (buildSummaryText ผ่าน export)
