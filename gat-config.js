@@ -1,4 +1,15 @@
 /* GAT Work System - shared config (โหลดก่อน app.js เสมอ) */
+/* v1.27.1 — auto-migrate: localStorage เก่าที่ชี้ deployment เก่า (< v1.7) จะถูกเขียนทับเป็น URL ใหม่อัตโนมัติ (ที่มา: หนึ่ง deploy ใหม่ชุด 5 พ.ย. 69) */
+(function(){
+  var NEW_API='https://script.google.com/macros/s/AKfycbzuKrVSmPSphudtgIgmREMBiYYYETUNsTsyCzrUKgZ3C08Is1A-pf3Vsvadj7R8ArOv/exec';
+  var OLD_MARKER='AKfycbxNc3kI6eb2S7zEkZ';
+  try{
+    var cur=localStorage.getItem('gat_bct_api');
+    if(!cur){ localStorage.setItem('gat_bct_api',NEW_API); }
+    else if(cur.indexOf(OLD_MARKER)>=0){ localStorage.setItem('gat_bct_api',NEW_API); }
+  }catch(e){}
+})();
+
 window.GAT_CONFIG = {
   REC_SCOPE: ['GAT-REC-0042','GAT-REC-0043','GAT-REC-0044','GAT-REC-0045','GAT-REC-0046','GAT-REC-0047','GAT-REC-0048','GAT-REC-0049','GAT-REC-0050','GAT-REC-0051'], // v1.10 โหมดทดสอบเรื่องเดียว (GA-LC) - เคลียร์ [] เพื่อโชว์ทุกใบ
   VERSION: 'v1.27.1 (5 พ.ย. 69) — ชี้ BCT_API ไปที่ GAS v1.7 deploy ใหม่ (tabs_status 10/10 ผ่าน) — ระบบล็อกอิน+บทบาท (GAT/BU/VIEWER) รองรับ GAS v1.8 (grace ใช้กับ v1.6/v1.7 ได้) + ฟอร์มแท็บ 2 เรียงตามลำดับ ①–⑤ ตามสั่ง',
