@@ -2,7 +2,7 @@
  * ============================================================
  *  GAT Work System — Google Apps Script Backend (BCT Bridge)
  *  ประจำ Google Spreadsheet: BCT (บอร์ดบันทึกรายการตรวจสอบของทีม BU)
- *  รุ่น v1.8 (5 พ.ย. 2569) — เพิ่มระบบสิทธิ์การเข้าถึง: แท็บ GAT_Users + login/logout/set_users + TOKEN บังคับทุก action (บทบาท GAT / BU / VIEWER) — รวมทุกอย่างของ v1.7 (แท็บกระบวนการ 10 ขั้น) + actions เดิม v1.6 ครบ
+ *  รุ่น v1.9 (5 พ.ย. 2569) — ชุดบล็อกเชน: แท็บ GAT_Vault (ฐานข้อมูลห้ามแก้ append-only) + AuditLog โซ่ลายเช็ก SHA-256 + onEdit จับแก้ชีตตรง + verify_chain / verify_vault (ไล่ประเด็นที่ถูกลบ) + snapshot_day + daily_anchor (หมุดรายวันส่งนอกระบบ) + clean_test_rows หลายชีต — รวมทุกอย่าง v1.8 (สิทธิ์ GAT_Users/TOKEN) + v1.7 (10 แท็บกระบวนการ)
  *
  *  วงจรข้อเสนอแนะ (Recommendation / REC):
  *   ① GAT ตรวจจาก Web GAT → ออกข้อเสนอแนะ → ระบบรันเลขอัตโนมัติ GAT-REC-0001, 0002, …
@@ -22,7 +22,7 @@
  */
 
 var CONFIG = {
-  VERSION: 'v1.8 (5 พ.ย. 69) — สิทธิ์การเข้าถึง: GAT_Users + login/logout/set_users + TOKEN บังคับทุก action (บทบาท GAT/BU/VIEWER) — ครบทั้ง v1.7 แท็บ 10 ขั้น',
+  VERSION: 'v1.9 (5 พ.ย. 69) — ชุดบล็อกเชน: GAT_Vault (ฐานข้อมูลห้ามแก้) + AuditLog โซ่ลายเช็ก + onEdit จับแก้มือ + verify_chain/verify_vault + snapshot_day + หมุดรายวัน — ครบทั้ง v1.8 สิทธิ์ + v1.7 แท็บ 10 ขั้น',
   SHEETS: {
     REGISTERS: 'GAT_Registers',   // Master Register: รายการตรวจสอบ/ภาระต้องส่ง
     ENTRIES: 'GAT_Entries',       // รายการบันทึกผลตรวจสอบรายครั้ง (BU กรอก)
@@ -34,7 +34,9 @@ var CONFIG = {
     USERS: 'GAT_Users',           // v1.8 — บัญชีผู้ใช้+บทบาท (USER_ID/USERNAME/AUTH_KEY/ROLE/BU/STATUS)
     P1: 'จุด1-แจ้งเรื่องตรวจ', P2: 'จุด2-รอBUส่งข้อมูล', P3: 'จุด3-เลือกหัวข้อตรวจ',
     P4: 'จุด4-ชุดคำสั่งAI', P5: 'จุด5-ผลตรวจAI', P6: 'จุด6-ใบRECส่งBU',
-    P7: 'จุด7-BUแก้ไข', P8: 'จุด8-BUตอบในระบบ', P9: 'จุด9-GATปิดประเด็น', P10: 'จุด10-สรุปผล' // v1.7 — 10 แท็บกระบวนการ
+    P7: 'จุด7-BUแก้ไข', P8: 'จุด8-BUตอบในระบบ', P9: 'จุด9-GATปิดประเด็น', P10: 'จุด10-สรุปผล', // v1.7 — 10 แท็บกระบวนการ
+    VAULT: 'GAT_Vault',           // v1.9 — ฐานข้อมูลห้ามแก้ (append-only): สำเนาก่อน/หลังทุกการเปลี่ยนแปลง + โซ่ลายเช็ก
+    ANCHOR: 'GAT_Anchors'         // v1.9 — หมุดเวลารายวัน (ลายรวมของ VAULT) เทียบกับหมุดที่ส่งออกนอกระบบ
   },
 TZ: 'Asia/Bangkok',
   SHEET_ID: '1MK4ufs2ycbJg81ZVaqeJb0z3MEaflAMVZmKqmhkrZ1E',  // ชีต BCT กลาง — standalone deploy ชี้มาที่นี่
@@ -44,6 +46,12 @@ TZ: 'Asia/Bangkok',
 };
 
 var USER_HEADERS = ['USER_ID', 'USERNAME', 'AUTH_KEY', 'ROLE', 'BU', 'STATUS', 'CREATED_AT', 'LAST_LOGIN'];
+
+/* ================= v1.9 — ชุดบล็อกเชน ================= */
+var AUDIT_HEADERS = ['LOG_ID', 'TIMESTAMP', 'ACTOR', 'ACTION', 'TARGET', 'DETAIL', 'SEQ', 'PREV_HASH', 'HASH'];
+var VAULT_HEADERS = ['VSEQ', 'TIMESTAMP', 'ACTOR', 'OP', 'SHEET', 'KEY_ID', 'DATA_JSON', 'PREV_HASH', 'HASH'];
+var ANCHOR_HEADERS = ['ANCHOR_ID', 'AT', 'VSEQ', 'HASH', 'TOTAL_SHA256', 'ROWS', 'STATUS'];
+var VAULT_SHEETS_ = ['REGISTERS', 'ENTRIES', 'RECS', 'PACKS', 'PLANS', 'DTA', 'USERS', 'AUDIT_LOG']; // ตารางที่เก็บเข้า VAULT (ไม่รวมแท็บกระจก)
 
 /* สร้าง/ปรับตารางบัญชี (เมนู 🛡 GAT) — โครงเปล่า + แถวบอกวิธีใช้เท่านั้น — ไม่มีบัญชีจริง/ค่าลับใด ๆ ในโค้ด */
 function setupUsers() {
@@ -148,6 +156,7 @@ function setUsers_(data) {
     if (pos < 0) pos = findRow_(sh, 'USERNAME', String(d.USERNAME));
     if (pos > 0) sh.getRange(pos, 1, 1, USER_HEADERS.length).setValues([r]);
     else sh.appendRow(r);
+    vaultLog_({ ACTOR: 'GAT', OP: pos > 0 ? 'EDIT' : 'NEW', SHEET: CONFIG.SHEETS.USERS, KEY_ID: idv, AFTER: { username: String(d.USERNAME), role: String(d.ROLE || 'BU'), bu: String(d.BU || ''), status: String(d.STATUS || 'ACTIVE') } }); // v1.9 — ไม่ลง AUTH_KEY ใน VAULT (ความปลอดภัย)
     n++;
   });
   log_('GAT', 'set_users', CONFIG.SHEETS.USERS, n + ' บัญชี');
@@ -180,6 +189,12 @@ function onOpen() {
     .addSeparator()
     .addItem('🆕 ตั้งค่า 10 แท็บกระบวนการ (setupProcessTabs)', 'setupProcessTabs')
     .addItem('🔄 อัปเดต 10 แท็บกระบวนการ (updateProcessTabs)', 'updateProcessTabs')
+    .addSeparator()
+    .addItem('⛓ ตรวจโซ่ลายเช็ก AuditLog (verifyChain)', 'verifyChain')
+    .addItem('🗃 ตรวจ VAULT + ไล่ประเด็นที่หาย (verifyVault)', 'verifyVault')
+    .addSeparator()
+    .addItem('📸 สแนปช็อตรายวัน (snapshotDay)', 'snapshotDay')
+    .addItem('⚓ หมุดรายวัน (dailyAnchor)', 'dailyAnchor')
     .addToUi();
 }
 
@@ -214,9 +229,40 @@ function cleanRecRange_(fromId, toId) {
     var v = String(vals[i][0]).replace(CONFIG.REC_PREFIX, '');
     if (v !== '' && v >= f && v <= t) del.push(i + 2);
   }
-  for (var d = del.length - 1; d >= 0; d--) sh.deleteRow(del[d]);
+    for (var d = del.length - 1; d >= 0; d--) {
+      var nC0 = Math.max(1, sh.getLastColumn());
+      var before = sh.getRange(del[d], 1, 1, nC0).getValues()[0];
+      sh.deleteRow(del[d]);
+      vaultLog_({ ACTOR: 'GAT', OP: 'DELETE', SHEET: CONFIG.SHEETS.RECS, KEY_ID: String(before[0] || ''), BEFORE: { headers: sh.getRange(1, 1, 1, nC0).getValues()[0], row: before } }); // v1.9 — ลบแล้วเก็บศพไว้ใน VAULT
+    }
   log_('GAT(แดง)', 'clean_test_rows', fromId + '..' + toId, 'ลบแถวทดสอบ ' + del.length + ' แถว');
   return del.length;
+}
+
+/* v1.9 — ล้างแถวทดสอบหลายชีต (จับคำใบ KEY ตรงคอลัมน์ A) เช่น TEST-PROBE-001 ใน GAT_Plans + TEST-PROBE ใน GAT_DTA */
+function cleanTestRowsGeneric_(fromId, toId, onlySheets) {
+  var ss = getSS_();
+  var targets = onlySheets && onlySheets.length ? onlySheets : ['PLANS', 'PACKS', 'DTA', 'RECS'];
+  var total = 0;
+  targets.forEach(function (k) {
+    var name = CONFIG.SHEETS[k];
+    if (!name) return;
+    var sh = ss.getSheetByName(name);
+    if (!sh || sh.getLastRow() < 2) return;
+    var vals = sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues();
+    var del = [];
+    for (var i = 0; i < vals.length; i++) {
+      var v = String(vals[i][0]).trim();
+      if (v >= fromId && v <= toId) del.push(i + 2); // จับช่วงคำใบตรงตัว (เล็กซิโค)
+    }
+    for (var d = del.length - 1; d >= 0; d--) {
+      var before = sh.getRange(del[d], 1, 1, Math.max(1, sh.getLastColumn())).getValues()[0];
+      sh.deleteRow(del[d]);
+      vaultLog_({ ACTOR: 'GAT', OP: 'DELETE', SHEET: name, KEY_ID: String(before[0] || ''), BEFORE: before });
+      total++;
+    }
+  });
+  return total;
 }
 
 /* ================= SETUP (รันครั้งเดียว หรือรันใหม่เมื่ออัปเดตโครง) ================= */
@@ -251,10 +297,12 @@ function setupSheets() {
     'BU_DECISION', 'EVIDENCE_URL', 'NO_FIX_REASON', 'RESPONSIBLE',
     'BU_RESPONDED_AT', 'GAT_CONFIRMED_AT', 'CLOSED_AT'
   ]);
-  ensureSheet(ss, CONFIG.SHEETS.AUDIT_LOG, ['LOG_ID', 'TIMESTAMP', 'ACTOR', 'ACTION', 'TARGET', 'DETAIL']);
+  ensureSheet(ss, CONFIG.SHEETS.AUDIT_LOG, AUDIT_HEADERS); // v1.9 — หัวเต็ม 9 ช่อง (โซ่ 3 คอลัมน์)
+  ensureSheet(ss, CONFIG.SHEETS.VAULT, VAULT_HEADERS); // v1.9
+  ensureSheet(ss, CONFIG.SHEETS.ANCHOR, ANCHOR_HEADERS); // v1.9
   ensureSheet(ss, CONFIG.SHEETS.USERS, USER_HEADERS); // v1.8 — ตารางบัญชี (ค่าลับกรอกในชีตเอง)
-  log_('system', 'setup', 'sheets', 'โครงชีทพร้อม v1.1 (REC รันเลข + BU decision/evidence/reason/responsible)');
-  return 'OK v1.8: ชีทพร้อม + ตาราง GAT_Users — ต่อไป setupUsers() → เพิ่มบัญชีในชีต → Deploy → Web app';
+  log_('system', 'setup', 'sheets', 'โครงชีทพร้อม v1.9 (REC รันเลข + BU decision + VAULT/โซ่ลายเช็ก + GAT_Users)');
+  return 'OK v1.9: ชีทพร้อม (รวม GAT_Vault + GAT_Anchors) — ต่อไป setupUsers() → เพิ่มบัญชีในชีต → Deploy → Web app';
 }
 
 /* โยกย้ายชีทเก่า v1.0 → เพิ่มคอลัมน์ที่ขาดโดยไม่ทำข้อมูลหาย */
@@ -269,8 +317,67 @@ function migrateSheets() {
   var tabs = setupProcessTabs();
   log_('system', 'migrate', 'process_tabs', 'v1.7: เตรียมแท็บกระบวนการ 10 ขั้น เรียบร้อย');
   setupUsers();
-  return 'OK v1.8 + Packs(ITEM คอลัมน์ 13) + แท็บ10ขั้น + GAT_Users — ' + tabs;
+  // v1.9 — ชุดบล็อกเชน: VAULT + Anchors + คอลัมน์โซ่ใน AuditLog
+  var vsh = ensureVault_(ss);
+  ensureSheet(ss, CONFIG.SHEETS.ANCHOR, ANCHOR_HEADERS);
+  addColumns_(ss, CONFIG.SHEETS.AUDIT_LOG, ['SEQ', 'PREV_HASH', 'HASH']);
+  log_('system', 'migrate', CONFIG.SHEETS.VAULT, 'v1.9: เตรียม VAULT + หมุดรายวัน + โซ่ลายเช็ก เรียบร้อย');
+  // v1.9 — ปิดบานเกล็ด onEdit (แยกจาก onOpen เพราะ onOpen ต้องกดเมนูเอง)
+  try {
+    if (!ScriptProject_.hasTrigger('onEdit')) {
+      ScriptApp.newTrigger('onEdit').forSpreadsheet(ss).onEdit().create();
+      log_('system', 'install_trigger', 'onEdit', 'ติดตั้ง onEdit จับแก้ชีตตรง');
+    }
+  } catch (tE) { log_('system', 'install_trigger_fail', 'onEdit', String(tE && tE.message || tE).slice(0, 120)); }
+  // v1.9 — ราวกันตก: dropdown สถานะใน GAT_Packs + GAT_Issues (พิมพ์เพี้ยนไม่ได้) + ล็อกแท็บ VAULT/Anchors/AuditLog
+  guardrails_();
+  return 'OK v1.9 + VAULT + Anchors + โซ่ลายเช็ก + onEdit + ราวกันตก — ' + tabs;
 }
+
+/* v1.9 — ราวกันตก: validation + protect (กันพลาด ไม่ใช่กันคน) */
+function STATUS_SETS_() {
+  return { 
+    [CONFIG.SHEETS.PACKS]: ['รอ GAT เลือกตรวจ', 'ตรวจแล้ว', 'ทดสอบระบบ — ปิด'], 
+    [CONFIG.SHEETS.RECS]: ['ส่งให้ BU แล้ว', 'แก้ไขแล้ว (รอ GAT ตรวจหลักฐาน)', 'ยืนยันไม่แก้ไข (รอ GAT ยืนยัน)', 'ปิดแล้ว (GAT ยืนยัน)'] 
+  };
+}
+function guardrails_() {
+  var ss = getSS_();
+  var sets = STATUS_SETS_();
+  Object.keys(sets).forEach(function (sheetName) {
+    var sh = ss.getSheetByName(sheetName);
+    if (!sh || sh.getLastRow() < 1) return;
+    var heads = sh.getRange(1, 1, 1, Math.max(1, sh.getLastColumn())).getValues()[0];
+    var ci = heads.indexOf('STATUS');
+    if (ci < 0) return;
+    var vr = SpreadsheetApp.newDataValidation().requireValueInList(sets[sheetName], true).setAllowInvalid(false).build();
+    sh.getRange(2, ci + 1, Math.max(500, sh.getMaxRows() - 1), 1).setDataValidation(vr);
+  });
+  // ล็อกแท็บระบบ ไม่ให้แก้จากหน้าชีต (เว้นเจ้าของไฟล์)
+  [CONFIG.SHEETS.VAULT, CONFIG.SHEETS.ANCHOR].forEach(function (nm) {
+    var sh2 = ss.getSheetByName(nm);
+    if (!sh2) return;
+    try {
+      var prot = sh2.protect().setDescription('v1.9 VAULT append-only — ระบบเขียนเท่านั้น');
+      var me = Session.getEffectiveUser();
+      if (me) { prot.removeEditors(prot.getEditors().filter(function (u) { return u.getEmail() !== me.getEmail(); })); if (prot.canDomainEdit()) prot.setDomainEdit(false); prot.setWarningOnly(true); }
+    } catch (pE) { /* บางสิทธิ์ปิดไม่ได้ ข้ามไป */ }
+  });
+}
+
+/* v1.9 helper — เช็ค trigger ซ้ำ (กันติดซ้ำทุกครั้งที่ migrate รัน) */
+var ScriptProject_ = {
+  hasTrigger: function (fnName) {
+    try {
+      var ss = getSS_();
+      var tries = ScriptApp.getProjectTriggers();
+      for (var i = 0; i < tries.length; i++) {
+        if (tries[i].getHandlerFunction() === fnName) return true;
+      }
+    } catch (e) { return false; }
+    return false;
+  }
+};
 
 
 /* ================= v1.7: 10 แท็บกระบวนการ 10 ขั้น (เมนู 🛡 GAT → ตั้ง 10 แท็บ) =================
@@ -463,6 +570,8 @@ function doGet(e) {
       case 'list_issues':    payload = readAll_(CONFIG.SHEETS.RECS);      break;
       case 'list_plans':     payload = readAll_(CONFIG.SHEETS.PLANS); break;
       case 'list_dta':       payload = readAll_(CONFIG.SHEETS.DTA); break;
+      case 'list_vault':     payload = vaultTail_(p.n ? parseInt(p.n, 10) : 50); break; // v1.9 — ดู n แถวท้าย VAULT (ค่าเริ่ม 50)
+      case 'anchor':         payload = anchorOfSheet(); break; // v1.9 — ลายปัจจุบันสำหรับเทียบกับหมุดที่เก็บไว้นอกระบบ
       case 'tabs_status':    payload = buildTabsStatus_(); break;
       case 'overview':
       default:
@@ -497,7 +606,7 @@ function doPost(e) {
     var who = null;
     if (!openActions[action]) {
       who = auth_(data);
-      var gatOnly = { open_issue: 1, close_issue: 1, update_pack_status: 1, push_plans: 1, push_dta: 1, sync_process_tabs: 1, set_users: 1, clean_recs: 1, backfill_ref_pm_wi: 1, fix_log_timestamps: 1, migrate: 1 };
+      var gatOnly = { open_issue: 1, close_issue: 1, update_pack_status: 1, push_plans: 1, push_dta: 1, sync_process_tabs: 1, set_users: 1, clean_recs: 1, backfill_ref_pm_wi: 1, fix_log_timestamps: 1, migrate: 1, verify_chain: 1, verify_vault: 1, snapshot_day: 1, daily_anchor: 1, clean_test_rows: 1 };
       if (gatOnly[action] && who.ROLE !== 'GAT') throw new Error('สิทธิ์ไม่พอ — ' + action + ' ใช้ได้เฉพาะที่นี้สำหรับผู้ดูแลระบบ (GAT)');
       if (who.ROLE === 'VIEWER' && action !== 'overview') throw new Error('สิทธิ์ไม่พอ — บัญชีนี้เป็นผู้ดูอย่างเดียว (VIEWER)');
       if (who.ROLE === 'BU') {
@@ -515,7 +624,30 @@ function doPost(e) {
       case 'logout':
         return json_({ ok: true, result: logout_(data) });
       case 'ping':
-        return json_({ ok: true, version: CONFIG.VERSION, auth: 'ทุก action ต้องล็อกอิน (action login) แล้วแนบ TOKEN — บัญชีอยู่ในแท็บ GAT_Users ของชีต; บทบาท GAT=ทุกอย่าง, BU=ส่งข้อมูล+ตอบใบ, VIEWER=ดูอย่างเดียว', actions: 'login,logout,set_users,open_issue,respond_issue,close_issue,submit_pack,update_pack_status,migrate,clean_recs,backfill_ref_pm_wi,fix_log_timestamps,push_plans,push_dta,sync_process_tabs,tabs_status,list_plans,list_dta' });
+        return json_({ ok: true, version: CONFIG.VERSION, auth: 'ทุก action ต้องล็อกอิน (action login) แล้วแนบ TOKEN — บัญชีอยู่ในแท็บ GAT_Users ของชีต; บทบาท GAT=ทุกอย่าง, BU=ส่งข้อมูล+ตอบใบ, VIEWER=ดูอย่างเดียว', actions: 'login,logout,set_users,open_issue,respond_issue,close_issue,submit_pack,update_pack_status,migrate,clean_recs,backfill_ref_pm_wi,fix_log_timestamps,push_plans,push_dta,sync_process_tabs,tabs_status,list_plans,list_dta,verify_chain,verify_vault,snapshot_day,daily_anchor,clean_test_rows' });
+      case 'verify_chain': { // v1.9 — ตรวจโซ่ AuditLog
+        var outVC = verifyChain();
+        return json_({ ok: true, chain: outVC });
+      }
+      case 'verify_vault': { // v1.9 — ตรวจ VAULT + หมุด + ไล่ประเด็นที่หาย
+        var outVV = verifyVault();
+        return json_({ ok: true, vault: outVV });
+      }
+      case 'snapshot_day': { // v1.9 — สแนปช็อตรายวัน ลง VAULT
+        var outSD = snapshotDay();
+        return json_({ ok: true, snapshot: outSD });
+      }
+      case 'daily_anchor': { // v1.9 — หมุดรายวัน (GAT เอาค่า SHA ไปเก็บนอกชีต เช่น แชต TG)
+        var outDA = dailyAnchor();
+        return json_({ ok: true, anchor: outDA, hint: 'คัดลอก SHA นี้ไปเก็บนอกระบบ (แชต TG นี้) — ใช้เทียบย้อนหลังได้' });
+      }
+      case 'clean_test_rows': { // v1.9 — ล้างแถวทดสอบพรีเมียมในชีตจริง (GAT เท่านั้น)
+        var from = String(data.from || 'TEST-PROBE-001');
+        var to = String(data.to || from);
+        var nT = cleanTestRowsGeneric_(from, to, data.sheets || null);
+        log_(data.BY || 'GAT', 'clean_test_rows', from + '..' + to, 'ลบแถวทดสอบ ' + nT + ' แถว (หลายชีต)');
+        return json_({ ok: true, deleted: nT });
+      }
       case 'set_users': { // v1.8 — GAT จัดการบัญชี (upsert ตาม USER_ID หรือ USERNAME)
         var outU = setUsers_(data);
         return json_({ ok: true, saved: outU.saved });
@@ -629,6 +761,7 @@ function openIssue_(data) {
     or_(data.SHEET_REF), or_(data.REF_PM_WI, 'P-04 ขั้น ④ (ตาม WI-02)'), or_(data.APPROVER), 'ส่งให้ BU แล้ว', '', '', '', '', '', '', ''
   ];
   sh.appendRow(row);
+  vaultLog_({ ACTOR: or_(data.BY, 'GAT'), OP: 'NEW', SHEET: CONFIG.SHEETS.RECS, KEY_ID: recId, AFTER: { recId: recId, TITLE: or_(data.TITLE), SEVERITY: or_(data.SEVERITY, '🟢 ข้อเสนอ'), REG_ID: or_(data.REG_ID) } }); // v1.9
   return { REC_ID: recId, REC_NO: no };
 }
 
@@ -665,6 +798,7 @@ function respondIssue_(data) {
   if (or_(data.NO_FIX_REASON)) sh.getRange(pos, ci('NO_FIX_REASON')).setValue(data.NO_FIX_REASON);
   if (or_(data.RESPONSIBLE)) sh.getRange(pos, ci('RESPONSIBLE')).setValue(data.RESPONSIBLE);
   sh.getRange(pos, ci('BU_RESPONDED_AT')).setValue(now_());
+  vaultDiffRow_(CONFIG.SHEETS.RECS, sh, pos, ['BU_DECISION', 'STATUS', 'EVIDENCE_URL', 'NO_FIX_REASON', 'RESPONSIBLE', 'BU_RESPONDED_AT'], data.BY || 'BU', or_(data.REC_ID)); // v1.9
   return true;
 }
 
@@ -677,6 +811,7 @@ function closeIssue_(data) {
   sh.getRange(pos, headers.indexOf('STATUS') + 1).setValue('ปิดแล้ว (GAT ยืนยัน)');
   sh.getRange(pos, headers.indexOf('GAT_CONFIRMED_AT') + 1).setValue(now_());
   sh.getRange(pos, headers.indexOf('CLOSED_AT') + 1).setValue(now_());
+  vaultDiffRow_(CONFIG.SHEETS.RECS, sh, pos, ['STATUS', 'GAT_CONFIRMED_AT', 'CLOSED_AT'], 'GAT', or_(data.REC_ID)); // v1.9
   return true;
 }
 
@@ -797,7 +932,9 @@ function pushPlanRow_(d) {
   var sh = ensureSheetWithHeaders_(ss, CONFIG.SHEETS.PLANS, PLAN_HEADERS);
   var items = Array.isArray(d.items) ? d.items.join(' ⏎ ') : String(d.items || '');
   var row = [or_(d.NOTIF_ID), or_(d.BU), or_(d.PERIOD), items, (Array.isArray(d.items) ? d.items.length : 0), or_(d.BY), or_(d.SAVED_AT), now_()];
-  return upsertRowByCol_(sh, PLAN_HEADERS.length, 1, d.NOTIF_ID, row);
+  var mode = upsertRowByCol_(sh, PLAN_HEADERS.length, 1, d.NOTIF_ID, row);
+  vaultLog_({ ACTOR: or_(d.BY, 'GAT'), OP: mode === 'updated' ? 'EDIT' : 'NEW', SHEET: CONFIG.SHEETS.PLANS, KEY_ID: or_(d.NOTIF_ID), AFTER: { row: row, headers: PLAN_HEADERS } }); // v1.9
+  return mode;
 }
 var DTA_HEADERS = ['WEEK', 'SAVED_AT', 'SRC', 'PURPOSE', 'VISION', 'ACCOUNT', 'OBJ_P', 'KR1_P', 'KR2_P', 'KR3_P',
   'KR1_NOTE', 'KR2_NOTE', 'KR3_NOTE', 'OKR_NOTE',
@@ -828,7 +965,9 @@ function pushDtaRow_(d) {
   if (!key) throw new Error('ต้องระบุรอบรายงาน (สัปดาห์) ก่อนดัน — เลือกสัปดาห์ หรือกรอก "สรุปรอบวันที่"');
   var ss = getSS_();
   var sh = ensureSheetWithHeaders_(ss, CONFIG.SHEETS.DTA, DTA_HEADERS);
-  return upsertRowByCol_(sh, DTA_HEADERS.length, 1, key, dtaRow_(d));
+  var mode = upsertRowByCol_(sh, DTA_HEADERS.length, 1, key, dtaRow_(d));
+  vaultLog_({ ACTOR: 'GAT', OP: mode === 'updated' ? 'EDIT' : 'NEW', SHEET: CONFIG.SHEETS.DTA, KEY_ID: key, AFTER: { week: key } }); // v1.9
+  return mode;
 }
 
 function readAll_(sheetName) {
@@ -873,6 +1012,7 @@ function submitPack_(data) {
   }
   if (!or_(data.LINKS)) throw new Error('ต้องแนบลิงก์หลักฐานอย่างน้อย 1 ลิงก์ — ระบบบันทึกไม่ได้ถ้าไม่มีหลักฐาน (กติกาขั้น ②)');
   sh.appendRow([packId, or_(data.BU), or_(data.SCOPE), or_(data.PERIOD), or_(data.TITLE), or_(data.LINKS), or_(data.NOTE), 'รอ GAT เลือกตรวจ', or_(data.BY || 'BU'), now, '', '', item]);
+  vaultLog_({ ACTOR: or_(data.BY, 'BU'), OP: 'NEW', SHEET: CONFIG.SHEETS.PACKS, KEY_ID: packId, AFTER: { packId: packId, BU: or_(data.BU), SCOPE: or_(data.SCOPE), PERIOD: or_(data.PERIOD), TITLE: or_(data.TITLE) } }); // v1.9
   return { PACK_ID: packId };
 
 }
@@ -892,7 +1032,9 @@ function updatePackStatus_(data) {
     : 8; // STATUS column
   var val = data.STATUS || '';
   if (data.FIELD === 'AI_REVIEW_AT') val = Utilities.formatDate(new Date(), CONFIG.TZ, 'yyyy-MM-dd HH:mm');
+  var before = sh.getRange(hit, col, 1, 1).getValue();
   sh.getRange(hit, col).setValue(val);
+  vaultLog_({ ACTOR: data.BY || 'GAT', OP: 'EDIT', SHEET: CONFIG.SHEETS.PACKS, KEY_ID: String(data.PACK_ID), BEFORE: { field: data.FIELD || 'STATUS', value: before }, AFTER: { field: data.FIELD || 'STATUS', value: val } }); // v1.9
   return 1;
 }
 
@@ -900,9 +1042,250 @@ function log_(actor, action, target, detail) {
   try {
     var ss = getSS_();
     var sh = ss.getSheetByName(CONFIG.SHEETS.AUDIT_LOG);
-    if (!sh) { sh = ensureSheet(ss, CONFIG.SHEETS.AUDIT_LOG, ['LOG_ID', 'TIMESTAMP', 'ACTOR', 'ACTION', 'TARGET', 'DETAIL']); } // v1.8 — ชีต log เกิดเอง (log ของ login ก่อน setup ไม่หาย)
-    sh.appendRow(['LG-' + Date.now(), now_(), actor, action, target, detail]);
+    if (!sh) { sh = ensureSheet(ss, CONFIG.SHEETS.AUDIT_LOG, AUDIT_HEADERS); } // v1.9 — หัวเดิม 6 + ช่องโซ่ 3
+    var seq = lastSeq_(sh, 7) + 1;              // คอลัมน์ G (7) = SEQ
+    var prev = lastHash_(sh, 9);                // คอลัมน์ I (9) = HASH
+    var hid = 'LG-' + Date.now();
+    var ts = now_();
+    var base = [seq, actor, action, target, String(detail || ''), ts].join('|');
+    var h = sha_(base + '|' + prev);
+    sh.appendRow([hid, ts, actor, action, target, detail, seq, prev, h]);
+    vaultLog_({'ACTOR': actor, 'OP': 'LOG', 'SHEET': CONFIG.SHEETS.AUDIT_LOG, 'KEY_ID': hid, 'ROW': [hid, ts, actor, action, target, detail]}); // v1.9 — ล็อกลง VAULT ด้วย (กันลบร่องรอย)
   } catch (e) { /* log พังไม่ให้กระทบงานหลัก */ }
+}
+
+/* ================= v1.9 — ชุดบล็อกเชน: โค้ดหลัก ================= */
+/* หลักคิด: แต่ละแถวมี HASH ของตัวเอง (SHA-256 จากข้อมูลแถว + ลายแถวก่อนหน้า) → ร้อยเป็นโซ่
+ * ใครแก้/ลบแถวใด ๆ โซ่หลังจากนั้นขาดหมด — กด verify_chain จับได้ทันทีว่าแถวไหน
+ */
+function sha_(s) {
+  return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, s, Utilities.Charset.UTF_8)
+    .map(function (b) { return ('0' + (b & 0xFF).toString(16)).slice(-2); }).join('');
+}
+function lastSeq_(sh, col) { // ค่า SEQ มากสุดท้ายของคอลัมน์ (ความจริงแถวสุดท้าย ถ้าเรียงถูก)
+  var lr = sh.getLastRow();
+  if (lr < 2) return 0;
+  var v = sh.getRange(lr, col, 1, 1).getValue();
+  var n = parseInt(v, 10);
+  return isNaN(n) ? 0 : n;
+}
+function lastHash_(sh, col) {
+  var lr = sh.getLastRow();
+  if (lr < 2) return '';
+  return String(sh.getRange(lr, col, 1, 1).getValue() || '');
+}
+
+/* — VAULT: สำเนา append-only ของทุกการเปลี่ยนแปลง (ก่อน/หลัง) — */
+function ensureVault_(ss) {
+  var sh = ss.getSheetByName(CONFIG.SHEETS.VAULT);
+  if (!sh) sh = ensureSheet(ss, CONFIG.SHEETS.VAULT, VAULT_HEADERS);
+  return sh;
+}
+function vaultLog_(entry) {
+  // entry: {ACTOR, OP, SHEET, KEY_ID, ROW?, BEFORE?, AFTER?} — ROW = อาร์เรย์ค่าก่อน/หลังตาม OP
+  try {
+    var ss = getSS_();
+    var sh = ensureVault_(ss);
+    var vseq = lastSeq_(sh, 1) + 1;             // A = VSEQ
+    var prev = lastHash_(sh, 9);                // I = HASH
+    var ts = now_();
+    var payload = entry.ROW ? entry.ROW : (entry.AFTER || '');
+    var rec = entry.ROW ? { ROW: entry.ROW } : (entry.AFTER ? { AFTER: entry.AFTER } : (entry.BEFORE ? { BEFORE: entry.BEFORE } : {}));
+    if (entry.AFTER || entry.BEFORE) rec = { BEFORE: entry.BEFORE || null, AFTER: entry.AFTER || null };
+    var dj = JSON.stringify(rec);
+    var base = [vseq, ts, entry.ACTOR || 'system', entry.OP, entry.SHEET, entry.KEY_ID || '', dj].join('|');
+    var h = sha_(base + '|' + prev);
+    sh.appendRow([vseq, ts, entry.ACTOR || 'system', entry.OP, entry.SHEET, entry.KEY_ID || '', dj, prev, h]);
+    return h;
+  } catch (e2) { /* vault พังไม่ปิดกั้นงานหลัก */ return null; }
+}
+
+/* — ตัวช่วย v1.9: ยิงช็อตแถว (ก่อน/หลัง) ลง VAULT — */
+function vaultDiffRow_(sheetName, sh, rowNo, setCols, actor, keyId) {
+  try {
+    var nCol = Math.max(1, sh.getLastColumn());
+    var row_ = sh.getRange(rowNo, 1, 1, nCol).getValues()[0];
+    var heads = sh.getRange(1, 1, 1, nCol).getValues()[0];
+    var changed = {};
+    (setCols || []).forEach(function (cn) { var i = heads.indexOf(cn); if (i >= 0) changed[cn] = row_[i]; });
+    vaultLog_({ ACTOR: actor, OP: 'EDIT', SHEET: sheetName, KEY_ID: keyId, AFTER: { keyId: keyId, columns: changed, rowNo: rowNo } });
+  } catch (e) { /* ไม่ปิดกั้นงานหลัก */ }
+}
+
+/* — จับการแก้ชีตตรง ๆ (ทุกแท็บหลักทุกช่อง) → ลง AuditLog + VAULT อัตโนมัติ — */
+function onEdit(e) {
+  try {
+    if (!e || !e.range) return;
+    var sh = e.range.getSheet();
+    var name = sh.getName();
+    var base = { REGISTERS: CONFIG.SHEETS.REGISTERS, ENTRIES: CONFIG.SHEETS.ENTRIES, RECS: CONFIG.SHEETS.RECS, PACKS: CONFIG.SHEETS.PACKS, PLANS: CONFIG.SHEETS.PLANS, DTA: CONFIG.SHEETS.DTA, USERS: CONFIG.SHEETS.USERS };
+    var target = null;
+    for (var k in base) { if (base[k] === name) target = k; }
+    if (!target) return; // แท็บกระจก/VAULT/Anchors ไม่ดัก (แท็บกระจกคำนวณใหม่ได้เสมอ)
+    var row = e.range.getRow(), col = e.range.getColumn();
+    if (row < 2) return; // แถวหัวตาราง
+    var headers = sh.getRange(1, 1, 1, Math.max(1, sh.getLastColumn())).getValues()[0];
+    var newVal = e.range.getValues();
+    var keyCol = 1; // ส่วนใหญ่ ID อยู่คอลัมน์ A (REC_ID/PACK_ID/NOTIF_ID/…)
+    var keyId = String(sh.getRange(row, keyCol, 1, 1).getValue() || '');
+    var flat = [];
+    for (var r2 = 0; r2 < newVal.length; r2++) {
+      flat.push({ row: row + r2, key: String(sh.getRange(row + r2, keyCol, 1, 1).getValue() || ''), values: newVal[r2] });
+    }
+    var head = headers[col - 1] || ('col' + col);
+    var actor = 'แก้มือ(ชีตตรง)';
+    vaultLog_({ ACTOR: actor, OP: 'EDIT', SHEET: name, KEY_ID: keyId, AFTER: { cell: name + '!' + e.range.getA1Notation(), column: head, values: flat } });
+    log_(actor, 'onEdit', name + '!' + e.range.getA1Notation(), 'แก้ชีตตรง: ' + head + ' = ' + JSON.stringify(newVal).slice(0, 300));
+  } catch (e3) { /* ไม่ให้ onEdit พังหน้าชีต */ }
+}
+
+/* — ตรวจโซ่ลายเช็ก AuditLog — */
+function verifyAuditChain_() {
+  var sh = getSS_().getSheetByName(CONFIG.SHEETS.AUDIT_LOG);
+  if (!sh) return { rows: 0, brokenAt: null, ok: true };
+  var lr = sh.getLastRow();
+  if (lr < 2) return { rows: 0, brokenAt: null, ok: true };
+  var vals = sh.getRange(2, 1, lr - 1, 9).getValues();
+  var prev = '';
+  var started = false; // v1.9 — แถวเก่าก่อนติดโซ่ (ยังไม่มี HASH) = ไม่นับ ไม่ให้โซ่ขาดหลอก ๆ
+  var legacy = 0;
+  for (var i = 0; i < vals.length; i++) {
+    var h = String(vals[i][8] || '');
+    if (!h) {
+      if (!started) { legacy++; continue; }
+      return { rows: vals.length, brokenAt: i + 2, ok: false };
+    }
+    var seq = vals[i][6], ph = String(vals[i][7] || '');
+    if (!started) {
+      if (ph !== '') return { rows: vals.length, brokenAt: i + 2, ok: false }; // จุดเริ่มโซ่ต้องมี PREV = ว่าง (จุดเกิด)
+      started = true; prev = '';
+    }
+    if (ph !== prev) return { rows: vals.length, brokenAt: i + 2, ok: false };
+    var base = [seq, vals[i][2], vals[i][3], vals[i][4], String(vals[i][5] || ''), vals[i][1]].join('|');
+    var want = sha_(base + '|' + prev);
+    if (h !== want) return { rows: vals.length, brokenAt: i + 2, ok: false };
+    prev = h;
+  }
+  return { rows: vals.length, brokenAt: null, ok: true, legacyBeforeChain: legacy, chainRows: vals.length - legacy };
+}
+function verifyChain() {
+  var out = verifyAuditChain_();
+  var msg = out.ok ? '✅ โซ่ AuditLog สมบูรณ์ (' + out.rows + ' แถว)' : '⛔ โซ่ขาดที่แถวชีต ' + out.brokenAt;
+  log_('system', 'verify_chain', CONFIG.SHEETS.AUDIT_LOG, msg);
+  try { SpreadsheetApp.getUi().alert(msg); } catch (e) {}
+  return out;
+}
+
+/* — ตรวจ VAULT + หมุดรายวัน + ไล่ประเด็นที่หายไป (RECS กับ VAULT) — */
+function verifyVault() {
+  var out = { vaultChain: null, auditChain: null, anchorsOk: null, missingInSheet: [], ghostInSheet: [] };
+  var ss = getSS_();
+  var sh = ss.getSheetByName(CONFIG.SHEETS.VAULT);
+  var lr = sh ? sh.getLastRow() : 1;
+  if (sh && lr >= 2) {
+    var vals = sh.getRange(2, 1, lr - 1, 9).getValues();
+    var prev = '';
+    out.vaultChain = { rows: vals.length, brokenAt: null, ok: true };
+    for (var i = 0; i < vals.length; i++) {
+      var ph = String(vals[i][7] || ''), h = String(vals[i][8] || '');
+      var base = [vals[i][0], vals[i][1], vals[i][2], vals[i][3], vals[i][4], vals[i][5], String(vals[i][6] || '')].join('|');
+      var want = sha_(base + '|' + prev);
+      if (ph !== prev || h !== want) { out.vaultChain = { rows: vals.length, brokenAt: i + 2, ok: false }; break; }
+      prev = h;
+    }
+  }
+  out.auditChain = verifyAuditChain_();
+  // หมุด: แต่ละหมุด ACTIVE ต้องชี้ลายที่ตรงกับแถว VAULT ที่ VSEQ นั้นจริง (ถ้าลบทั้งแท็บไปสร้างใหม่ = หมุดเก่าหาคู่ไม่ได้ทันที)
+  var anc = ss.getSheetByName(CONFIG.SHEETS.ANCHOR);
+  if (anc && anc.getLastRow() >= 2) {
+    var av = anc.getRange(2, 1, anc.getLastRow() - 1, 7).getValues(); // v1.9 — 7 คอลัมน์ (D=HASH, G=STATUS)
+    var vhBySeq = {};
+    if (sh && lr >= 2) {
+      var vv = sh.getRange(2, 1, lr - 1, 9).getValues();
+      for (var q = 0; q < vv.length; q++) vhBySeq[String(vv[q][0])] = String(vv[q][8] || '');
+    }
+    var bad = null, nA = 0;
+    for (var j = 0; j < av.length; j++) {
+      if (String(av[j][6] || '') !== 'ACTIVE') continue; // G=STATUS
+      nA++;
+      if (String(av[j][3] || '') !== (vhBySeq[String(av[j][2])] || '')) { bad = av[j]; break; }
+    }
+    out.anchorsOk = (nA > 0) ? !bad : null;
+    if (bad) out.anchorMismatch = { anchor: bad[0], vseq: bad[2], expected: String(bad[3]), actual: vhBySeq[String(bad[2])] || '(ไม่พบแถว VSEQ นี้ใน VAULT)' };
+  }
+  // ไล่ประเด็น RECS: ใน VAULT แต่ไม่อยู่ในชีต = ถูกลบ
+  var recs = safeRead_(ss, CONFIG.SHEETS.RECS);
+  var ids = {};
+  recs.forEach(function (r) { ids[String(r.REC_ID || '')] = 1; });
+  var seen = {};
+  if (sh && lr >= 2) {
+    var vs = sh.getRange(2, 6, lr - 1, 2).getValues(); // F=KEY_ID, G=DATA_JSON
+    for (var k2 = 0; k2 < vs.length; k2++) {
+      if (String(vs[k2][0]).indexOf('GAT-REC-') !== 0) continue;
+      var json = String(vs[k2][1] || '');
+      var m = json.match(/"REC_ID"\s*:\s*"([^"]+)"/);
+      var rid = m ? m[1] : String(vs[k2][0]);
+      if (seen[rid]) continue; seen[rid] = 1;
+      if (!ids[rid]) out.missingInSheet.push(rid);
+    }
+  }
+  recs.forEach(function (r) { var id = String(r.REC_ID || ''); if (id && !seen[id]) { out.ghostInSheet.push(id); seen[id] = 1; } });
+  var okAll = out.vaultChain && out.vaultChain.ok && out.auditChain.ok && (out.anchorsOk !== false) && !out.missingInSheet.length && !out.ghostInSheet.length;
+  var msg = (okAll ? '✅ VAULT สมบูรณ์' : '⚠️ พบความผิดปกติ') + ' — vaultChain:' + (out.vaultChain ? (out.vaultChain.ok ? 'OK(' + out.vaultChain.rows + ' แถว)' : 'ขาดที่ ' + out.vaultChain.brokenAt) : 'ว่าง') + ' · auditChain:' + (out.auditChain.ok ? 'OK(' + out.auditChain.rows + ')' : 'ขาดที่ ' + out.auditChain.brokenAt) + ' · หมุด:' + (out.anchorsOk === null ? 'ยังไม่มี' : (out.anchorsOk ? 'ตรง' : 'ไม่ตรง')) + (out.missingInSheet.length ? ' · ⚠️ ถูกลบจากชีต: ' + out.missingInSheet.join(', ') : '') + (out.ghostInSheet.length ? ' · ⚠️ อยู่ในชีตแต่ไม่มีใน VAULT: ' + out.ghostInSheet.slice(0, 8).join(', ') : '');
+  log_('system', 'verify_vault', CONFIG.SHEETS.VAULT, msg.slice(0, 250));
+  try { SpreadsheetApp.getUi().alert(msg); } catch (e) {}
+  return out;
+}
+
+/* — หมุดรายวัน: ลายปัจจุบันของ VAULT (แถวสุดท้าย) + ลายรวม snapshot → GAT_Anchors + ค่าคืนให้ส่งนอกไฟล์ — */
+function dailyAnchor() {
+  var a = anchorOfSheet();
+  var counts = snapshotDay().counts;
+  var anchor = { ID: 'AN-' + Utilities.formatDate(new Date(), CONFIG.TZ, 'yyyyMMdd-HHmmss'), AT: now_(), VSEQ: a.vseq, SHA: a.sha, TOTAL_SHA256: counts ? sha_(JSON.stringify(counts)) : '', ROWS: counts ? Object.keys(counts).reduce(function (s, k) { return s + counts[k]; }, 0) : 0 };
+  var anc = ensureSheet(getSS_(), CONFIG.SHEETS.ANCHOR, ANCHOR_HEADERS);
+  anc.appendRow([anchor.ID, anchor.AT, anchor.VSEQ, anchor.SHA, anchor.TOTAL_SHA256, anchor.ROWS, 'ACTIVE']);
+  log_('system', 'daily_anchor', CONFIG.SHEETS.ANCHOR, anchor.ID + ' vseq=' + anchor.VSEQ + ' sha=' + String(anchor.SHA || '').slice(0, 12) + '…');
+  return anchor;
+}
+
+/* — สแนปช็อตครบชุดรายวัน: นับแถวทุกตารางหลัก + ลายรวม ลง VAULT 1 แถว (OP=SNAPSHOT) — */
+function snapshotDay() {
+  var ss = getSS_();
+  var rows = 0;
+  var parts = {};
+  VAULT_SHEETS_.forEach(function (k) {
+    var name = CONFIG.SHEETS[k];
+    if (!name) return;
+    var data = safeRead_(ss, name);
+    rows += data.length;
+    parts[name] = data.length;
+  });
+  var totalSha = sha_(JSON.stringify(parts));
+  vaultLog_({ ACTOR: 'system', OP: 'SNAPSHOT', SHEET: 'ALL', KEY_ID: 'DAY-' + Utilities.formatDate(new Date(), CONFIG.TZ, 'yyyyMMdd'), AFTER: { counts: parts, totalSha: totalSha } });
+  return { totalSha: totalSha, rows: rows, counts: parts };
+}
+
+/* — ดู n แถวท้าย VAULT (GET list_vault) — */
+function vaultTail_(n) {
+  var sh = getSS_().getSheetByName(CONFIG.SHEETS.VAULT);
+  if (!sh || sh.getLastRow() < 2) return [];
+  var lr = sh.getLastRow();
+  var from = Math.max(2, lr - Math.max(1, Math.min(500, n || 50)) + 1);
+  var vals = sh.getRange(from, 1, lr - from + 1, 9).getValues();
+  var heads = VAULT_HEADERS;
+  return vals.map(function (r) {
+    var o = {};
+    heads.forEach(function (h, i) { o[h] = r[i]; });
+    return o;
+  });
+}
+
+/* — ตรวจครบชุด: อ่านหมุดสุดท้ายที่ส่งออกนอกไฟล์ (ผมเก็บในแชต) → compare กับชีต — */
+function anchorOfSheet() {
+  var sh = getSS_().getSheetByName(CONFIG.SHEETS.VAULT);
+  var lr = sh ? sh.getLastRow() : 1;
+  if (!sh || lr < 2) return { vseq: 0, sha: '' };
+  return { vseq: lastSeq_(sh, 1), sha: lastHash_(sh, 9) };
 }
 
 function json_(obj) {
