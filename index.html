@@ -266,32 +266,6 @@ ol.manual li{margin-bottom:8px}
 
   <!-- ============ PACKS (BU ส่งข้อมูล) ============ -->
   <section class="tabpane" id="pane-packs">
-    <!-- ============ ขั้น 1 ครึ่งแรก: GAT แจ้งเรื่องที่จะตรวจ (รายประเด็น) ============ -->
-    <div class="card">
-      <div class="card-hd"><b>🧭 ขั้น 1 (ครึ่งแรก) — GAT แจ้งเรื่องที่จะตรวจ (รายประเด็น)</b></div>
-      <p class="desc">GAT ใส่เรื่องที่ 1, 2, 3, … <b>แยกทีละประเด็น (1 บรรทัด = 1 เรื่อง)</b>: ประเด็นที่ตรวจ + หัวข้อเอกสารหลักฐานที่ต้องส่ง + ผู้รับผิดชอบ + กำหนดวันส่งข้อมูล — บันทึกแล้วเป็นรายการที่ BU เห็นและส่งตาม</p>
-      <div class="filters">
-        <input id="notBu" placeholder="BU ที่แจ้ง พิมพ์ได้เลย เช่น PAO" style="width:220px">
-        <input id="notPeriod" placeholder="งวด เช่น ต.ค. 69" style="width:170px">
-        <input id="notBy" placeholder="ชื่อ-ตำแหน่ง GAT ผู้แจ้ง" style="flex:1;min-width:200px">
-      </div>
-      <div class="filters"><textarea id="notItems" placeholder="เรื่องที่ 1: [ประเด็น] — เอกสาร: [...] — ผู้รับผิดชอบ: [...] — กำหนดส่ง: [...]
-เรื่องที่ 2: …
-เรื่องที่ 3: …" style="width:100%;min-height:140px;font-family:inherit"></textarea></div>
-      <div class="filters">
-        <button id="btnNotifyPlan" class="gold">🧭 บันทึกเรื่องที่จะตรวจ (รันเลขแผน)</button>
-        <button class="button-lite" id="btnNotifyDl">⬇ ดาวน์โหลดหนังสือแจ้ง (.txt)</button>
-        <button id="btnNotifPush" class="alt">☁️ ดันแผนแจ้งลงชีต</button>
-      </div>
-      <div id="notStatus" class="status" style="margin-top:8px"></div>
-      <!-- v1.20: GAT ติ๊กเรื่องที่จะตรวจ → ส่งเข้าขั้น 3 ได้ทันที (ไม่ต้องรอ PACK) -->
-      <div id="notPickBox"></div>
-      <div class="filters">
-        <button id="btnGotoAipFromPlan" class="gold">✅ จบขั้น 1 — ส่งเข้าขั้น 2 (รอ BU ส่งหลักฐาน + ครบแล้วเลือกตรวจด้านบน)</button>
-      </div>
-      <div id="notList"></div>
-    </div>
-
     <!-- ============ ขั้น 2: BU ส่งข้อมูลตามเรื่องที่แจ้ง ============ -->
     <div class="card">
       <div class="card-hd"><b>📤 ขั้น 2 — BU ส่งข้อมูลตามเรื่องที่ GAT แจ้ง</b></div>
@@ -390,6 +364,32 @@ ol.manual li{margin-bottom:8px}
 
   <!-- ============ 1. แท็บ GAT เลือกหัวข้อ (ครึ่งหลังของขั้น 1) ============ -->
   <section class="tabpane" id="pane-p02pick">
+    <!-- ============ ขั้น 1 ครึ่งแรก: GAT แจ้งเรื่องที่จะตรวจ (รายประเด็น) ============ -->
+    <div class="card">
+      <div class="card-hd"><b>🧭 ขั้น 1 — GAT แจ้งเรื่องที่จะตรวจ (รายประเด็น)</b></div>
+      <p class="desc">GAT ใส่เรื่องที่ 1, 2, 3, … <b>แยกทีละประเด็น (1 บรรทัด = 1 เรื่อง)</b>: ประเด็นที่ตรวจ + หัวข้อเอกสารหลักฐานที่ต้องส่ง + ผู้รับผิดชอบ + กำหนดวันส่งข้อมูล — บันทึกแล้วเป็นรายการที่ BU เห็นและส่งตาม</p>
+      <div class="filters">
+        <input id="notBu" placeholder="BU ที่แจ้ง พิมพ์ได้เลย เช่น PAO" style="width:220px">
+        <input id="notPeriod" placeholder="งวด เช่น ต.ค. 69" style="width:170px">
+        <input id="notBy" placeholder="ชื่อ-ตำแหน่ง GAT ผู้แจ้ง" style="flex:1;min-width:200px">
+      </div>
+      <div class="filters"><textarea id="notItems" placeholder="เรื่องที่ 1: [ประเด็น] — เอกสาร: [...] — ผู้รับผิดชอบ: [...] — กำหนดส่ง: [...]
+เรื่องที่ 2: …
+เรื่องที่ 3: …" style="width:100%;min-height:140px;font-family:inherit"></textarea></div>
+      <div class="filters">
+        <button id="btnNotifyPlan" class="gold">🧭 บันทึกเรื่องที่จะตรวจ (รันเลขแผน)</button>
+        <button class="button-lite" id="btnNotifyDl">⬇ ดาวน์โหลดหนังสือแจ้ง (.txt)</button>
+        <button id="btnNotifPush" class="alt">☁️ ดันแผนแจ้งลงชีต</button>
+      </div>
+      <div id="notStatus" class="status" style="margin-top:8px"></div>
+      <!-- v1.20: GAT ติ๊กเรื่องที่จะตรวจ → ส่งเข้าขั้น 3 ได้ทันที (ไม่ต้องรอ PACK) -->
+      <div id="notPickBox"></div>
+      <div class="filters">
+        <button id="btnGotoAipFromPlan" class="gold">✅ จบขั้น 1 — ส่งเข้าขั้น 2 (รอ BU ส่งหลักฐาน + ครบแล้วเลือกตรวจด้านบน)</button>
+      </div>
+      <div id="notList"></div>
+    </div>
+
     <div class="card">
       <div class="card-hd"><b>🗂 ขั้น 1 (ครึ่งหลัง) — ทีม GAT เลือกหัวข้อที่ BU ส่งข้อมูลมาให้</b></div>
       <p class="desc">ดูสถานะการส่งจากชีตจริง → เลือก <b>หัวข้อ/Pack ที่จะลงตรวจ</b> — เลือกแล้วส่งต่อขั้น 3 (บันทึกประเด็นข้อเสนอแนะ)</p>
