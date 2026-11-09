@@ -780,16 +780,34 @@ function loadProcessDocs() {
   function parseNotifItems(text) {
     return String(text || '').split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
   }
+  /* v1.33 — แยกประเด็นหลัก/ย่อย: บรรทัดขึ้นต้น "-" หรือ "•" = ย่อยของบรรทัดหลักก่อนหน้า → returns { items:[หลัก], sub:[[ย่อย] ต่อหลัก] } */
+  function parseNotifItemsFull(text) {
+    var items = [], sub = [];
+    String(text || '').split('\n').map(function (l) { return l.trimEnd(); }).filter(function (l) { return l.trim(); }).forEach(function (l) {
+      var t = l.trim();
+      if (/^[-•*]\s*/.test(t)) {
+        t = t.replace(/^[-•*]\s*/, '').trim();
+        if (items.length) sub[items.length - 1].push(t);
+        else { items.push(t); sub.push([]); }
+      } else { items.push(t); sub.push([]); }
+    });
+    return { items: items, sub: sub };
+  }
+  /* v1.33 — อ่านย่อยของแผน n (แผนเก่า v1.32 ไม่มี n.sub = ย่อยว่าง) */
+  function notifSubs(n) {
+    return (n && Array.isArray(n.sub)) ? n.sub : (n ? (n.items || []).map(function () { return []; }) : []);
+  }
   function saveNotifPlan() {
     var st = document.getElementById('notStatus');
     var g = function (id2) { var el = document.getElementById(id2); return el ? el.value.trim() : ''; };
     var title = g('notTitle'), ev = g('notEvent'), owner = g('notOwner'), bu = g('notBu');
-    var items = parseNotifItems(document.getElementById('notItems').value);
+    var pf = parseNotifItemsFull(document.getElementById('notItems').value);
+    var items = pf.items;var subs = pf.sub;
     var by = g('notBy') || 'GAT';
     /* v1.31 — บังคับ 4 ช่องหลักตามสั่ง: ชื่อเรื่อง/เหตุการณ์/ประเด็น/ผู้รับผิดชอบ (+BU) */
     if (!title) { if (st) st.textContent = '⚠️ กรอก ① ชื่อเรื่องก่อน'; return; }
     if (!ev) { if (st) st.textContent = '⚠️ กรอก ② เหตุการณ์ก่อน'; return; }
-    if (!items.length) { if (st) st.textContent = '⚠️ ใส่ ③ ประเด็นที่จะตรวจอย่างน้อย 1 บรรทัด (1 บรรทัด = 1 ประเด็น)'; return; }
+    if (!items.length) { if (st) st.textContent = '⚠️ ใส่ ③ ประเด็นที่จะตรวจอย่างน้อย 1 บรรทัด (1 บรรทัด = 1 ประเด็นหลัก / ขึ้นต้น "-" = ประเด็นย่อยของบรรทัดก่อนหน้า)'; return; }
     if (!owner) { if (st) st.textContent = '⚠️ กรอก ④ ผู้รับผิดชอบก่อน'; return; }
     if (!bu) { if (st) st.textContent = '⚠️ กรอก BU ที่แจ้งก่อน (เช่น PAO / สอยดาว)'; return; }
     var due = g('notDue') || '';
@@ -798,12 +816,13 @@ function loadProcessDocs() {
     var nid = 'PLAN-' + (new Date().getFullYear() + 543) + '-' + String(seq).padStart(3, '0');
     /* items แสดงรวมเป็นข้อความต่อเรื่อง — โครงเดิม (dropdown ขั้น 2 + ติ๊กประเด็น) ใช้ต่อได้เลย */
     var itemTexts = items.map(function (p) { return p; });
+    var nSubCount = subs.reduce(function (a, x) { return a + x.length; }, 0);
     var head = 'ชื่อเรื่อง: ' + title + ' — เหตุการณ์: ' + ev + ' — ผู้รับผิดชอบ: ' + owner + (due ? ' — กำหนดส่ง: ' + due : '');
-    var n = { NOTIF_ID: nid, BU: bu, PERIOD: g('notPeriod'), TITLE: title, EVENT: ev, OWNER: owner, DUE: due, items: itemTexts, HEAD: head, BY: by, SAVED_AT: new Date().toLocaleString('th-TH') };
-    list.push({ NOTIF_ID: n.NOTIF_ID, BU: n.BU, PERIOD: n.PERIOD, TITLE: title, EVENT: ev, OWNER: owner, DUE: due, items: itemTexts, HEAD: head, BY: n.BY, SAVED_AT: n.SAVED_AT });
+    var n = { NOTIF_ID: nid, BU: bu, PERIOD: g('notPeriod'), TITLE: title, EVENT: ev, OWNER: owner, DUE: due, items: itemTexts, sub: subs, HEAD: head, BY: by, SAVED_AT: new Date().toLocaleString('th-TH') };
+    list.push({ NOTIF_ID: n.NOTIF_ID, BU: n.BU, PERIOD: n.PERIOD, TITLE: title, EVENT: ev, OWNER: owner, DUE: due, items: itemTexts, sub: subs, HEAD: head, BY: n.BY, SAVED_AT: n.SAVED_AT });
     saveNotifs(list);
     fillNotifPickers(); renderNotifList(); fillPackSelectors();
-    if (st) st.textContent = '✅ บันทึกแล้ว ' + n.NOTIF_ID + ' — ' + title + ' (' + items.length + ' ประเด็น · ผู้รับผิดชอบ: ' + owner + ')';
+    if (st) st.textContent = '✅ บันทึกแล้ว ' + n.NOTIF_ID + ' — ' + title + ' (' + items.length + ' ประเด็น' + (nSubCount ? ' + ' + nSubCount + ' ย่อย' : '') + ' · ผู้รับผิดชอบ: ' + owner + ')';
     /* v1.32 — ปุ่มคัดลอกข้อความส่ง BU (TG) + พยายามคัดลอกให้ทันทีครั้งแรก (คลิกเดียว = ได้สิทธิ์; กดปุ่มครั้งต่อไปใช้ปุ่มเอง) */
     var tgBtn = document.getElementById('btnNotifTg');
     if (tgBtn && !tgBtn.dataset.tgAutoDone) {
@@ -864,17 +883,46 @@ function loadProcessDocs() {
     var n = currentPackNotif();
     if (!n) { box.innerHTML = '<i style="color:#7d93b2">เลือกเรื่องที่ GAT แจ้งด้านบน → ระบบจะแสดงประเด็นที่ต้องส่งข้อมูล</i>'; return; }
     var sel = packSelItems();
+    var subs = notifSubs(n);
     var rows = (n.items || []).map(function (it, i) {
       var id2 = n.NOTIF_ID + '::' + i;
       var c = sel[id2] ? ' checked' : '';
-      return '<label style="display:block;padding:6px 10px;border-radius:8px;cursor:pointer"><input type="checkbox" data-itemid="' + escP(id2) + '"' + c + ' style="margin-right:8px"> <b>' + (i + 1) + '.</b> ' + escP(it) + '</label>';
+      var subsHtml = '';
+      if ((subs[i] || []).length) {
+        var subRows = subs[i].map(function (st2, j) {
+          var sid2 = id2 + '::' + j;
+          var sc = sel[sid2] ? ' checked' : '';
+          return '<label style="display:block;padding:4px 10px 4px 30px;cursor:pointer"><input type="checkbox" data-subid="' + escP(sid2) + '"' + sc + ' style="margin-right:8px"> ' + escP(st2) + '</label>';
+        }).join('');
+        subsHtml = '<div style="margin:4px 0 6px 22px;padding:8px 8px 8px 12px;background:#f3f5f9;border-radius:8px;font-size:13px"><b style="font-size:12px;color:#3d5271">ประเด็นย่อยทั้งหมด:</b>' + subRows + '</div>';
+      }
+      return '<div style="border-bottom:1px dashed #e3e9f2;padding:6px 0"><label style="display:block;padding:4px 10px;border-radius:8px;cursor:pointer"><input type="checkbox" data-itemid="' + escP(id2) + '"' + c + ' style="margin-right:8px"> <b>' + (i + 1) + '.</b> ' + escP(it) + '</label>' + subsHtml + '</div>';
     }).join('');
-    box.innerHTML = '<div style="background:#0b1526;border:1px solid #2a4570;border-radius:10px;padding:10px"><div style="margin-bottom:6px"><b>ประเด็นที่ BU ต้องส่งข้อมูล (ตาม ' + escP(n.NOTIF_ID) + ' — งวด ' + escP(n.PERIOD || '—') + '):</b> <span style="color:#7d93b2;font-size:12.5px">ติ๊กเฉพาะประเด็นที่ส่งครั้งนี้</span></div>' + rows + '</div>';
+    box.innerHTML = '<div style="background:#0b1526;border:1px solid #2a4570;border-radius:10px;padding:10px;max-height:420px;overflow:auto"><div style="margin-bottom:6px"><b>ประเด็นหลักที่ BU ต้องส่งข้อมูล (ตาม ' + escP(n.NOTIF_ID) + ' — งวด ' + escP(n.PERIOD || '—') + '):</b> <span style="color:#7d93b2;font-size:12.5px">ติ๊กประเด็นหลัก → ประเด็นย่อยเปิดให้เลือกส่ง</span></div>' + rows + '</div>';
     box.querySelectorAll('input[data-itemid]').forEach(function (cb) {
       cb.addEventListener('change', function () {
-        var s = packSelItems();
-        if (cb.checked) s[cb.getAttribute('data-itemid')] = 1; else delete s[cb.getAttribute('data-itemid')];
-        packSelItemsSave(s);
+        var st0 = packSelItems();
+        var pid = cb.getAttribute('data-itemid');
+        var on = cb.checked;
+        if (on) st0[pid] = 1; else delete st0[pid];
+        /* v1.33 — ติ๊กหลัก: auto ติ๊กย่อยทั้งหมด (BU ถอดเองได้) / ถอดหลัก: ล้างย่อยทั้งหมด */
+        var m = pid.split('::');
+        var pn = currentPackNotif();
+        var nSubs = pn ? notifSubs(pn) : [];
+        var subLen = (nSubs[Number(m[1])] || []).length;
+        for (var sj = 0; sj < subLen; sj++) {
+          var sk = pid + '::' + sj;
+          if (on) st0[sk] = 1; else delete st0[sk];
+        }
+        packSelItemsSave(st0);
+        renderPackItemPicker(); renderPackEvid(); updatePackCounts();
+      });
+    });
+    box.querySelectorAll('input[data-subid]').forEach(function (cb) {
+      cb.addEventListener('change', function () {
+        var st1 = packSelItems();
+        if (cb.checked) st1[cb.getAttribute('data-subid')] = 1; else delete st1[cb.getAttribute('data-subid')];
+        packSelItemsSave(st1);
         renderPackEvid(); updatePackCounts();
       });
     });
@@ -884,14 +932,28 @@ function loadProcessDocs() {
     var box = document.getElementById('packEvidBox'); if (!box) return;
     var n = currentPackNotif(); if (!n) { box.innerHTML = ''; return; }
     var sel = packSelItems();
+    var subs = notifSubs(n);
     var picked = (n.items || []).map(function (it, i) { return { i: i, t: it }; }).filter(function (x) { return sel[n.NOTIF_ID + '::' + x.i]; });
-    if (!picked.length) { box.innerHTML = '<i style="color:#7d93b2">ติ๊กประเด็นด้านบน → ช่องแนบหลักฐานจะเกิดต่อประเด็น (บังคับ)</i>'; return; }
-    var rows = picked.map(function (x) {
-      var eid = 'ev_' + n.NOTIF_ID + '_' + x.i;
-      return '<div style="margin:6px 0"><label style="display:block;font-size:13px;margin-bottom:3px"><b>📎 หลักฐานประเด็น ' + (x.i + 1) + ':</b> ' + escP(x.t) + ' <i style="color:#d4a648">(บังคับ)</i></label>' +
-        '<textarea id="' + escP(eid) + '" data-evrid="' + escP(String(x.i)) + '" placeholder="ลิงก์ไฟล์/เอกสารหลักฐานประเด็นนี้ (ขึ้นบรรทัดใหม่ = หลายลิงก์)" style="width:100%;min-height:52px"></textarea></div>';
-    }).join('');
-    box.innerHTML = rows;
+    if (!picked.length) { box.innerHTML = '<i style="color:#7d93b2">ติ๊กประเด็นหลักด้านบน → ช่องแนบหลักฐานจะเกิดต่อประเด็นย่อยที่เลือก (บังคับ)</i>'; updatePackCounts(); return; }
+    var rows = [];
+    picked.forEach(function (x) {
+      var evMain = 'ev_' + n.NOTIF_ID + '_' + x.i;
+      var mSubs = (subs[x.i] || []).map(function (st2, j) { return { j: j, t: st2 }; }).filter(function (y) { return sel[n.NOTIF_ID + '::' + x.i + '::' + y.j]; });
+      if (!mSubs.length) {
+        /* ไม่มีย่อย (หรือไม่ติ๊กย่อยเลย) → แนบที่ประเด็นหลักโดยตรง */
+        rows.push('<div style="margin:6px 0"><label style="display:block;font-size:13px;margin-bottom:3px"><b>📎 หลักฐาน ' + (x.i + 1) + ':</b> ' + escP(x.t) + ' <i style="color:#d4a648">(บังคับ)</i></label>' +
+          '<textarea id="' + escP(evMain) + '" data-evrid="' + escP(String(x.i)) + '" placeholder="ลิงก์ไฟล์/เอกสารหลักฐานประเด็นนี้ (ขึ้นบรรทัดใหม่ = หลายลิงก์)" style="width:100%;min-height:52px"></textarea></div>');
+      } else {
+        /* v1.33 — มีย่อยที่ติ๊ก → ช่องแนบต่อย่อย (บังคับเฉพาะย่อยที่ส่ง) */
+        rows.push('<div style="margin:8px 0 2px"><b>▪ ประเด็น ' + (x.i + 1) + ':</b> ' + escP(x.t) + '</div>');
+        mSubs.forEach(function (y) {
+          var eid = evMain + '_' + y.j;
+          rows.push('<div style="margin:6px 0 6px 22px"><label style="display:block;font-size:13px;margin-bottom:3px"><b>📎 ย่อย ' + (x.i + 1) + '.' + (y.j + 1) + ':</b> ' + escP(y.t) + ' <i style="color:#d4a648">(บังคับ)</i></label>' +
+            '<textarea id="' + escP(eid) + '" data-evrid="' + escP(x.i + '::' + y.j) + '" placeholder="ลิงก์หลักฐานของประเด็นย่อยนี้ (ขึ้นบรรทัดใหม่ = หลายลิงก์)" style="width:100%;min-height:52px"></textarea></div>');
+        });
+      }
+    });
+    box.innerHTML = rows.join('');
     updatePackCounts();
   }
   function packEvidValues() {
@@ -913,21 +975,43 @@ function loadProcessDocs() {
     /* v1.26 — บังคับเลือกเรื่องจากขั้น 1 (ถ้าระบบมีแผนแจ้ง) */
     var hasPlans = loadNotifs().length > 0;
     if (!notifId && hasPlans) { if (st) st.textContent = '⚠️ เลือกประเด็นที่ GAT แจ้ง (ขั้น 1) ก่อน — ขาดไม่ได้'; return; }
+    var subs = notifSubs(notifObj);
     var picked = (notifObj.items || []).map(function (it, i) { return { i: i, t: it }; }).filter(function (x) { return selItems[notifId + '::' + x.i]; });
-    if (!picked.length) { if (st) st.textContent = '⚠️ ติ๊กประเด็นที่ส่งครั้งนี้อย่างน้อย 1 ประเด็น'; return; }
-    /* v1.26 — บังคับหลักฐานต่อประเด็น (ไม่มี = ไม่บันทึก) */
+    if (!picked.length) { if (st) st.textContent = '⚠️ ติ๊กประเด็นหลักที่ส่งครั้งนี้อย่างน้อย 1 ประเด็น'; return; }
+    /* v1.26+v1.33 — บังคับหลักฐานต่อประเด็น (ย่อย = ต่อย่อยที่ติ๊ก, ไม่มีย่อย = ต่อหลัก) */
     var evs = packEvidValues();
     var missing = [];
     picked.forEach(function (x) {
-      var ev = evs.filter(function (e) { return e.idx === String(x.i); })[0];
-      if (!ev || !ev.text) missing.push('ประเด็น ' + (x.i + 1));
+      var mSubs = (subs[x.i] || []).map(function (st2, j) { return { j: j, t: st2 }; }).filter(function (y) { return selItems[notifId + '::' + x.i + '::' + y.j]; });
+      if (!mSubs.length) {
+        var ev = evs.filter(function (e) { return e.idx === String(x.i); })[0];
+        if (!ev || !ev.text) missing.push('ประเด็น ' + (x.i + 1));
+      } else {
+        mSubs.forEach(function (y) {
+          var ev2 = evs.filter(function (e) { return e.idx === (x.i + '::' + y.j); })[0];
+          if (!ev2 || !ev2.text) missing.push('ย่อย ' + (x.i + 1) + '.' + (y.j + 1));
+        });
+      }
     });
     if (missing.length) { if (st) st.textContent = '⚠️ ต้องแนบหลักฐานให้ครบ: ' + missing.join(', ') + ' (กติกา: ไม่มีหลักฐาน = ไม่บันทึก)'; return; }
     if (!title) { if (st) st.textContent = '⚠️ กรอกหัวเรื่องการส่งก่อน'; return; }
-    var item = picked.map(function (x) { return (x.i + 1) + '. ' + x.t; }).join(' | ');
+    /* v1.33 — ITEM: ประเด็นหลัก + ย่อยที่ส่ง; LINKS: ต่อย่อย (หรือต่อหลักเมื่อไม่แยกย่อย) */
+    var item = picked.map(function (x) {
+      var line = (x.i + 1) + '. ' + x.t;
+      var mSubs = (subs[x.i] || []).map(function (st2, j) { return { j: j, t: st2 }; }).filter(function (y) { return selItems[notifId + '::' + x.i + '::' + y.j]; });
+      if (mSubs.length) line += ' (' + mSubs.map(function (y) { return (x.i + 1) + '.' + (y.j + 1) + ' ' + y.t; }).join(' | ') + ')';
+      return line;
+    }).join(' | ');
     var links = picked.map(function (x) {
-      var ev = evs.filter(function (e) { return e.idx === String(x.i); })[0] || { text: '' };
-      return '[ประเด็น ' + (x.i + 1) + ': ' + x.t + ']\n' + ev.text;
+      var mSubs = (subs[x.i] || []).map(function (st2, j) { return { j: j, t: st2 }; }).filter(function (y) { return selItems[notifId + '::' + x.i + '::' + y.j]; });
+      if (!mSubs.length) {
+        var ev = evs.filter(function (e) { return e.idx === String(x.i); })[0] || { text: '' };
+        return '[ประเด็น ' + (x.i + 1) + ': ' + x.t + ']\n' + ev.text;
+      }
+      return mSubs.map(function (y) {
+        var ev2 = evs.filter(function (e) { return e.idx === (x.i + '::' + y.j); })[0] || { text: '' };
+        return '[ประเด็น ' + (x.i + 1) + '.' + (y.j + 1) + ': ' + y.t + ']\n' + ev2.text;
+      }).join('\n\n');
     }).join('\n\n');
     note = (note ? note + '\n' : '') + 'อ้างแผน: ' + notifId + ' — ส่งตามประเด็น (' + picked.length + '/' + (notifObj.items || []).length + ')';
     if (st) st.textContent = 'กำลังส่ง…';
@@ -940,7 +1024,9 @@ function loadProcessDocs() {
         loadPacks();
       } else if (st) st.textContent = '❌ ' + (res.error || 'ส่งไม่สำเร็จ — ตรวจว่า GAS เป็น v1.7');
     });
-  }  function fillPackSelectors() {
+  }
+
+  function fillPackSelectors() {
     var bus = (state.seed && state.seed.companies || []).map(function (c) { return c.BU || c.name || c; }).filter(Boolean);
     bus = (bus.length ? bus : ['AAMG', 'PMSG', 'CPDG', 'LDC', 'TNR']).concat(['PAO']);
     var sel = document.getElementById('packBu');

@@ -269,14 +269,14 @@ ol.manual li{margin-bottom:8px}
     <!-- ============ ขั้น 2: BU ส่งข้อมูลตามเรื่องที่แจ้ง ============ -->
     <div class="card">
       <div class="card-hd"><b>📤 ขั้น 2 — BU ส่งข้อมูลตามเรื่องที่ GAT แจ้ง</b></div>
-      <p class="desc">เลือก <b>เรื่องที่ GAT แจ้ง (ขั้น 1)</b> → ระบบแสดง <b>ประเด็นที่ต้องส่ง</b> → ติ๊กประเด็นที่ส่ง + <b>แนบหลักฐานบังคับต่อประเด็น</b> → ระบบรันเลข PACK-xxxx ลงชีตกลาง → เข้า <b>ขั้น 3</b> ให้ GAT เลือกตรวจ — SLA: ส่งให้ครบ <b>ภายในกำหนดวันส่ง</b>ที่ GAT แจ้งไว้ทุกเรื่อง (WI-01)</p>
+      <p class="desc">เลือก <b>เรื่องที่ GAT แจ้ง (ขั้น 1)</b> → ระบบแสดง <b>ประเด็นที่ต้องส่ง</b> → <b>ติ๊กประเด็นหลัก</b> → ระบบแสดง <b>ประเด็นย่อยทั้งหมด</b>ให้เลือกส่ง + <b>แนบหลักฐานบังคับต่อประเด็น</b> → ระบบรันเลข PACK-xxxx ลงชีตกลาง → เข้า <b>ขั้น 3</b> ให้ GAT เลือกตรวจ — SLA: ส่งให้ครบ <b>ภายในกำหนดวันส่ง</b>ที่ GAT แจ้งไว้ทุกเรื่อง (WI-01)</p>
       <!-- v1.27 — ฟอร์มเรียงตามลำดับ ①–⑤ -->
       <div class="fmline"><span class="fmnum">①</span><select id="packBu" style="width:210px"><option value="">— เลือก BU —</option></select><span class="fmhint">หน่วยงานของคุณ (ล็อกตามบัญชี)</span></div>
       <div class="fmline"><span class="fmnum">②</span><select id="packNotif" style="flex:1;min-width:260px"><option value="">— เลือกเรื่องที่ GAT แจ้ง —</option></select></div>
       <div id="packPlanMeta" class="fmmeta" style="display:none"></div>
-      <div class="fmline"><span class="fmnum">③</span><b style="font-size:13.5px">ติ๊กประเด็นที่ส่งครั้งนี้</b><span id="packItemCnt" class="fmcount">0 รายการ</span></div>
+      <div class="fmline"><span class="fmnum">③</span><b style="font-size:13.5px">ติ๊กประเด็นหลักที่ส่งครั้งนี้</b><span class="fmhint">ติ๊กแล้วประเด็นย่อยเปิดโชว์ใต้ทันที (ติ๊กย่อยที่จะส่ง — ถอดออกได้)</span><span id="packItemCnt" class="fmcount">0 รายการ</span></div>
       <div id="packItemBox" style="margin:4px 0 8px 34px"></div>
-      <div class="fmline"><span class="fmnum">④</span><b style="font-size:13.5px">แนบหลักฐานต่อประเด็น</b><span class="fmhint" style="color:#b48a3c">บังคับ — ไม่มีหลักฐาน = ไม่บันทึก</span><span id="packEvidCnt" class="fmcount">0/0</span></div>
+      <div class="fmline"><span class="fmnum">④</span><b style="font-size:13.5px">แนบหลักฐานต่อประเด็น (ย่อย)</b><span class="fmhint" style="color:#b48a3c">บังคับ — ไม่มีหลักฐาน = ไม่บันทึก</span><span id="packEvidCnt" class="fmcount">0/0</span></div>
       <div id="packEvidBox" style="margin:4px 0 8px 34px"></div>
       <div class="fmline"><span class="fmnum">⑤</span><input id="packTitle" placeholder="หัวเรื่องการส่ง เช่น รายละเอียดเงินสดย่อย ต.ค. 69 (บังคับ)" style="flex:1;min-width:280px"></div>
       <div class="fmline" style="margin-left:34px"><input id="packPeriod" placeholder="งวด (เติมให้อัตโนมัติจากแผน — แก้ได้)" style="width:230px"></div>
@@ -370,7 +370,7 @@ ol.manual li{margin-bottom:8px}
       <p class="desc">กรอกให้ครบทั้ง 4 ช่อง → กดบันทึก (รันเลขแผน) — <b>ประเด็นที่จะตรวจ ใส่ได้หลายบรรทัด (1 บรรทัด = 1 ประเด็น)</b> · บันทึกแล้ว BU เห็นและส่งหลักฐานตาม (แท็บ 2)</p>
       <div class="fmline"><span class="fmnum">1</span><input id="notTitle" placeholder="① ชื่อเรื่อง เช่น ตรวจน้ำมันเครื่องเก่า สอยดาว (บังคับ)" style="flex:1;min-width:280px"></div>
       <div class="fmline"><span class="fmnum">2</span><input id="notEvent" placeholder="② เหตุการณ์ เช่น พบรถดีเลอร์ขายน้ำมันสอยดาวเกินสิทธิ์ (บังคับ)" style="flex:1;min-width:280px"></div>
-      <div class="fmline" style="align-items:flex-start"><span class="fmnum">3</span><textarea id="notItems" placeholder="③ ประเด็นที่จะตรวจ (1 บรรทัด = 1 ประเด็น)&#10;เช่น ตรวจรายการขายน้ำมันเครื่องนอกบัญชี&#10;     ตรวจใบเสร็จรายรับ-รายจ่าย" style="flex:1;min-width:280px;min-height:100px;font-family:inherit"></textarea></div>
+      <div class="fmline" style="align-items:flex-start"><span class="fmnum">3</span><textarea id="notItems" placeholder="③ ประเด็นที่จะตรวจ (1 บรรทัด = 1 ประเด็นหลัก)&#10;ขึ้นต้น - ในบรรทัดใหม่ = ประเด็นย่อยของประเด็นหลักก่อนหน้า เช่น:&#10;ตรวจรายการขายน้ำมันเครื่องนอกบัญชี&#10;- ตรวจสิทธิ์โครงการขาย&#10;- ตรวจการอนุมัติราคา&#10;ตรวจใบเสร็จรายรับ-รายจ่าย" style="flex:1;min-width:280px;min-height:100px;font-family:inherit"></textarea></div>
       <div class="fmline"><span class="fmnum">4</span><input id="notOwner" placeholder="④ ผู้รับผิดชอบ เช่น ผจก.สาขาสอยดาว (บังคับ)" style="flex:1;min-width:280px">
         <input id="notDue" placeholder="กำหนดส่ง (ไม่บังคับ) เช่น 15 พ.ย." style="width:200px"></div>
       <div class="fmline"><span class="fmnum">+</span><input id="notBu" placeholder="BU ที่แจ้ง เช่น PAO / สอยดาว (บังคับ)" style="width:220px">
