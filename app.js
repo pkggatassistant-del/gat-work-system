@@ -752,7 +752,7 @@ function loadProcessDocs() {
       var sel = document.getElementById(id2); if (!sel) return;
       var cur = sel.value;
       sel.innerHTML = '<option value="">— เรื่องที่ GAT แจ้ง (เลือกเรื่องที่ส่ง) —</option>' + list.map(function (n) {
-        return '<option value="' + escP(n.NOTIF_ID) + '">' + escP(n.NOTIF_ID + ' · ' + n.BU + ' · ' + (n.PERIOD || '') + ' · ' + (n.items || []).length + ' เรื่อง') + '</option>';
+        return '<option value="' + escP(n.NOTIF_ID) + '">' + escP((n.TITLE ? n.TITLE + ' (' + n.NOTIF_ID + ')' : n.NOTIF_ID) + ' · ' + n.BU + ' · ' + (n.PERIOD || '') + ' · ' + (n.items || []).length + ' ประเด็น') + '</option>';
       }).join('');
       if (cur) sel.value = cur;
     });
@@ -764,7 +764,7 @@ function loadProcessDocs() {
     var n = currentPackNotif();
     if (!n) { box.style.display = 'none'; box.innerHTML = ''; return; }
     box.style.display = 'block';
-    box.innerHTML = '🧭 <b>' + escP(n.NOTIF_ID) + '</b> · หน่วยงาน: <b>' + escP(n.BU || '-') + '</b> · งวด: <b>' + escP(n.PERIOD || '-') + '</b> · ประเด็นรวม ' + (n.items || []).length + ' · แจ้งโดย: ' + escP(n.BY || 'GAT');
+    box.innerHTML = '🧭 <b>' + escP(n.TITLE || n.NOTIF_ID) + '</b>' + (n.TITLE ? ' <span style="opacity:.75">(' + escP(n.NOTIF_ID) + ')</span>' : '') + ' · หน่วยงาน: <b>' + escP(n.BU || '-') + '</b> · งวด: <b>' + escP(n.PERIOD || '-') + '</b> · ประเด็นรวม ' + (n.items || []).length + ' · แจ้งโดย: ' + escP(n.BY || 'GAT');
     var pp = document.getElementById('packPeriod');
     if (pp && !pp.value.trim() && n.PERIOD) pp.value = n.PERIOD;
   }
