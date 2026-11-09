@@ -215,16 +215,6 @@ function doPost(e) {
         var nFilled = backfillRefPmWi_(data.REF || 'P-04 ขั้น ④ (ตาม WI-02)');
         return json_({ ok: true, filled: nFilled });
       }
-      /* v1.8 (แดง 9 พ.ย. 69): แก้สถานะรายใบ — ใช้แปลง "P-04 ขั้น ④" เป็น "รอ GAT บันทึกประเด็น (ขั้น 3)" ตามวงจร 8 ขั้น */
-      case 'set_status': {
-        var lock5 = LockService.getScriptLock();
-        lock5.waitLock(10000);
-        try {
-          var r5 = setStatus_(data);
-          log_(data.BY || 'GAT', 'set_status', or_(data.REC_ID), or_(data.STATUS));
-          return json_({ ok: true, updated: r5 });
-        } finally { lock5.releaseLock(); }
-      }
       case 'fix_log_timestamps': {
         var nFixed = fixLogTimestamps_(data.NOTE || '2 พ.ย. 69 (แก้ย้อนหลัง — ค่าเดิมเสียจากบั๊ก v1.2)');
         return json_({ ok: true, fixed: nFixed });
@@ -250,7 +240,7 @@ function doPost(e) {
       case 'migrate':
         return json_({ ok: true, result: migrateSheets() });
       case 'ping':
-        return json_({ ok: true, version: (typeof CONFIG !== 'undefined' && CONFIG.VERSION) || 'gas-v1.2+ping', actions: 'open_issue,respond_issue,close_issue,submit_pack,update_pack_status,migrate,ping,clean_recs,backfill_ref_pm_wi,fix_log_timestamps,set_status' });
+        return json_({ ok: true, version: (typeof CONFIG !== 'undefined' && CONFIG.VERSION) || 'gas-v1.2+ping', actions: 'open_issue,respond_issue,close_issue,submit_pack,update_pack_status,migrate,ping,clean_recs,backfill_ref_pm_wi,fix_log_timestamps' });
       default:
         throw new Error('unknown action: ' + action);
     }
@@ -328,36 +318,6 @@ function closeIssue_(data) {
   sh.getRange(pos, headers.indexOf('GAT_CONFIRMED_AT') + 1).setValue(now_());
   sh.getRange(pos, headers.indexOf('CLOSED_AT') + 1).setValue(now_());
   return true;
-}
-
-/* ===== v1.8 (แดง 9 พ.ย. 69): แก้สถานะรายใบ (หนึ่งใบ/หลายใบ) — เช่นแปลงขั้นเก่าเป็นขั้นใหม่ ===== */
-function setStatus_(data) {
-  var sh = getSS_().getSheetByName(CONFIG.SHEETS.RECS);
-  if (!sh) throw new Error('ไม่พบชีท ' + CONFIG.SHEETS.RECS);
-  var headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
-  var ciS = headers.indexOf('STATUS') + 1;
-  var ciB = headers.indexOf('BU_DECISION') + 1;
-  var ciR = headers.indexOf('RESPONSIBLE') + 1;
-  var ciE = headers.indexOf('EVIDENCE_URL') + 1;
-  var status = or_(data.STATUS);
-  if (!status) throw new Error('ต้องระบุ STATUS ใหม่');
-  var n = 0;
-  var ids = Array.isArray(data.REC_IDS) ? data.REC_IDS : (or_(data.REC_ID) ? [data.REC_ID] : []);
-  if (!ids.length) throw new Error('ต้องระบุ REC_ID หรือ REC_IDS');
-  ids.forEach(function (rid) {
-    var pos = findRow_(sh, 'REC_ID', rid);
-    if (pos < 0) throw new Error('ไม่พบ REC_ID: ' + rid);
-    sh.getRange(pos, ciS).setValue(status);
-    /* ตัวเลือก: ดันข้อมูลคู่ไปด้วย (BU_DECISION/RESPONSIBLE/EVIDENCE_URL) */
-    if (data.FIELDS) {
-      var F = data.FIELDS;
-      if (F.BU_DECISION && ciB) sh.getRange(pos, ciB).setValue(F.BU_DECISION);
-      if (F.RESPONSIBLE && ciR) sh.getRange(pos, ciR).setValue(F.RESPONSIBLE);
-      if (F.EVIDENCE_URL && ciE) sh.getRange(pos, ciE).setValue(F.EVIDENCE_URL);
-    }
-    n++;
-  });
-  return n;
 }
 
 /* ===== v1.4 (GAT(แดง) 3 พ.ย. 69): บำรุงรักษาทางไกล ===== */

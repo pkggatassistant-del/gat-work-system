@@ -22,7 +22,7 @@
  */
 
 var CONFIG = {
-  VERSION: 'v1.9 (5 พ.ย. 69) — ชุดบล็อกเชน: GAT_Vault (ฐานข้อมูลห้ามแก้) + AuditLog โซ่ลายเช็ก + onEdit จับแก้มือ + verify_chain/verify_vault + snapshot_day + หมุดรายวัน — ครบทั้ง v1.8 สิทธิ์ + v1.7 แท็บ 10 ขั้น',
+  VERSION: 'v1.9.1 (9 พ.ย. 69) — เพิ่ม action set_status (แก้สถานะใบ REC รายใบ/หลายใบ + ประวัติ VAULT ซ้อน) ตามวงจร 8 ขั้น 9 พ.ย. 69 — ครบทั้ง v1.9 บล็อกเชน + v1.8 สิทธิ์ + v1.7 แท็บ 10 ขั้น',
   SHEETS: {
     REGISTERS: 'GAT_Registers',   // Master Register: รายการตรวจสอบ/ภาระต้องส่ง
     ENTRIES: 'GAT_Entries',       // รายการบันทึกผลตรวจสอบรายครั้ง (BU กรอก)
@@ -624,7 +624,7 @@ function doPost(e) {
       case 'logout':
         return json_({ ok: true, result: logout_(data) });
       case 'ping':
-        return json_({ ok: true, version: CONFIG.VERSION, auth: 'ทุก action ต้องล็อกอิน (action login) แล้วแนบ TOKEN — บัญชีอยู่ในแท็บ GAT_Users ของชีต; บทบาท GAT=ทุกอย่าง, BU=ส่งข้อมูล+ตอบใบ, VIEWER=ดูอย่างเดียว', actions: 'login,logout,set_users,open_issue,respond_issue,close_issue,submit_pack,update_pack_status,migrate,clean_recs,backfill_ref_pm_wi,fix_log_timestamps,push_plans,push_dta,sync_process_tabs,tabs_status,list_plans,list_dta,verify_chain,verify_vault,snapshot_day,daily_anchor,clean_test_rows' });
+        return json_({ ok: true, version: CONFIG.VERSION, auth: 'ทุก action ต้องล็อกอิน (action login) แล้วแนบ TOKEN — บัญชีอยู่ในแท็บ GAT_Users ของชีต; บทบาท GAT=ทุกอย่าง, BU=ส่งข้อมูล+ตอบใบ, VIEWER=ดูอย่างเดียว', actions: 'login,logout,set_users,open_issue,respond_issue,close_issue,set_status,submit_pack,update_pack_status,migrate,clean_recs,backfill_ref_pm_wi,fix_log_timestamps,push_plans,push_dta,sync_process_tabs,tabs_status,list_plans,list_dta,verify_chain,verify_vault,snapshot_day,daily_anchor,clean_test_rows' });
       case 'verify_chain': { // v1.9 — ตรวจโซ่ AuditLog
         var outVC = verifyChain();
         return json_({ ok: true, chain: outVC });
@@ -665,6 +665,16 @@ function doPost(e) {
         respondIssue_(data);
         log_(data.BY || 'BU', 'respond_issue', or_(data.REC_ID), or_(data.BU_DECISION));
         return json_({ ok: true });
+      }
+      /* v1.9.1 (แดง 9 พ.ย. 69) — แก้สถานะรายใบ: อ้างวงจร 8 ขั้นใหม่ เช่น "รอ GAT บันทึกประเด็น (ขั้น 3)" */
+      case 'set_status': {
+        var lock6 = LockService.getScriptLock();
+        lock6.waitLock(10000);
+        try {
+          var n6 = setStatus_(data);
+          log_(data.BY || 'GAT', 'set_status', or_(data.REC_ID) || (data.REC_IDS || []).join(','), or_(data.STATUS));
+          return json_({ ok: true, updated: n6 });
+        } finally { lock6.releaseLock(); }
       }
       case 'close_issue': {
         closeIssue_(data);
@@ -800,6 +810,28 @@ function respondIssue_(data) {
   sh.getRange(pos, ci('BU_RESPONDED_AT')).setValue(now_());
   vaultDiffRow_(CONFIG.SHEETS.RECS, sh, pos, ['BU_DECISION', 'STATUS', 'EVIDENCE_URL', 'NO_FIX_REASON', 'RESPONSIBLE', 'BU_RESPONDED_AT'], data.BY || 'BU', or_(data.REC_ID)); // v1.9
   return true;
+}
+
+/* ===== v1.9.1 (แดง 9 พ.ย. 69): แก้สถานะรายใบ — หนึ่งใบ/หลายใบ เช่นแปลงสถานะขั้นเก่า "P-04 ขั้น ④" → "รอ GAT บันทึกประเด็น (ขั้น 3)" ===== */
+function setStatus_(data) {
+  var sh = getSS_().getSheetByName(CONFIG.SHEETS.RECS);
+  if (!sh) throw new Error('ไม่พบชีท ' + CONFIG.SHEETS.RECS);
+  var headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  var ciS = headers.indexOf('STATUS') + 1;
+  var status = or_(data.STATUS);
+  if (!status) throw new Error('ต้องระบุ STATUS ใหม่');
+  var ids = Array.isArray(data.REC_IDS) ? data.REC_IDS : (or_(data.REC_ID) ? [data.REC_ID] : []);
+  if (!ids.length) throw new Error('ต้องระบุ REC_ID หรือ REC_IDS');
+  var n = 0;
+  for (var i = 0; i < ids.length; i++) {
+    var rid = ids[i];
+    var pos = findRow_(sh, 'REC_ID', rid);
+    if (pos < 0) throw new Error('ไม่พบ REC_ID: ' + rid);
+    sh.getRange(pos, ciS).setValue(status);
+    vaultDiffRow_(CONFIG.SHEETS.RECS, sh, pos, ['STATUS'], data.BY || 'GAT', rid); // v1.9.1 — เก็บก่อน/หลังลง VAULT
+    n++;
+  }
+  return n;
 }
 
 /* ===== GAT ปิดรายการหลังตรวจคำตอบ (ขั้น ⑤ ของ SOP) ===== */
