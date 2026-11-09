@@ -88,7 +88,11 @@ setTimeout(() => {
   ok('v1.14: แท็บ 1 มีการ์ดแจ้งเรื่อง + ส่งข้อมูล แยกครึ่ง', !!d.getElementById('notItems') && !!d.getElementById('btnNotifyPlan') && !!d.getElementById('packNotif') && !!d.getElementById('btnSendPack'));
   if (nb2) {
     nb2.value = 'PAO';
-    d.getElementById('notItems').value = 'เรื่องที่ 1: ตรวจสวัสดิการ — เอกสาร: ใบลา — ผู้รับผิดชอบ: PAO — กำหนดส่ง: 11 พ.ย.\nเรื่องที่ 2: ตรวจ IPD';
+    /* v1.31 — ฟอร์ม 4 ช่อง: ชื่อเรื่อง/เหตุการณ์/ประเด็น(แยกบรรทัด)/ผู้รับผิดชอบ */
+    d.getElementById('notTitle').value = 'ตรวจสวัสดิการพนักงาน';
+    d.getElementById('notEvent').value = 'พบข้อสงสัยการลาครั้งล่าสุด';
+    d.getElementById('notItems').value = 'ตรวจใบลา/สมุดลา\nตรวจ IPD ค้างชำระ';
+    d.getElementById('notOwner').value = 'ผจก. PAO';
     d.getElementById('btnNotifyPlan').click();
   }
   ok('v1.14: บันทึกแผน รันเลข PLAN-2569-', (d.getElementById('notStatus').textContent || '').indexOf('PLAN-2569-') >= 0);
@@ -102,7 +106,10 @@ setTimeout(() => {
   ok('v1.15: packBu dropdown รายชื่อครบ + PAO', optsP.length >= 55 && optsP.indexOf('PAO') >= 0, 'got ' + optsP.length);
   // saveNotifPlan อ่าน notBu.value ได้เมื่อเป็น input
   elN.value = 'PAO';
-  d.getElementById('notItems').value = 'เรื่องที่ 1: ทดสอบช่องกรอก';
+  d.getElementById('notTitle').value = 'ทดสอบช่องกรอก';
+  d.getElementById('notEvent').value = 'ทดสอบเหตุการณ์';
+  d.getElementById('notItems').value = 'ประเด็นทดสอบ';
+  d.getElementById('notOwner').value = 'ผจก. ทดสอบ';
   d.getElementById('btnNotifyPlan').click();
   ok('v1.16: บันทึกแผนจากช่องกรอก (ไม่ต้อง dropdown)', (d.getElementById('notStatus').textContent || '').indexOf('PLAN-2569-') >= 0);
 
@@ -193,7 +200,10 @@ setTimeout(() => {
 
   // --- v1.20: แท็บ 1 GAT ติ๊กเรื่องที่จะตรวจ → ส่งเข้าขั้น 3 (ไม่รอ PACK) ---
   try { localStorage.removeItem('gat_plan_pick'); } catch (e) {}
-  d.getElementById('notItems').value = 'เรื่องที่ 1: ตรวจใบลา — เอกสาร: สมุดลา\nเรื่องที่ 2: ตรวจหลักฐานชำระ ต.ค. — เอกสาร: ชีตเงินสดย่อย';
+  d.getElementById('notTitle').value = 'ตรวจใบลา+ชำระ';
+  d.getElementById('notEvent').value = 'ตรวจงวด ต.ค.';
+  d.getElementById('notItems').value = 'ตรวจใบลา — เอกสาร: สมุดลา\nตรวจหลักฐานชำระ ต.ค. — เอกสาร: ชีตเงินสดย่อย';
+  d.getElementById('notOwner').value = 'ผจก. PAO';
   // notBu เป็น input — เติมค่า
   d.getElementById('notBu').value = 'PAO';
   d.getElementById('btnNotifyPlan').click();

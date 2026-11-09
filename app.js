@@ -743,7 +743,7 @@ function loadProcessDocs() {
           var on = state.planPick && state.planPick[n.NOTIF_ID + '#' + i];
           return '<tr><td style="width:60px"><input type="checkbox" class="not-pick" id="' + chkId + '" data-idx="' + n.NOTIF_ID + '#' + i + '"' + (on ? ' checked' : '') + ' style="width:auto;margin:0 6px 0 0"> <b>เรื่องที่ ' + (i + 1) + '</b></td><td>' + escP(it) + '</td></tr>';
         }).join('');
-        return '<div class="card" style="border-left:4px solid #0e8345;margin-bottom:8px"><b>' + escP(n.NOTIF_ID) + '</b> · ' + escP(n.BU) + ' · ' + escP(n.PERIOD || '') + ' <span style="font-size:12px;color:#8a97a8">บันทึกเมื่อ ' + escP(n.SAVED_AT) + ' โดย ' + escP(n.BY || 'GAT') + '</span><table class="tbl">' + rows + '</table></div>';
+        return '<div class="card" style="border-left:4px solid #0e8345;margin-bottom:8px"><b>' + escP(n.NOTIF_ID) + '</b> · ' + escP(n.BU) + ' · ' + escP(n.PERIOD || '') + ' <span style="font-size:12px;color:#8a97a8">บันทึกเมื่อ ' + escP(n.SAVED_AT) + ' โดย ' + escP(n.BY || 'GAT') + '</span>' + (n.HEAD ? '<div style="font-size:13px;margin:4px 0">' + escP(n.HEAD) + '</div>' : '') + '<table class="tbl">' + rows + '</table></div>';
       }).join('');
   }
   function fillNotifPickers() {
@@ -782,24 +782,36 @@ function loadProcessDocs() {
   }
   function saveNotifPlan() {
     var st = document.getElementById('notStatus');
-    var bu = document.getElementById('notBu').value;
+    var g = function (id2) { var el = document.getElementById(id2); return el ? el.value.trim() : ''; };
+    var title = g('notTitle'), ev = g('notEvent'), owner = g('notOwner'), bu = g('notBu');
     var items = parseNotifItems(document.getElementById('notItems').value);
-    var by = document.getElementById('notBy').value.trim() || 'GAT';
-    if (!bu) { if (st) st.textContent = '⚠️ เลือก BU ก่อน'; return; }
-    if (!items.length) { if (st) st.textContent = '⚠️ ใส่ประเด็นอย่างน้อย 1 เรื่อง (1 บรรทัด = 1 เรื่อง)'; return; }
+    var by = g('notBy') || 'GAT';
+    /* v1.31 — บังคับ 4 ช่องหลักตามสั่ง: ชื่อเรื่อง/เหตุการณ์/ประเด็น/ผู้รับผิดชอบ (+BU) */
+    if (!title) { if (st) st.textContent = '⚠️ กรอก ① ชื่อเรื่องก่อน'; return; }
+    if (!ev) { if (st) st.textContent = '⚠️ กรอก ② เหตุการณ์ก่อน'; return; }
+    if (!items.length) { if (st) st.textContent = '⚠️ ใส่ ③ ประเด็นที่จะตรวจอย่างน้อย 1 บรรทัด (1 บรรทัด = 1 ประเด็น)'; return; }
+    if (!owner) { if (st) st.textContent = '⚠️ กรอก ④ ผู้รับผิดชอบก่อน'; return; }
+    if (!bu) { if (st) st.textContent = '⚠️ กรอก BU ที่แจ้งก่อน (เช่น PAO / สอยดาว)'; return; }
+    var due = g('notDue') || '';
     var list = loadNotifs();
     var seq = list.length + 1;
-    var n = { NOTIF_ID: 'PLAN-' + (new Date().getFullYear() + 543) + '-' + String(seq).padStart(3, '0'), BU: bu, PERIOD: document.getElementById('notPeriod').value.trim(), ITEMS: items, BY: by, SAVED_AT: new Date().toLocaleString('th-TH') };
-    list.push({ NOTIF_ID: n.NOTIF_ID, BU: n.BU, PERIOD: n.PERIOD, items: items, BY: n.BY, SAVED_AT: n.SAVED_AT });
+    var nid = 'PLAN-' + (new Date().getFullYear() + 543) + '-' + String(seq).padStart(3, '0');
+    /* items แสดงรวมเป็นข้อความต่อเรื่อง — โครงเดิม (dropdown ขั้น 2 + ติ๊กประเด็น) ใช้ต่อได้เลย */
+    var itemTexts = items.map(function (p) { return p; });
+    var head = 'ชื่อเรื่อง: ' + title + ' — เหตุการณ์: ' + ev + ' — ผู้รับผิดชอบ: ' + owner + (due ? ' — กำหนดส่ง: ' + due : '');
+    var n = { NOTIF_ID: nid, BU: bu, PERIOD: g('notPeriod'), TITLE: title, EVENT: ev, OWNER: owner, DUE: due, items: itemTexts, HEAD: head, BY: by, SAVED_AT: new Date().toLocaleString('th-TH') };
+    list.push({ NOTIF_ID: n.NOTIF_ID, BU: n.BU, PERIOD: n.PERIOD, TITLE: title, EVENT: ev, OWNER: owner, DUE: due, items: itemTexts, HEAD: head, BY: n.BY, SAVED_AT: n.SAVED_AT });
     saveNotifs(list);
-    fillNotifPickers(); renderNotifList(); fillPackSelectors(); /* v1.29: refresh หลังบันทึกแผน */
-    if (st) st.textContent = '✅ บันทึกแล้ว ' + n.NOTIF_ID + ' (' + items.length + ' ประเด็น) — BU เห็นเลือกส่งที่ครึ่งล่าง';
-    document.getElementById('notItems').value = '';
+    fillNotifPickers(); renderNotifList(); fillPackSelectors();
+    if (st) st.textContent = '✅ บันทึกแล้ว ' + n.NOTIF_ID + ' — ' + title + ' (' + items.length + ' ประเด็น · ผู้รับผิดชอบ: ' + owner + ')';
+    document.getElementById('notTitle').value = ''; document.getElementById('notEvent').value = '';
+    document.getElementById('notItems').value = ''; document.getElementById('notOwner').value = '';
+    var dd = document.getElementById('notDue'); if (dd) dd.value = '';
   }
   function downloadNotifDoc() {
     var list = loadNotifs(); if (!list.length) { status('⚠️ ยังไม่มีเรื่องที่บันทึก'); return; }
     var l = list[list.length - 1]; // อันล่าสุด
-    var lines = ['หนังสือแจ้งเรื่องที่จะตรวจ ' + l.NOTIF_ID, 'ถึง: ' + l.BU, 'งวด: ' + (l.PERIOD || '—'), '', 'เรื่องที่ GAT ขอตรวจ (รายประเด็น):', ''];
+    var lines = ['หนังสือแจ้งเรื่องที่จะตรวจ ' + l.NOTIF_ID, 'ถึง: ' + l.BU, 'งวด: ' + (l.PERIOD || '—'), 'ชื่อเรื่อง: ' + (l.TITLE || '—'), 'เหตุการณ์: ' + (l.EVENT || '—'), 'ผู้รับผิดชอบ: ' + (l.OWNER || '—') + (l.DUE ? ' — กำหนดส่ง: ' + l.DUE : ''), '', 'ประเด็นที่ GAT ขอตรวจ:', ''];
     (l.items || []).forEach(function (it, i) { lines.push('เรื่องที่ ' + (i + 1) + ': ' + it); });
     lines.push('', 'กรุณาส่งข้อมูลประกอบทุกประเด็นตามกำหนดวันส่งข้อมูลที่ระบุ — ส่งผ่านเว็บ GAT (แท็บ 1 — ครึ่งหลัง)', '', 'ลงชื่อ: ' + (l.BY || 'GAT'));
     download('gat-notify-' + l.NOTIF_ID + '.txt', lines.join('\n'), 'text/plain;charset=utf-8');

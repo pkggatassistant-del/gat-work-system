@@ -366,26 +366,25 @@ ol.manual li{margin-bottom:8px}
   <section class="tabpane" id="pane-p02pick">
     <!-- ============ ขั้น 1 ครึ่งแรก: GAT แจ้งเรื่องที่จะตรวจ (รายประเด็น) ============ -->
     <div class="card">
-      <div class="card-hd"><b>🧭 ขั้น 1 — GAT แจ้งเรื่องที่จะตรวจ (รายประเด็น)</b></div>
-      <p class="desc">GAT ใส่เรื่องที่ 1, 2, 3, … <b>แยกทีละประเด็น (1 บรรทัด = 1 เรื่อง)</b>: ประเด็นที่ตรวจ + หัวข้อเอกสารหลักฐานที่ต้องส่ง + ผู้รับผิดชอบ + กำหนดวันส่งข้อมูล — บันทึกแล้วเป็นรายการที่ BU เห็นและส่งตาม</p>
-      <div class="filters">
-        <input id="notBu" placeholder="BU ที่แจ้ง พิมพ์ได้เลย เช่น PAO" style="width:220px">
-        <input id="notPeriod" placeholder="งวด เช่น ต.ค. 69" style="width:170px">
-        <input id="notBy" placeholder="ชื่อ-ตำแหน่ง GAT ผู้แจ้ง" style="flex:1;min-width:200px">
-      </div>
-      <div class="filters"><textarea id="notItems" placeholder="เรื่องที่ 1: [ประเด็น] — เอกสาร: [...] — ผู้รับผิดชอบ: [...] — กำหนดส่ง: [...]
-เรื่องที่ 2: …
-เรื่องที่ 3: …" style="width:100%;min-height:140px;font-family:inherit"></textarea></div>
+      <div class="card-hd"><b>🧭 ขั้น 1 — GAT ตั้งเรื่องที่จะตรวจ (กรอก 4 ช่อง: ชื่อเรื่อง · เหตุการณ์ · ประเด็นที่จะตรวจ · ผู้รับผิดชอบ)</b></div>
+      <p class="desc">กรอกให้ครบทั้ง 4 ช่อง → กดบันทึก (รันเลขแผน) — <b>ประเด็นที่จะตรวจ ใส่ได้หลายบรรทัด (1 บรรทัด = 1 ประเด็น)</b> · บันทึกแล้ว BU เห็นและส่งหลักฐานตาม (แท็บ 2)</p>
+      <div class="fmline"><span class="fmnum">1</span><input id="notTitle" placeholder="① ชื่อเรื่อง เช่น ตรวจน้ำมันเครื่องเก่า สอยดาว (บังคับ)" style="flex:1;min-width:280px"></div>
+      <div class="fmline"><span class="fmnum">2</span><input id="notEvent" placeholder="② เหตุการณ์ เช่น พบรถดีเลอร์ขายน้ำมันสอยดาวเกินสิทธิ์ (บังคับ)" style="flex:1;min-width:280px"></div>
+      <div class="fmline" style="align-items:flex-start"><span class="fmnum">3</span><textarea id="notItems" placeholder="③ ประเด็นที่จะตรวจ (1 บรรทัด = 1 ประเด็น)&#10;เช่น ตรวจรายการขายน้ำมันเครื่องนอกบัญชี&#10;     ตรวจใบเสร็จรายรับ-รายจ่าย" style="flex:1;min-width:280px;min-height:100px;font-family:inherit"></textarea></div>
+      <div class="fmline"><span class="fmnum">4</span><input id="notOwner" placeholder="④ ผู้รับผิดชอบ เช่น ผจก.สาขาสอยดาว (บังคับ)" style="flex:1;min-width:280px">
+        <input id="notDue" placeholder="กำหนดส่ง (ไม่บังคับ) เช่น 15 พ.ย." style="width:200px"></div>
+      <div class="fmline"><span class="fmnum">+</span><input id="notBu" placeholder="BU ที่แจ้ง เช่น PAO / สอยดาว (บังคับ)" style="width:220px">
+        <input id="notPeriod" placeholder="งวด เช่น พ.ย. 69" style="width:150px">
+        <input id="notBy" placeholder="ชื่อ-ตำแหน่ง GAT ผู้แจ้ง" style="flex:1;min-width:180px"></div>
       <div class="filters">
         <button id="btnNotifyPlan" class="gold">🧭 บันทึกเรื่องที่จะตรวจ (รันเลขแผน)</button>
         <button class="button-lite" id="btnNotifyDl">⬇ ดาวน์โหลดหนังสือแจ้ง (.txt)</button>
         <button id="btnNotifPush" class="alt">☁️ ดันแผนแจ้งลงชีต</button>
       </div>
       <div id="notStatus" class="status" style="margin-top:8px"></div>
-      <!-- v1.20: GAT ติ๊กเรื่องที่จะตรวจ → ส่งเข้าขั้น 3 ได้ทันที (ไม่ต้องรอ PACK) -->
       <div id="notPickBox"></div>
       <div class="filters">
-        <button id="btnGotoAipFromPlan" class="gold">✅ จบขั้น 1 — ส่งเข้าขั้น 2 (รอ BU ส่งหลักฐาน + ครบแล้วเลือกตรวจด้านบน)</button>
+        <button id="btnGotoAipFromPlan" class="gold">✅ จบขั้น 1 — ส่งเข้าขั้น 2 (รอ BU ส่งหลักฐาน)</button>
       </div>
       <div id="notList"></div>
     </div>
