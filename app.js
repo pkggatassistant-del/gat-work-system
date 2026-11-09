@@ -804,10 +804,41 @@ function loadProcessDocs() {
     saveNotifs(list);
     fillNotifPickers(); renderNotifList(); fillPackSelectors();
     if (st) st.textContent = '✅ บันทึกแล้ว ' + n.NOTIF_ID + ' — ' + title + ' (' + items.length + ' ประเด็น · ผู้รับผิดชอบ: ' + owner + ')';
+    /* v1.32 — ปุ่มคัดลอกข้อความส่ง BU (TG) + พยายามคัดลอกให้ทันทีครั้งแรก (คลิกเดียว = ได้สิทธิ์; กดปุ่มครั้งต่อไปใช้ปุ่มเอง) */
+    var tgBtn = document.getElementById('btnNotifTg');
+    if (tgBtn && !tgBtn.dataset.tgAutoDone) {
+      tgBtn.dataset.tgAutoDone = '1';
+      try { document.execCommand('copy'); if (st) st.textContent += ' + 📋 คัดลอกข้อความส่ง BU แล้ว (วางใน TG ได้เลย)'; } catch (e) {}
+    }
     document.getElementById('notTitle').value = ''; document.getElementById('notEvent').value = '';
     document.getElementById('notItems').value = ''; document.getElementById('notOwner').value = '';
     var dd = document.getElementById('notDue'); if (dd) dd.value = '';
   }
+  /* v1.32 — ข้อความแจ้ง BU (TG-ready) จากใบแจ้งล่าสุด — ปุ่ม "📋 คัดลอกข้อความส่ง BU" */
+  function appTgText(n) {
+    if (!n) return '';
+    var L = [];
+    L.push('🔔 แจ้งตรวจ — ' + (n.TITLE || n.NOTIF_ID));
+    L.push('เลขใบ: ' + n.NOTIF_ID);
+    L.push('BU ที่แจ้ง: ' + (n.BU || '—'));
+    L.push('งวด: ' + (n.PERIOD || '—'));
+    L.push('เหตุการณ์: ' + (n.EVENT || '—'));
+    L.push('ผู้รับผิดชอบ: ' + (n.OWNER || '—') + (n.DUE ? ' · กำหนดส่ง: ' + n.DUE : ''));
+    L.push('');
+    L.push('ประเด็นที่ขอตรวจ:');
+    (n.items || []).forEach(function (it, i) { L.push((i + 1) + '. ' + it); });
+    L.push('');
+    L.push('กรุณาส่งหลักฐานประกอบทุกประเด็น ผ่านเว็บ GAT แท็บ 2 ภายในกำหนด');
+    L.push('เข้าเว็บ: https://pkggatassistant-del.github.io/gat-work-system/');
+    L.push('— ทีม GAT (' + (n.BY || 'GAT') + ')');
+    return L.join('\n');
+  }
+  function copyNotifTg() {
+    var list = loadNotifs(); if (!list.length) { status('⚠️ ยังไม่มีเรื่องที่บันทึก'); return; }
+    var last = list[list.length - 1];
+    copyText(appTgText(last), '📋 คัดลอกข้อความแจ้ง BU แล้ว ' + last.NOTIF_ID + ' — วางใน TG ได้เลย');
+  }
+
   function downloadNotifDoc() {
     var list = loadNotifs(); if (!list.length) { status('⚠️ ยังไม่มีเรื่องที่บันทึก'); return; }
     var l = list[list.length - 1]; // อันล่าสุด
@@ -1317,13 +1348,25 @@ function loadProcessDocs() {
     if (box.value.trim()) box.value = box.value.trim() + '\n' + snap; else box.value = snap;
     if (st) st.textContent = '🔄 ดึงสิ่งที่เกิดระหว่างวันเสาร์–ศุกร์ (จากชีต/ระบบปัจจุบัน) แล้ววางท้าย "บทวิเคราะห์" — GAT ตรวจ/แก้ไขก่อนกดรายงาน';
   }
+  /* v1.32 — ดันแผนแจ้ง 2 ชีต: GAT_Plans (เดิม) + "ใบแจ้งประเด็น BU" (GAS v1.10 — เก็บฟอร์ม 4 ช่องครบ) */
   function pushPlansToSheet() {
     var st = document.getElementById('notStatus'); if (st) st.textContent = 'กำลังดันแผนแจ้งลงชีต…';
     var list = loadNotifs();
     if (!list.length) { if (st) st.textContent = '⚠️ ยังไม่มีแผนแจ้งในเครื่องนี้'; return; }
+    var done = { plans: false, notifs: false }, resTxt = { plans: '', notifs: '' };
+    var finish = function () {
+      if (!(done.plans && done.notifs)) return;
+      if (st) st.textContent = '☁️ ดันลงชีตแล้ว — GAT_Plans: ' + resTxt.plans + ' · ใบแจ้งประเด็น BU: ' + resTxt.notifs;
+    };
     postToBCT('push_plans', { rows: list }, function (res) {
-      if (res.ok && res.saved) { if (st) st.textContent = '✅ ดันแผนแจ้งลงชีตแล้ว ' + res.saved + ' แผน (แท็บ GAT_Plans) — BU/ทีมเห็นข้อมูลชุดเดียว'; }
-      else if (st) st.textContent = '❌ GAS ยังไม่รองรับ push_plans — ต้อง deploy v1.6 (ส่งให้พี่หนึ่งแล้ว)';
+      done.plans = true;
+      resTxt.plans = (res.ok && res.saved) ? ('สำเร็จ ' + res.saved + ' แผน') : '❌ ล้มเหลว (ต้อง deploy GAS v1.6+)';
+      finish();
+    });
+    postToBCT('push_notifs', { rows: list }, function (res) {
+      done.notifs = true;
+      resTxt.notifs = (res.ok && res.saved) ? ('สำเร็จ ' + res.saved + ' ใบ (updated ' + (res.updated || 0) + ')') : '❌ GAS ยังไม่รองรับ push_notifs — ต้อง deploy GAS v1.10 (แท็บ "ใบแจ้งประเด็น BU" ยังไม่เกิด)';
+      finish();
     });
   }
   function pushDtaToSheet() {
@@ -1874,6 +1917,7 @@ function loadProcessDocs() {
     /* v1.14 P-01 แจ้งเรื่อง */
     var n1 = id('btnNotifyPlan'); if (n1) n1.addEventListener('click', saveNotifPlan);
     var n3 = id('btnNotifPush'); if (n3) n3.addEventListener('click', pushPlansToSheet);
+    var n4 = id('btnNotifTg'); if (n4) n4.addEventListener('click', copyNotifTg);
     var n2 = id('btnNotifyDl'); if (n2) n2.addEventListener('click', downloadNotifDoc);
     fillNotifPickers(); renderNotifList();
     showTab('dashboard');
@@ -1991,6 +2035,6 @@ function loadProcessDocs() {
   }
 
   return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, initD10: initD10, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess,
- _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _notifs: function (l) { if (l) saveNotifs(l); return loadNotifs(); }, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks, _renderRecs: renderRecs, _renderPickTable: renderPickTable, _removePickPacks: removePickPacks, _renderSentTable: renderSentTable,
+ _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _notifs: function (l) { if (l) saveNotifs(l); return loadNotifs(); }, _appTgText: appTgText, _copyNotifTg: copyNotifTg, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks, _renderRecs: renderRecs, _renderPickTable: renderPickTable, _removePickPacks: removePickPacks, _renderSentTable: renderSentTable,
     _renderInspect: renderInspect, _saveAuditResult: saveAuditResult, _renderResult4: renderResult4, _sumDecide: sumDecide, _renderExtraTable: renderExtraTable, _sendExtraEvidence: sendExtraEvidence, _sendResultToBU: sendResultToBU, _renderCloseBig: renderCloseBig, _closeBig: closeBig, _fillInspectPack: fillInspectPack };
 })();
