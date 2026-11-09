@@ -963,7 +963,8 @@ function loadProcessDocs() {
   }
   function sendPack() {
     var st = document.getElementById('packStatus');
-    var bu = document.getElementById('packBu').value;
+    var buEl = document.getElementById('packBu');
+    var bu = (buEl && buEl.value) ? buEl.value : '';
     var title = document.getElementById('packTitle').value.trim();
     var note = document.getElementById('packNote').value.trim();
     var notif = currentPackNotif();
@@ -971,10 +972,12 @@ function loadProcessDocs() {
     var notifObj = notif || {};
     var selItems = packSelItems();
     var by = document.getElementById('packBy').value.trim() || 'BU';
-    if (!bu) { if (st) st.textContent = '⚠️ เลือก BU ก่อน'; return; }
+    /* v1.33.3 — เลือก BU ไม่จำเป็น: ระบบใช้ BU ตามเรื่องที่เลือก (บัญชี BU โดน GAS ล็อกอยู่แล้ว) */
+    if (!bu) bu = notifObj.BU || '';
     /* v1.26 — บังคับเลือกเรื่องจากขั้น 1 (ถ้าระบบมีแผนแจ้ง) */
     var hasPlans = loadNotifs().length > 0;
-    if (!notifId && hasPlans) { if (st) st.textContent = '⚠️ เลือกประเด็นที่ GAT แจ้ง (ขั้น 1) ก่อน — ขาดไม่ได้'; return; }
+    if (!notifId && hasPlans) { if (st) st.textContent = '⚠️ เลือกเรื่องที่ GAT แจ้ง (ขั้น 1) ก่อน — ขาดไม่ได้'; return; }
+    if (!bu) { if (st) st.textContent = '⚠️ ไม่พบหน่วยงาน (BU) ตามเรื่องที่เลือก — ตรวจแผนแจ้งขั้น 1'; return; }
     var subs = notifSubs(notifObj);
     var picked = (notifObj.items || []).map(function (it, i) { return { i: i, t: it }; }).filter(function (x) { return selItems[notifId + '::' + x.i]; });
     if (!picked.length) { if (st) st.textContent = '⚠️ ติ๊กประเด็นหลักที่ส่งครั้งนี้อย่างน้อย 1 ประเด็น'; return; }

@@ -269,16 +269,16 @@ ol.manual li{margin-bottom:8px}
     <!-- ============ ขั้น 2: BU ส่งข้อมูลตามเรื่องที่แจ้ง ============ -->
     <div class="card">
       <div class="card-hd"><b>📤 ขั้น 2 — BU ส่งข้อมูลตามเรื่องที่ GAT แจ้ง</b></div>
-      <p class="desc">เลือก <b>เรื่องที่ GAT แจ้ง (ขั้น 1)</b> → ระบบแสดง <b>ประเด็นที่ต้องส่ง</b> → <b>ติ๊กประเด็นหลัก</b> → ระบบแสดง <b>ประเด็นย่อยทั้งหมด</b>ให้เลือกส่ง + <b>แนบหลักฐานบังคับต่อประเด็น</b> → ระบบรันเลข PACK-xxxx ลงชีตกลาง → เข้า <b>ขั้น 3</b> ให้ GAT เลือกตรวจ — SLA: ส่งให้ครบ <b>ภายในกำหนดวันส่ง</b>ที่ GAT แจ้งไว้ทุกเรื่อง (WI-01)</p>
+      <p class="desc">เลือก <b>เรื่องที่ GAT แจ้ง (ขั้น 1)</b> — <b>BU ระบบจัดให้อัตโนมัติตามเรื่อง ไม่ต้องเลือก</b> → ระบบแสดง <b>ประเด็นที่ต้องส่ง</b> → <b>ติ๊กประเด็นหลัก</b> → ระบบแสดง <b>ประเด็นย่อยทั้งหมด</b>ให้เลือกส่ง + <b>แนบหลักฐานบังคับต่อประเด็น</b> → ระบบรันเลข PACK-xxxx ลงชีตกลาง → เข้า <b>ขั้น 3</b> ให้ GAT เลือกตรวจ — SLA: ส่งให้ครบ <b>ภายในกำหนดวันส่ง</b>ที่ GAT แจ้งไว้ทุกเรื่อง (WI-01)</p>
       <!-- v1.27 — ฟอร์มเรียงตามลำดับ ①–⑤ -->
-      <div class="fmline"><span class="fmnum">①</span><select id="packBu" style="width:210px"><option value="">— เลือก BU —</option></select><span class="fmhint">หน่วยงานของคุณ (ล็อกตามบัญชี)</span></div>
-      <div class="fmline"><span class="fmnum">②</span><select id="packNotif" style="flex:1;min-width:260px"><option value="">— เลือกเรื่องที่ GAT แจ้ง —</option></select></div>
+      <div class="fmline" style="display:none"><span class="fmnum">①</span><select id="packBu" style="width:210px"><option value="">— เลือก BU —</option></select><span class="fmhint">หน่วยงาน (ระบบเลือกให้ตามเรื่องอัตโนมัติ — ไม่ต้องเลือก)</span></div>
+      <div class="fmline"><span class="fmnum">①</span><select id="packNotif" style="flex:1;min-width:260px"><option value="">— เลือกเรื่องที่ GAT แจ้ง —</option></select></div>
       <div id="packPlanMeta" class="fmmeta" style="display:none"></div>
-      <div class="fmline"><span class="fmnum">③</span><b style="font-size:13.5px">ติ๊กประเด็นหลักที่ส่งครั้งนี้</b><span class="fmhint">ติ๊กแล้วประเด็นย่อยเปิดโชว์ใต้ทันที (ติ๊กย่อยที่จะส่ง — ถอดออกได้)</span><span id="packItemCnt" class="fmcount">0 รายการ</span></div>
+      <div class="fmline"><span class="fmnum">②</span><b style="font-size:13.5px">ติ๊กประเด็นหลักที่ส่งครั้งนี้</b><span class="fmhint">ติ๊กแล้วประเด็นย่อยเปิดโชว์ใต้ทันที (ติ๊กย่อยที่จะส่ง — ถอดออกได้)</span><span id="packItemCnt" class="fmcount">0 รายการ</span></div>
       <div id="packItemBox" style="margin:4px 0 8px 34px"></div>
-      <div class="fmline"><span class="fmnum">④</span><b style="font-size:13.5px">แนบหลักฐานต่อประเด็น (ย่อย)</b><span class="fmhint" style="color:#b48a3c">บังคับ — ไม่มีหลักฐาน = ไม่บันทึก</span><span id="packEvidCnt" class="fmcount">0/0</span></div>
+      <div class="fmline"><span class="fmnum">③</span><b style="font-size:13.5px">แนบหลักฐานต่อประเด็น (ย่อย)</b><span class="fmhint" style="color:#b48a3c">บังคับ — ไม่มีหลักฐาน = ไม่บันทึก</span><span id="packEvidCnt" class="fmcount">0/0</span></div>
       <div id="packEvidBox" style="margin:4px 0 8px 34px"></div>
-      <div class="fmline"><span class="fmnum">⑤</span><input id="packTitle" placeholder="หัวเรื่องการส่ง เช่น รายละเอียดเงินสดย่อย ต.ค. 69 (บังคับ)" style="flex:1;min-width:280px"></div>
+      <div class="fmline"><span class="fmnum">④</span><input id="packTitle" placeholder="หัวเรื่องการส่ง เช่น รายละเอียดเงินสดย่อย ต.ค. 69 (บังคับ)" style="flex:1;min-width:280px"></div>
       <div class="fmline" style="margin-left:34px"><input id="packPeriod" placeholder="งวด (เติมให้อัตโนมัติจากแผน — แก้ได้)" style="width:230px"></div>
       <div class="fmline" style="margin-left:34px"><textarea id="packNote" placeholder="หมายเหตุถึง GAT (ไม่บังคับ)" style="width:100%;min-height:56px;flex:1;font-family:inherit"></textarea></div>
       <div class="fmline" style="margin-left:34px"><input id="packBy" placeholder="ชื่อ-ตำแหน่งจริงผู้ส่ง (BU)" style="width:250px">
