@@ -896,9 +896,9 @@ function loadProcessDocs() {
         }).join('');
         subsHtml = '<div style="margin:4px 0 6px 22px;padding:8px 8px 8px 12px;background:#f3f5f9;border-radius:8px;font-size:13px"><b style="font-size:12px;color:#3d5271">ประเด็นย่อยทั้งหมด:</b>' + subRows + '</div>';
       }
-      return '<div style="border-bottom:1px dashed #e3e9f2;padding:6px 0"><label style="display:block;padding:4px 10px;border-radius:8px;cursor:pointer"><input type="checkbox" data-itemid="' + escP(id2) + '"' + c + ' style="margin-right:8px"> <b>' + (i + 1) + '.</b> ' + escP(it) + '</label>' + subsHtml + '</div>';
+      return '<div style="border-bottom:1px dashed #e3e9f2;padding:6px 0;color:#1a2b45"><label style="display:block;padding:4px 10px;border-radius:8px;cursor:pointer;color:#1a2b45"><input type="checkbox" data-itemid="' + escP(id2) + '"' + c + ' style="margin-right:8px"> <b>' + (i + 1) + '.</b> ' + escP(it) + '</label>' + subsHtml + '</div>';
     }).join('');
-    box.innerHTML = '<div style="background:#0b1526;border:1px solid #2a4570;border-radius:10px;padding:10px;max-height:420px;overflow:auto"><div style="margin-bottom:6px"><b>ประเด็นหลักที่ BU ต้องส่งข้อมูล (ตาม ' + escP(n.NOTIF_ID) + ' — งวด ' + escP(n.PERIOD || '—') + '):</b> <span style="color:#7d93b2;font-size:12.5px">ติ๊กประเด็นหลัก → ประเด็นย่อยเปิดให้เลือกส่ง</span></div>' + rows + '</div>';
+    box.innerHTML = '<div style="background:#fff;border:1px solid #cdd8e6;border-radius:10px;padding:10px;max-height:420px;overflow:auto"><div style="margin-bottom:6px;color:#1a2b45"><b>ประเด็นหลักที่ BU ต้องส่งข้อมูล (ตาม ' + escP(n.NOTIF_ID) + ' — งวด ' + escP(n.PERIOD || '—') + '):</b> <span style="color:#7d93b2;font-size:12.5px">ติ๊กประเด็นหลัก → ประเด็นย่อยเปิดให้เลือกส่ง</span></div>' + rows + '</div>';
     box.querySelectorAll('input[data-itemid]').forEach(function (cb) {
       cb.addEventListener('change', function () {
         var st0 = packSelItems();
