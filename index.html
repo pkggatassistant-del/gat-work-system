@@ -200,15 +200,14 @@ ol.manual li{margin-bottom:8px}
     </div>
   </div>
   <nav id="mainNav">
-    <div class="nav-hd">ระบบปฏิบัติงาน 8 ขั้น</div>
+    <div class="nav-hd">ระบบปฏิบัติงาน 7 ขั้น (ผัง draw.io 9 พ.ย. 69)</div>
     <a data-tab="p02pick"><span class="ic">🗂</span> 1. GAT ตั้งเรื่อง+ประเด็นที่จะตรวจ</a>
-    <a data-tab="packs"><span class="ic">📤</span> 2. BU ส่งข้อมูลที่จะตรวจ</a>
-    <a data-tab="aisel"><span class="ic">📝</span> 3. GAT บันทึกประเด็นข้อเสนอแนะ</a>
-    <a data-tab="aisend"><span class="ic">🧾</span> 4. GAT ส่งให้ BU</a>
-    <a data-tab="bufix"><span class="ic">🛠</span> 5. BU นำไปแก้ไข</a>
-    <a data-tab="buanswer"><span class="ic">✍️</span> 6. BU แก้/ไม่แก้ + หลักฐาน/เหตุผล</a>
-    <a data-tab="close"><span class="ic">🔒</span> 7. GAT พิจารณา+ปิดประเด็น</a>
-    <a data-tab="d10"><span class="ic">📊</span> 8. รายงานวัดผล DTA</a>
+    <a data-tab="packs"><span class="ic">📤</span> 2. BU ส่งหลักฐาน (แรก+ส่งเพิ่มเติม)</a>
+    <a data-tab="inspect"><span class="ic">🔍</span> 3. GAT ตรวจหลักฐาน</a>
+    <a data-tab="sum4"><span class="ic">📋</span> 4. GAT สรุปผลการตรวจ</a>
+    <a data-tab="close"><span class="ic">🔒</span> 5. ปิดประเด็น (ย่อย+ใหญ่)</a>
+    <a data-tab="aisend"><span class="ic">🧾</span> 6. ส่งผลการตรวจให้ BU</a>
+    <a data-tab="d10"><span class="ic">📊</span> 7. รายงานวัดผล DTA (ศุกร์)
     <div class="nav-hd">ฐานข้อมูล</div>
     <a data-tab="registers"><span class="ic">🗄</span> Registers</a>
     <a data-tab="universe"><span class="ic">🌐</span> Regulatory Universe</a>
@@ -288,7 +287,7 @@ ol.manual li{margin-bottom:8px}
       <!-- v1.20: GAT ติ๊กเรื่องที่จะตรวจ → ส่งเข้าขั้น 3 ได้ทันที (ไม่ต้องรอ PACK) -->
       <div id="notPickBox"></div>
       <div class="filters">
-        <button id="btnGotoAipFromPlan" class="gold">📝 ส่งเรื่องที่ติ๊กเข้าขั้น 3 — บันทึกประเด็นข้อเสนอแนะ</button>
+        <button id="btnGotoAipFromPlan" class="gold">✅ จบขั้น 1 — ส่งเข้าขั้น 2 (รอ BU ส่งหลักฐาน + ครบแล้วเลือกตรวจด้านบน)</button>
       </div>
       <div id="notList"></div>
     </div>
@@ -313,7 +312,30 @@ ol.manual li{margin-bottom:8px}
       </div>
       <div id="packStatus" class="status" style="margin-top:8px"></div>
     </div>
-  </section>
+  
+    <div class="card" style="border-top:4px solid #c0392b;margin-top:12px">
+<div class="card-hd"><b>⛔ สายไม่ผ่าน — ส่งหลักฐานเพิ่มเติม (ขั้น 2 เดียวกัน)</b></div>
+
+    <div class="card">
+      <div class="card-hd"><b>📤 ขั้น 2 (สายไม่ผ่าน) — BU ส่งหลักฐานเพิ่มเติม เมื่อผลตรวจบอก ไม่ผ่าน</b></div>
+      <p class="desc">ผลตรวจ <b>ไม่ผ่าน</b> (ขั้น 4) → กลับมาหน้านี้ (ขั้น 2): เลือก PACK เดิม → กรอกหลักฐานเพิ่มเติมตามประเด็นที่ไม่ผ่าน → ส่ง → กลับเข้า <b>ขั้น 3</b> ให้ GAT ตรวจใหม่ (แท็บเดียว รองรับทั้งส่งรอบใหม่+ส่งเพิ่มเติม — ตามสั่ง)</p>
+    </div>
+    <div class="card">
+      <div class="card-hd"><b>📋 รายการที่ ไม่ผ่าน — รอส่งหลักฐานเพิ่มเติม</b></div>
+      <div style="overflow-x:auto"><table class="table"><thead><tr><th>เลขแพ็ค</th><th>BU</th><th>หัวเรื่อง</th><th>ผลที่ไม่ผ่าน (จากขั้น 4)</th><th>ครั้งที่</th></tr></thead><tbody id="extraBody"><tr><td colspan="5" class="empty">— ยังไม่มีรายการไม่ผ่าน —</td></tr></tbody></table></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><b>📝 ฟอร์มส่งหลักฐานเพิ่มเติม</b></div>
+      <div class="fmline"><span class="fmnum">①</span><select id="extraPackPick" style="flex:1;min-width:300px"><option value="">— เลือก PACK ที่ไม่ผ่าน —</option></select></div>
+      <div id="extraPackMeta" class="desc" style="margin:4px 0 8px 34px"></div>
+      <div class="fmline"><span class="fmnum">②</span><textarea id="extraLinks" placeholder="ลิงก์หลักฐานเพิ่มเติม (1 ลิงก์ต่อบรรทัด) + ระบุว่าประเด็นไหน เช่น [ประเด็น 2] ลิงก์สลิปฝาก..." style="width:100%;min-height:90px;flex:1;font-family:inherit;font-size:13px"></textarea></div>
+      <div class="fmline"><span class="fmnum">③</span><input id="extraNote" placeholder="หมายเหตุถึง GAT (ไม่บังคับ)" style="flex:1;min-width:260px"></div>
+      <div class="fmline"><span class="fmnum">④</span><input id="extraBy" placeholder="ชื่อ-ตำแหน่งจริงผู้ส่ง (BU)" style="width:250px">
+      <button id="btnExtraSend" class="gold">📤 ส่งหลักฐานเพิ่มเติม (กลับเข้าขั้น 3 ให้ตรวจใหม่)</button></div>
+      <div id="extraStatus" class="status" style="margin-top:8px"></div>
+    </div>
+  
+    </div></section>
 
 
   <!-- ============ BCT ============ -->
@@ -374,7 +396,7 @@ ol.manual li{margin-bottom:8px}
       <div class="filters"><button class="button-lite" id="btnLoadPacksPick">🔄 รีเฟรชสถานะการส่ง</button></div>
       <div style="overflow-x:auto"><table id="pickTable" class="table"><thead><tr><th style="width:44px">เลือก</th><th>เลข Pack</th><th>BU</th><th>ขอบเขต</th><th>หัวเรื่อง</th><th>สถานะ</th></tr></thead><tbody id="pickBody"><tr><td colspan="6" class="empty">ยังไม่มีข้อมูล — กด รีเฟรชสถานะ</td></tr></tbody></table></div>
       <div class="filters">
-        <button id="btnGotoAi" class="gold">📝 ไปขั้น 3 — บันทึกประเด็นข้อเสนอแนะ</button>
+        <button id="btnGotoAi" class="gold">✅ จบขั้น 1 — ส่งต่อขั้น 2 (ให้ BU ส่งหลักฐาน)</button>
         <button id="btnPickRemove" class="button-lite" style="border-color:#c0392b;color:#c0392b">🗑 ลบออกจากรายการ (เลือกช่องก่อน)</button>
         <span id="pickStatus" class="status"></span>
       </div>
@@ -388,149 +410,140 @@ ol.manual li{margin-bottom:8px}
     </div>
 </section>
 
-  <!-- ============ 3. แท็บ GAT ตรวจด้วย AI ============ -->
-  <section class="tabpane" id="pane-aiprompt">
+  <!-- ============ ขั้น 3: GAT ตรวจหลักฐาน (v1.29 — ตามผัง draw.io 9 พ.ย. 69) ============ -->
+  <section class="tabpane" id="pane-inspect">
     <div class="card">
-      <div class="card-hd"><b>🧩 ขั้น 2 ต่อยอด — เตรียมหลักฐาน + ชุดคำสั่งสำหรับ AI ตรวจนอกระบบ (ตามสั่ง 9 พ.ย. 69: AI วิเคราะห์อยู่นอกเว็บ)</b></div>
-      <p class="desc">เลือก Pack → กดสร้างชุดคำสั่ง AI (ระบบกรอกหัวข้อ/กติกา GAT ให้ครบ) → คัดลอกไปวางในโปรแกรม AI ที่ใช้ตรวจ → ได้ผลแล้วนำกลับมาบันทึกที่ <b>แท็บ 3 — GAT บันทึกประเด็นข้อเสนอแนะ</b></p>
+      <div class="card-hd"><b>🔍 ขั้น 3 — ทีม GAT ตรวจหลักฐานที่ BU ส่งมา (รายละเอียดการตรวจ + ผลการตรวจขั้นนี่)</b></div>
+      <p class="desc">เลือกการส่ง (PACK) จากตาราง → เติม <b>รายละเอียดการตรวจ</b> (วิธี/ตัวชิ้น) + <b>ผลการตรวจรายประเด็น</b> + สรุปผลรวม (ผ่าน/ไม่ผ่าน) → กดบันทึกลงชีต — ผลจะไปรวมที่ <b>ขั้น 4 (สรุปผลการตรวจ)</b> · ถ้า <span style="color:#c0392b">ไม่ผ่าน</span> = สถานะกลับ <b>ขั้น 2</b> ให้ BU ส่งหลักฐานเพิ่มเติม แล้ววนมาตรวจใหม่ · ผลตรวจฝั่งเขียนบนแพ็คของชีต (มี VAULT + AuditLog อัตโนมัติ)</p>
+    </div>
+    <div class="card">
+      <div class="card-hd"><b>🎯 เลือกการส่ง (PACK) ที่จะตรวจ</b></div>
+      <div class="filters"><select id="inspPackPick" style="flex:1;min-width:300px"><option value="">— เลือก PACK ที่ BU ส่ง —</option></select>
+      <button class="button-lite" id="btnInspRefresh">🔄 รีเฟรชรายการ</button></div>
+      <div id="inspPackMeta" class="desc" style="margin-top:6px"></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><b>📝 ฟอร์มผลการตรวจ (ต่อ PACK)</b></div>
+      <p class="desc">ระบุ <b>ผู้ตรวจ</b> + <b>วันที่ตรวจ</b> + รายละเอียดวิธีตรวจ + ผลรายประเด็น + สรุปผล — บันทึกแล้วระบบพิมพ์บล็อกมาตรฐานลงช่องผลการตรวจของชีต (PACKS: AI_NOTE) + สถานะรายแพ็ค</p>
+      <div class="filters"><input id="inspBy" placeholder="ชื่อ-ตำแหน่งจริงผู้ตรวจ (GAT) — บังคับ" style="flex:1;min-width:260px">
+      <input id="inspDate" type="date" style="width:170px"></div>
+      <div class="filters"><textarea id="inspDetail" placeholder="รายละเอียดการตรวจ: วิธีตรวจ / หลักฐานที่เปิด / มาตรฐานที่ใช้เทียบ (เช่น แกน 5 เส้า/ระบิับ PKG 2567)" style="width:100%;min-height:90px;font-family:inherit"></textarea></div>
+      <div class="filters"><textarea id="inspResult" placeholder="ผลการตรวจรายประเด็น — 1 บรรทัดต่อประเด็น: [ประเด็น 1] … = ผ่าน / [ประเด็น 2] … = ไม่ผ่าน (เหตุผล + อ้างหลัฐ)" style="width:100%;min-height:120px;font-family:inherit"></textarea></div>
       <div class="filters">
-        <select id="aiPackPick" style="flex:1;min-width:280px"><option value="">— เลือก Pack ที่ BU ส่ง —</option></select>
-        <button class="button-lite" id="btnAiBuild">🧩 สร้างชุดคำสั่ง AI (จาก Pack ที่เลือก)</button>
+        <select id="inspSums" style="flex:1;min-width:300px">
+          <option value="ผ่าน">✅ ผ่านทั้งหมด (จบขั้น 3 → ขั้น 4)</option>
+          <option value="ไม่ผ่าน">⛔ ไม่ผ่าน — ส่งกลับขั้น 2 (BU ส่งหลักฐานเพิ่มเติม)</option>
+          <option value="ผ่านบางส่วน">🟡 ผ่านบางประเด็น — ประเด็นที่ไม่ผ่านกลับขั้น 2</option>
+        </select>
       </div>
-      <div id="buLinksCard"></div>
-      <!-- v1.18: ลิงก์หลักฐานให้ AI — จากคำอธิบายของหนึ่ง (BU ลิงก์ติดสิทธิ์ → GAT ดาวน์โหลด → นำขึ้นชีต GAT → แชร์ให้ OpenClaw) -->
-      <div class="card" style="margin:10px 0;border-left:4px solid #e8a13a">
-        <div class="card-hd"><b>🔗 ลิงก์หลักฐานฉบับที่ AI อ่านได้ — วางที่นี่</b></div>
-        <p class="desc">ลิงก์จาก BU มัก<b>ติดสิทธิ์การเข้าถึง</b> — ทีม GAT ต้อง: ①ดาวน์โหลดลงเครื่อง → ②นำขึ้น Google Sheet ของ GAT → ③กดแชร์สิทธิ์ให้ <b>openclaw (AI ตรวจ)</b> → ④วางลิงก์ชีต GAT ตรงนี้ — ระบบจะใช้ลิงก์นี้ในชุดคำสั่ง AI แทนลิงก์เดิมของ BU อัตโนมัติ</p>
-        <div class="filters">
-          <input id="aiEvidenceLinks" placeholder="ลิงก์ชีต/ไฟล์ GAT ที่แชร์แล้ว (ขึ้นบรรทัดใหม่ = หลายลิงก์)" style="flex:1;min-width:280px">
-          <button class="button-lite" id="btnSaveEvidence">💾 บันทึกลิงก์ (ผูก Pack นี้)</button>
-        </div>
-        <div id="evidenceStatus" class="status"></div>
-      </div>
-      <div class="filters"><textarea id="aiPrompt" placeholder="ชุดคำสั่ง AI จะปรากฏที่นี่ — กดคัดลอก พาไปวางใน AI ที่ใช้ตรวจ" style="width:100%;min-height:150px" readonly></textarea></div>
-      <div class="filters"><button class="button-lite" id="btnAiCopy">📋 คัดลอกชุดคำสั่ง</button></div>
       <div class="filters">
-        <span class="desc" style="flex:1">เมื่อ AI ตรวจเสร็จ (นอกระบบ) → GAT นำผลกลับมาบันทึกที่ <b>แท็บ 3</b> — วางผลในช่อง "ผลการตรวจ" + ตัดเป็นใบ + ออก REC</span>
-        <button class="button-lite" id="btnGotoAicand">📝 ไปแท็บ 3 — บันทึกประเด็นข้อเสนอแนะ</button>
-      </div>
+        <button id="btnInspSave" class="gold">💾 บันทึกผลการตรวจลงชีต (สถานะให้ขั้น 4)</button>
+              </div>
+      <div id="inspStatus" class="status" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><b>📋 แสดงผลการตรวจที่บันทึกแล้ว (จากชีต)</b></div>
+      <div style="overflow-x:auto"><table class="table"><thead><tr><th>เลข Pack</th><th>BU</th><th>หัวเรื่อง</th><th>สถานะ (ขั้น 3)</th></tr></thead><tbody id="inspBody"><tr><td colspan="4" class="empty">ยังไม่มีข้อมูล — กด รีเฟรชรายการ</td></tr></tbody></table></div>
     </div>
   </section>
 
-  <!-- ============ 3. แท็บ GAT บันทึกประเด็นข้อเสนอแนะ (v1.28: ผลตรวจจาก AI ภายนอก — วางผล/ตัดใบ/คัด/ออกใบ แท็บเดียว) ============ -->
-  <section class="tabpane" id="pane-aisel">
+  <!-- ============ ขั้น 4: GAT สรุปผลการตรวจ (v1.29 — ดูผลขั้น 3 + ออกใบ REC + สั่งไม่ผ่านกลับขั้น 2) ============ -->
+  <section class="tabpane" id="pane-sum4">
     <div class="card">
-      <div class="card-hd"><b>📝 ขั้น 3 — ทีม GAT บันทึกประเด็นข้อเสนอแนะ (นำผลตรวจจาก AI ภายนอก กลับมาบันทึกในระบบ)</b></div>
-      <p class="desc">AI ตรวจ<b>นอกระบบ</b> (ชุดคำสั่งสร้างจากหน้า "เตรียมหลักฐาน+ชุดคำสั่ง AI") → GAT วางผลในช่องด้านล่าง → ✂️ ตัดเป็นใบ → ติ๊กเลือก + ลงชื่อผู้บันทึก → 🧾 ออกใบ REC ต่อทันที · <b>กติกาเหล็ก WI-02:</b> ทุกใบอ้าง PACK ต้นทาง + หลักฐาน/ชีท#แถว + ชื่อ-ตำแหน่งผู้ตรวจจริง</p>
+      <div class="card-hd"><b>📋 ขั้น 4 — GAT สรุปผลการตรวจ (นำข้อมูลขั้น 3 มาแสดงเป็นแบบฟอร์มผลการตรวจ)</b></div>
+      <p class="desc">เลือก PACK → ระบบดึง<b>ผลการตรวจขั้น 3</b> มาแสดงเป็นแบบฟอร์ม → GAT ตัดสิน: <b>ผ่าน</b> = สถานะไปขั้น 6 (ส่งผลให้ BU) · <b>ไม่ผ่าน</b> = เส้นกลับ <b>ขั้น 2</b> (หน้า BU โชว์สถานะ รอส่งเพิ่มเติม) · พบประเด็นที่ควรบันทึกเป็นใบ = <b>🧾 ออกใบ REC</b> ที่ขั้น 4 เท่านั้น</p>
     </div>
     <div class="card">
-      <div class="card-hd"><b>📥 วางผลการตรวจ — ตัดเป็นใบ</b></div>
-      <div class="filters"><textarea id="aiResult" placeholder="วางผลวิเคราะห์จาก AI ภายนอกที่นี่ (บล็อก [ใบ: …] หรือข้อความขึ้นบล็อกใหม่ = 1 ใบประเด็น)" style="width:100%;min-height:150px"></textarea></div>
+      <div class="card-hd"><b>📄 แบบฟอร์มผลการตรวจ</b></div>
+      <div class="filters"><select id="sumPackPick" style="flex:1;min-width:300px"><option value="">— เลือก PACK ที่ตรวจแล้ว (ขั้น 3) —</option></select></div>
+      <div id="sumFormBox"><div class="empty">เลือก PACK เพื่อโหลดผลการตรวจจากชีต</div></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><b>⚔️ ตัดสินผล + สั่งการต่อขั้น</b></div>
       <div class="filters">
-        <input id="aiSev" style="width:170px" value="">
-        <button class="button-lite" id="btnAiParse">✂️ ตัดเป็นใบ — รายการปรากฏด้านล่างพร้อมติ๊กเลือก</button>
+        <button id="btnSumPass" class="gold">✅ ผ่าน — ไปขั้น 6 (รอส่งผล BU)</button>
+        <button style="border-color:#c0392b;color:#c0392b" class="button-lite" id="btnSumFail">⛔ ไม่ผ่าน — กลับขั้น 2 (รอ BU ส่งเพิ่มเติม)</button>
       </div>
+      <div id="sumStatus" class="status" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><b>🧾 ออกใบ REC จากผลการตรวจ (ใบประเด็น GAT-REC — ออกที่ขั้น 4 เท่านั้น)</b></div>
+      <p class="desc">วางผล/ประเด็นที่พบ (ข้อความจากขั้น 3 หรือเรียบเรียงใหม่) → ✂️ ตัดเป็นใบ → ติ๊กเลือก + ลงชื่อผู้บันทึก → รันเลข GAT-REC ลงชีต · หรือใช้ฟอร์มออกใบมือด้านล่าง</p>
+      <div class="filters"><textarea id="aiResult" placeholder="วางบล็อกประเด็นที่จะออกเป็นใบ — [ใบ: หัวข้อ | ระดับ 🔴/🟢 | ประเด็น | ข้อเสนอ | หลัฐ/ชีต+แถว] หรือบล็อกขึ้นบรรทัดใหม่ = 1 ใบ" style="width:100%;min-height:110px;font-family:inherit"></textarea></div>
+      <div class="filters"><button class="button-lite" id="btnAiParse">✂️ ตัดเป็นใบ — รายการปรากฏด้านล่างพร้อมติ๊กเลือก</button></div>
+      <div id="aiCandidates"></div>
+      <div class="filters"><input id="aiBy" placeholder="ชื่อ-ตำแหน่งจริง GAT ผู้บันทึกประเด็น" style="width:280px">
+      <button id="btnAiEmit" class="gold">🧾 ออกใบ REC จากใบที่ติ๊กเลือก (รันเลข → ชีต)</button></div>
       <div id="aiStatus" class="status" style="margin-top:8px"></div>
     </div>
     <div class="card">
-      <div class="card-hd"><b>✂️ คัดเลือกประเด็นที่จะออกเป็นใบ</b></div>
-      <p class="desc">ติ๊ก ✅ เฉพาะใบที่จะใช้จริง (ตัดใบซ้ำ/ใบตั้งข้อสังเกตไม่ได้ตาม WI-02) — 🔴 ระบบติ๊กให้ก่อนอัตโนมัติ</p>
-      <div id="aiCandidates"></div>
-      <div class="filters"><input id="aiBy" placeholder="ชื่อ-ตำแหน่งจริง GAT ผู้บันทึกประเด็น" style="width:280px"></div>
+      <h3>✍️ ออกใบ REC มือ <span class="pill n">ประเด็นเฉพาะที่ไม่ตัดจากบล็อก</span></h3>
+      <p class="desc">เลือกต้นเรื่องจาก Registers → ระดับ → ผู้ออก/REF_PM_WI/ผู้อนุมัติ → กด รันเลข (ส่งเข้า BCT อัตโนมัติ)</p>
       <div class="filters">
-        <button id="btnAiEmit" class="gold">🧾 ออกใบ REC จากใบที่ติ๊กเลือก (รันเลข → ชีต) — เสร็จแท็บนี้</button>
-        <button class="button-lite" id="btnGotoAisend">🧾 ไปแท็บ 4 — ส่งให้ BU (ออกใบมือ/ติดตาม)</button>
+        <select id="recRegPick" style="flex:1;min-width:280px"><option value="">— เลือกรายการจาก Registers (ต้นเรื่อง) —</option></select>
+        <select id="recSev"><option>🔴 ขัดกฎหมาย/จำเป็นจริง</option><option selected>🟢 ข้อเสนอ</option></select>
+      </div>
+      <div class="filters"><input id="recTitle" placeholder="หัวข้อข้อเสนอแนะ (สั้น ชัด อ้างชีท+แถว)" style="flex:1;min-width:280px"></div>
+      <div class="filters"><textarea id="recDetail" rows="4" placeholder="รายละเอียดสิ่งที่ตรวจพบ + ข้อเสนอแนะ (อ้างชีท+แถวต้นฉบับ ตามกฎเหล็ก)" style="flex:1;min-width:280px;font-family:inherit"></textarea></div>
+      <div class="filters">
+        <input id="recBy" placeholder="ผู้ออกข้อเสนอแนะ (GAT)" value="GAT" style="width:240px">
+        <input id="recRefPmWi" placeholder="REF_PM_WI (เช่น WI-02 ขั้น 3)" style="width:280px">
+        <input id="recApprover" placeholder="ผู้อนุมัติ (ถ้ามี เช่น หัวหน้าสาย Audit)" style="width:260px">
+        <button id="btnOpenRec" class="gold">🧾 รันเลข + ส่งเข้า BCT</button>
+        <button class="button-lite" id="btnDraftRec">⬇ ดาวน์โหลดโครง .txt (สำรอง)</button>
       </div>
     </div>
   </section>
 
-  <!-- ============ 6. แท็บ GAT ส่งให้ BU ============ -->
+
+
+
+<!-- ============ ขั้น 6: ส่งผลการตรวจให้ BU (v1.29) ============ -->
   <section class="tabpane" id="pane-aisend">
     <div class="card">
-      <div class="card-hd"><b>🧾 ขั้น 4 — ทีม GAT ส่งข้อเสนอแนะที่บันทึกแล้วให้ BU</b></div>
-      <p class="desc">กด <b>ออกใบ REC</b> = รันเลข GAT-REC → ชีตกลาง + สถานะเปลี่ยน "ส่งให้ BU แล้ว" — BU เห็นใบที่แท็บ 6 ต่อ</p>
-      <div class="card">
-        <h3>✍️ ออกใบ REC มือ (GAT <span class="pill n">ใบที่ไม่ผ่าน AI / ออกตรง ๆ</span>)</h3>
-        <p class="desc">เลือกต้นเรื่องจาก Registers → ระดับ → ผู้ออก/REF_PM_WI/ผู้อนุมัติ → กด รันเลข (ส่งเข้า BCT อัตโนมัติ)</p>
-        <div class="filters">
-          <select id="recRegPick" style="flex:1;min-width:280px"><option value="">— เลือกรายการจาก Registers (ต้นเรื่อง) —</option></select>
-          <select id="recSev"><option>🔴 ขัดกฎหมาย/จำเป็นจริง</option><option selected>🟢 ข้อเสนอ</option></select>
-        </div>
-        <div class="filters"><input id="recTitle" placeholder="หัวข้อข้อเสนอแนะ (สั้น ชัด อ้างชีท+แถว)" style="flex:1;min-width:280px"></div>
-        <div class="filters"><textarea id="recDetail" rows="4" placeholder="รายละเอียดสิ่งที่ตรวจพบ + ข้อเสนอแนะ (อ้างชีท+แถวต้นฉบับ ตามกฎเหล็ก)" style="flex:1;min-width:280px;font-family:inherit"></textarea></div>
-        <div class="filters">
-          <input id="recBy" placeholder="ผู้ออกข้อเสนอแนะ (GAT)" value="GAT" style="width:240px">
-          <input id="recRefPmWi" placeholder="REF_PM_WI (เช่น P-04 ขั้น ④ / WI-02)" style="width:280px">
-          <input id="recApprover" placeholder="ผู้อนุมัติ (ถ้ามี เช่น หัวหน้าสาย Audit)" style="width:260px">
-          <button id="btnOpenRec" class="gold">🧾 รันเลข + ส่งเข้า BCT</button>
-          <button class="button-lite" id="btnDraftRec">⬇ ดาวน์โหลดโครง .txt (สำรอง)</button>
-        </div>
+      <div class="card-hd"><b>🧾 ขั้น 6 — GAT ส่งผลการตรวจให้ BU (ทั้งผ่านและไม่ผ่าน)</b></div>
+      <p class="desc">ผลจาก <b>ขั้น 4</b> ตัดสินแล้ว → เลือก PACK → กดส่งผล — สถานะชีตเปลี่ยน "ส่งผลให้ BU แล้ว (ขั้น 6)" · กรณี <b>ไม่ผ่าน</b>: BU ต้องกลับไปที่ <b>ขั้น 2</b> ส่งหลักฐานเพิ่มเติมตามข้อที่ไม่ผ่าน (หมุนวงจร →3→4 จนผ่าน) · ใบ GAT-REC ที่ออกแล้วโชว์ตารางด้านล่าง</p>
+      <div class="card" style="border-left:4px solid #0e8345;margin-bottom:10px">
+        <h3>📤 ส่งผลการตรวจตาม PACK</h3>
+        <div class="filters"><select id="sendPackPick" style="flex:1;min-width:320px"><option value="">— เลือก PACK ที่สรุปผลแล้ว (ขั้น 4) —</option></select>
+        <input id="sendPackBy" placeholder="ชื่อ-ตำแหน่ง GAT ผู้ส่งผล" style="width:240px">
+        <button id="btnSendResult" class="gold">📤 ส่งผลให้ BU (อัปเดตสถานะชีต)</button></div>
+        <div id="sendPackPreview" class="desc" style="margin-top:6px"></div>
       </div>
       <div class="card" style="border-top:3px solid #94a3b8">
-        <h3>📨 ติดตาม: ใบที่ส่งให้ BU แล้ว (รอ BU ตอบ)</h3>
-        <p class="desc">ใบจากชีตจริงที่สถานะ "ส่งให้ BU" — ติดตามให้ครบตาม SLA 5 วันทำการ</p>
-        <div style="overflow-x:auto"><table class="table"><thead><tr><th>เลขใบ</th><th>หัวข้อ</th><th>ระดับ</th><th>สถานะ</th></tr></thead><tbody id="recBodySent"><tr><td colspan="4" class="empty">— ยังไม่มีใบที่ส่งแล้วในขอบเขตโชว์ —</td></tr></tbody></table></div>
+        <h3>📨 ติดตาม: ผล/ใบที่ส่งให้ BU แล้ว</h3>
+        <p class="desc">จากชีตจริง — สถานะ "ส่งผลให้ BU/ส่งให้ BU" + ใบ REC ที่ส่งแล้ว · SLA ติดตาม 5 วันทำการ</p>
+        <div style="overflow-x:auto"><table class="table"><thead><tr><th>เลขแพ็ค/ใบ</th><th>หัวเรื่อง</th><th>ประเภท</th><th>สถานะ</th></tr></thead><tbody id="recBodySent"><tr><td colspan="4" class="empty">— ยังไม่มีรายการที่ส่งแล้วในขอบเขตโชว์ —</td></tr></tbody></table></div>
       </div>
     </div>
   </section>
 
-  <!-- ============ 7. แท็บ BU นำไปแก้ไข ============ -->
-  <section class="tabpane" id="pane-bufix">
-    <div class="card">
-      <div class="card-hd"><b>🛠 ขั้น 5 — ทีม BU นำข้อเสนอแนะไปแก้ไข</b></div>
-      <p class="desc">ดาวน์โหลดรายการใบที่ BU ต้องทำ ครบชุด (อ่านง่าย พาไปแก้ได้ทันที) — เมื่อแก้แล้ว → บันทึกคำตอบที่ <b>แท็บ 6</b></p>
-      <div class="filters">
-        <button id="btnBufixDl" class="gold">⬇ ดาวน์โหลดรายการใบที่ BU ต้องทำ (.md)</button>
-      </div>
-      <div style="overflow-x:auto"><table class="table"><thead><tr><th>เลขใบ</th><th>หัวข้อ</th><th>ระดับ</th><th>ต้องส่ง (ตาม SLA 5 วันทำการ)</th></tr></thead><tbody id="recBodyFix"><tr><td colspan="4" class="empty">— ยังไม่มีใบให้ทำ —</td></tr></tbody></table></div>
-    </div>
-  </section>
 
-  <!-- ============ P-05 BU ตอบใบ ============ -->
-  <section class="tabpane" id="pane-buanswer">
-    <div class="card">
-      <div class="card-hd"><h3>✍️ BU ตอบใบ (แก้ไข / ไม่แก้ไข) — ขั้น ⑥</h3></div>
-      <p class="desc">BU กรอกบนชีท BCT ตรงคอลัมน์ <code>BU_DECISION / EVIDENCE_URL / NO_FIX_REASON / RESPONSIBLE</code> หรือกรอกผ่านฟอร์มนี้ — ระบบส่งค่าทันที</p>
-      <div class="filters"><select id="respRecPick" style="flex:1;min-width:240px"><option value="">— เลือกเลขข้อเสนอแนะ —</option></select></div>
-      <div class="filters">
-        <select id="respDecision">
-          <option value="แก้ไข">✅ แก้ไข — ต้องแนบหลักฐานการแก้ไข</option>
-          <option value="ไม่แก้ไข">⛔ ไม่แก้ไข — ต้องใส่เหตุผล + ผู้รับผิดชอบ</option>
-        </select>
-      </div>
-      <div class="filters"><input id="respEvidence" placeholder="ลิงก์หลักฐานการแก้ไข (Drive/เอกสาร/ภาพ)" style="flex:1;min-width:280px"></div>
-      <div class="filters">
-        <input id="respReason" placeholder="เหตุผลการไม่แก้ไข (บังคับเมื่อเลือกไม่แก้ไข)" style="flex:1;min-width:280px">
-        <input id="respResponsible" placeholder="ชื่อผู้รับผิดชอบ (บังคับเมื่อเลือกไม่แก้ไข)" style="width:260px">
-      </div>
-      <div class="filters">
-        <input id="respBy" placeholder="ชื่อ-ตำแหน่งจริงผู้ตอบ (BU)" style="width:240px">
-        <button id="btnRespond">📤 ส่งคำตอบเข้า BCT</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-hd">
-        <h3>🧾 ทะเบียนข้อเสนอแนะ (สำเนา)</h3>
-        <span id="recCountAns" style="font-size:12px;color:var(--muted)"></span>
-      </div>
-      <div class="tblwrap">
-      <table class="tbl">
-        <thead><tr><th>เลขที่</th><th>ระดับ</th><th>หัวข้อ</th><th>อ้างชีท+แถว</th><th>สถานะ</th><th>การตัดสิน BU</th><th>หลักฐาน/เหตุผล · ผู้รับผิดชอบ</th></tr></thead>
-        <tbody id="recBodyAns"></tbody>
-      </table>
-      </div>
-    </div>
-  </section>
 
-  <!-- ============ P-06 GAT ปิดประเด็น ============ -->
+<!-- ============ ขั้น 5: ปิดประเด็น (ย่อย+ใหญ่) (v1.29) ============ -->
   <section class="tabpane" id="pane-close">
     <div class="card">
-      <h3>🔒 GAT ตรวจคำตอบ → ปิดประเด็น (ขั้น ⑦)</h3>
-      <p class="desc">หลัง BU ส่งคำตอบ (แก้+หลักฐาน / ไม่แก้+เหตุผล): GAT เลือกใบ → กดปิด — ระบบจด AuditLog "close_issue" — สถานะเปลี่ยนเป็น ปิดแล้ว (GAT ยืนยัน) — ไม่สามารถปิดใบที่ BU ยังไม่ตอบ · ป้าย 🔴 ที่ BU ไม่แก้ และขัดกฎหมายจริง GAT ต้องยืนยันกลับอย่างเป็นทางการ (SOP ขั้น ⑤)</p>
-      <div class="filters"><select id="closeRecPick" style="flex:1;min-width:280px"><option value="">— เลือกใบที่ BU ตอบแล้ว —</option></select></div>
+      <div class="card-hd"><b>🔒 ขั้น 5 — GAT ปิดประเด็น (ตามผัง: ปิดได้เมื่อตรวจผ่านตามข้อเสนอแนะที่ร้องขอ)</b></div>
+      <p class="desc">ปิดได้ 2 เหตุการณ์: <b>① ปิดย่อย</b> — ประเด็น/หัวข้อหนึ่งตรวจจบแล้ว (ตรวจครบตามข้อเสนอแนะที่ร้องขอ) ปิดเฉพาะหัวข้อนั้น · <b>② ปิดใหญ่</b> — ตรวจครบทุกประเด็นของเรื่อง (เหลือประเด็นไม่ผ่านอยู่ = ยังปิดไม่ได้) · ระบบตรวจให้: ปิดใหญ่ได้เมื่อปิดย่อยครบทุกใบเปิด</p>
+    </div>
+    <div class="card">
+      <div class="card-hd"><b>🔒 ① ปิดประเด็นย่อย (ต่อใบ/ต่อประเด็น)</b></div>
+      <p class="desc">เลือกใบ REC ที่ตรวจจบแล้ว (ผ่านตามข้อเสนอแนะที่ร้องขอ) → ปิดรายใบ — จด AuditLog "close_issue"</p>
+      <div class="filters"><select id="closeRecPick" style="flex:1;min-width:300px"><option value="">— เลือกใบที่ตรวจจบแล้ว —</option></select></div>
       <div class="filters">
         <input id="closeBy" placeholder="ชื่อ-ตำแหน่งจริงผู้ปิด (GAT)" style="width:260px">
-        <button id="btnCloseRec" class="gold">🔒 ปิดประเด็น (GAT ยืนยัน)</button>
+        <input id="closeNote" placeholder="หลักฐานการปิด (เช่น ผลตรวจ PACK-xxxx ผ่าน)" style="flex:1;min-width:260px">
+        <button id="btnCloseRec" class="gold">🔒 ปิดประเด็นย่อย (GAT ยืนยัน)</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><b>🔒 ② ปิดประเด็นใหญ่ (ต่อเรื่อง/PACK — ปิดได้เมื่อครบทุกประเด็น)</b></div>
+      <div class="filters"><select id="closeBigPackPick" style="flex:1;min-width:320px"><option value="">— เลือกเรื่อง (PACK) ที่จะปิด —</option></select>
+      <input id="closeBigBy" placeholder="ชื่อ-ตำแหน่งผู้ปิด (GAT)" style="width:240px"></div>
+      <div id="closeBigCheck" class="desc" style="margin-top:6px"></div>
+      <div class="filters">
+        <input id="closeBigNote" placeholder="บันทึกการปิด (เช่น ตรวจครบตามข้อเสนอแนะ ทุกประเด็นผ่าน)" style="flex:1;min-width:280px">
+        <button id="btnCloseBig" class="gold">🔒 ปิดประเด็นใหญ่ (เมื่อครบทุกประเด็น)</button>
       </div>
     </div>
     <div class="card">
@@ -538,6 +551,7 @@ ol.manual li{margin-bottom:8px}
         <h3>🧾 ทะเบียนข้อเสนอแนะ (สำเนา)</h3>
         <span id="recCountClose" style="font-size:12px;color:var(--muted)"></span>
       </div>
+      <p class="desc">สถานะ: 🟢 ปิดย่อย = "ปิดแล้ว" · เรื่องปิดใหญ่ = สถานะรวม "ปิดประเด็นใหญ่แล้ว" บนชีต PACK</p>
       <div class="tblwrap">
       <table class="tbl">
         <thead><tr><th>เลขที่</th><th>ระดับ</th><th>หัวข้อ</th><th>อ้างชีท+แถว</th><th>สถานะ</th><th>การตัดสิน BU</th><th>หลักฐาน/เหตุผล · ผู้รับผิดชอบ</th></tr></thead>
@@ -547,7 +561,7 @@ ol.manual li{margin-bottom:8px}
     </div>
   </section>
 
-  <!-- ============ แท็บ 10: รายงานวัดผล DTA (v1.24) ============ -->
+  <!-- ============ ขั้น 7: รายงานวัดผล DTA (v1.24 → วงจร 7 ขั้น v1.29) ============ -->
   <section class="tabpane" id="pane-d10">
     <div class="card">
       <div class="card-hd">
@@ -571,7 +585,7 @@ ol.manual li{margin-bottom:8px}
   <section class="tabpane" id="pane-universe"><div id="uniBody"></div></section>
 
   <!-- ============ SUMMARY ============ -->
-  <section class="tabpane" id="pane-summary">
+  <section class="tabpane" id="pane-summary"><div class="card"><div class="card-hd"><b>7. รายงานวัดผล DTA</b></div><p class="desc">ใช้แท็บ 7 ข้างล่าง (pane-d10) — หน้านี้เก็บสรุปอัตโนมัติ</p></div>
     <div class="card">
       <div class="card-hd">
         <h3>📋 สรุปผลงาน GAT</h3>

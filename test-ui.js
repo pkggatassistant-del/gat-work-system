@@ -76,17 +76,11 @@ setTimeout(() => {
   var st5 = gat.state();
   st5.packs = [{ PACK_ID: 'PACK-0001', BU: 'PAO', SCOPE: 'สวัสดิการพื้นฐาน', TITLE: 'รายละเอียดสวัสดิการ ต.ค. 69', STATUS: 'รอ GAT เลือกตรวจ' }];
   st5.recs = st5.recs.concat([{ REC_ID: 'GAT-REC-0042', REC_NO: 42, SEVERITY: '🔴 ขัดกฎหมาย/จำเป็นจริง', TITLE: 'ทดสอบส่ง BU', STATUS: 'P-04 ขั้น ④ / ส่งให้ BU แล้ว', BU_DECISION: '' }]);
-  gat._renderPickTable(); gat._renderSentTable(); gat._renderFixTable();
+  gat._renderPickTable(); gat._renderSentTable(); gat._renderExtraTable();
   ok('v1.13: แท็บ 2 — ตารางเลือกหัวข้อแสดง PACK', d.getElementById('pickBody').textContent.indexOf('PACK-0001') >= 0);
   gat.showTab('aisend');
   ok('v1.13: แท็บ 6 — ตารางติดตามใบส่ง BU (REC-0042)', d.getElementById('recBodySent').textContent.indexOf('GAT-REC-0042') >= 0);
-  ok('v1.13: แท็บ 6 — ฟอร์มออกใบมือรวมอยู่แท็บเดียว', !!d.getElementById('recRegPick') && !!d.getElementById('btnOpenRec'));
-  gat.showTab('bufix');
-  ok('v1.13: แท็บ 7 — ตารางรายการให้ BU ทำ + SLA "5 วันทำการ"', d.getElementById('recBodyFix').textContent.indexOf('GAT-REC-0042') >= 0 && d.getElementById('recBodyFix').textContent.indexOf('5 วันทำการ') >= 0);
-  ok('v1.13: แท็บ 7 — ปุ่มดาวน์โหลดรายการ (.md)', !!d.getElementById('btnBufixDl'));
-  // v1.23: stepbox ถูกถอด — การ์ด checklist ไม่แสดงในแท็บ anymore
-  gat.showTab('buanswer');
-  ok('v1.23: การ์ด Checklist (stepbox) ถูกถอดตามสั่ง', d.getElementById('stepbox') === null);
+  ok('v1.29: ฟอร์มออกใบมือย้ายไปแท็บ 4 (sum4)', !!d.getElementById('recRegPick') && !!d.getElementById('btnOpenRec') && d.getElementById('recRegPick').closest('.tabpane').id === 'pane-sum4');
 
   // --- v1.14: P-01 ครึ่งแรก — GAT แจ้งเรื่องรายประเด็น → BU เลือกเรื่องที่ส่ง ---
   st5.packs = [];
@@ -127,23 +121,75 @@ setTimeout(() => {
   // --- v1.18: ลิงก์หลักฐานฉบับ GAT (แชร์สิทธิ์ openclaw) → ชุดคำสั่ง AI ใช้แทนลิงก์ BU ---
   st6.packs = [{ PACK_ID: 'PACK-9992', BU: 'PKG', SCOPE: 'สวัสดิการ', PERIOD: 'ต.ค. 69', TITLE: 'ทดสอบลิงก์', LINKS: 'https://drive.bu-private/x', NOTE: '' }];
   gat._fillPackSelectors(); gat._renderPickTable();
-  var pkSel = d.getElementById('aiPackPick'); pkSel.value = 'PACK-9992';
-  d.getElementById('aiEvidenceLinks').value = 'https://docs.google.com/spreadsheets/gat-copy-test';
-  d.getElementById('btnSaveEvidence').click();
-  ok('v1.18: บันทึกลิงก์ GAT ผูก Pack', (d.getElementById('evidenceStatus').textContent || '').indexOf('PACK-9992') >= 0);
-  Array.from(d.querySelectorAll('button')).find(function (b) { return b.id === 'btnAiBuild'; }).click();
-  var pr = d.getElementById('aiPrompt').value;
-  ok('v1.18: ชุดคำสั่ง AI ใช้ลิงก์ GAT แทนลิงก์ BU อัตโนมัติ', pr.indexOf('gat-copy-test') >= 0 && pr.indexOf('drive.bu-private') < 0);
-
-  // --- v1.19: แท็บ 3 แสดงลิงก์หลักฐาน BU (คลิกได้) ---
-  st6.packs.push({ PACK_ID: 'PACK-9991', BU: 'PKG', SCOPE: 'การเงิน', PERIOD: 'ต.ค. 69', TITLE: 'FIN', LINKS: 'เอกสารรายรับ: https://docs.bu.com/fin1\nสรุปวางเบิก: https://docs.bu.com/fin2', NOTE: '' });
-  gat._fillPackSelectors();
-  var pkSel2 = d.getElementById('aiPackPick'); pkSel2.value = 'PACK-9991';
-  gat.showTab('aiprompt');
-  var blc = d.getElementById('buLinksCard');
-  var nLinks = blc.querySelectorAll('a').length;
-  ok('v1.19: แท็บ 3 แสดงลิงก์ BU คลิกได้ 2 ลิงก์', nLinks === 2, 'got ' + nLinks);
-  ok('v1.19: มีคำเตือน "ยังไม่มีลิงก์ฉบับ AI"', blc.textContent.indexOf('ยังไม่มีลิงก์ฉบับ AI') >= 0);
+  // --- v1.29: ขั้น 3 ตรวจหลักฐาน → ขั้น 4 สรุปผล → ส่งเพิ่มเติมแท็บ 2 → ขั้น 6 ส่งผล → ขั้น 5 ปิดใหญ่ ---
+  st6.packs = [{ PACK_ID: 'PACK-9992', BU: 'PKG', SCOPE: 'สวัสดิการ', PERIOD: 'ต.ค. 69', TITLE: 'ทดสอบลิงก์', LINKS: 'https://docs.bu.com/ev1', NOTE: '', STATUS: 'รอ GAT เลือกตรวจ', AI_NOTE: '' }];
+  gat._fillPackSelectors(); gat._renderInspect();
+  var inspSel = d.getElementById('inspPackPick');
+  ok('v1.29: แท็บ 3 dropdown มี PACK ที่ BU ส่ง', Array.from(inspSel.options).some(function (o) { return o.value === 'PACK-9992'; }));
+  inspSel.value = 'PACK-9992'; inspSel.dispatchEvent(new w.Event('change'));
+  ok('v1.29: แท็บ 3 โชว์ลิงก์หลักฐาน BU คลิกได้', d.getElementById('inspPackMeta').querySelectorAll('a').length >= 1);
+  ok('v1.29: แท็บ 3 มีฟอร์มรายละเอียด+ผลการตรวจ+ผลรวม', !!d.getElementById('inspDetail') && !!d.getElementById('inspResult') && !!d.getElementById('inspSums'));
+  var updFired = 0; var baseF = w.fetch;
+  w.fetch = function (u, o) { var b = o && o.body ? String(o.body) : ''; if (b.indexOf('update_pack_status') >= 0) { updFired++; return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true }); } }); } return baseF(u, o); };
+  d.getElementById('inspBy').value = 'แดง ต. (GAT)';
+  d.getElementById('inspDetail').value = 'ดึงไฟล์สลิปตรวจ 12 รายการ';
+  d.getElementById('inspResult').value = 'ประเด็น 1 ผ่าน · ประเด็น 2 พบจ่ายขาดเอกสาร';
+  d.getElementById('inspSums').value = 'ไม่ผ่าน';
+  d.getElementById('btnInspSave').click();
+  setTimeout(function () {
+    ok('v1.29: บันทึกผลขั้น 3 ยิง update_pack_status', updFired >= 1, updFired);
+    ok('v1.29: สถานะหลังบันทึกบอก กลับขั้น 2 (ไม่ผ่าน)', (d.getElementById('inspStatus').textContent || '').indexOf('ขั้น 2') >= 0 || (d.getElementById('inspStatus').textContent || '').indexOf('เพิ่มเติม') >= 0, d.getElementById('inspStatus').textContent);
+    /* ขั้น 4 — sum4: ดึงค่า AI_NOTE จากขั้น 3 มาโชว์เป็นแบบฟอร์มผล */
+    var st7 = gat.state(); st7.packs = [{ PACK_ID: 'PACK-9992', BU: 'PKG', TITLE: 'ทดสอบลิงก์', STATUS: 'ตรวจแล้ว — ไม่ผ่าน กลับขั้น 2 (ขั้น 3)', AI_NOTE: 'ผลการตรวจจากขั้น 3 — พบจ่ายขาดเอกสาร', LINKS: 'https://docs.bu.com/ev1' }];
+    gat._fillPackSelectors(); gat._renderResult4();
+    var sumSel = d.getElementById('sumPackPick'); sumSel.value = 'PACK-9992'; sumSel.dispatchEvent(new w.Event('change'));
+    ok('v1.29: แท็บ 4 แบบฟอร์มผลแสดงข้อมูลจากขั้น 3 (AI_NOTE)', d.getElementById('sumFormBox').textContent.indexOf('พบจ่ายขาดเอกสาร') >= 0, d.getElementById('sumFormBox').textContent.slice(0, 80));
+    /* ตัดสิน ไม่ผ่าน → กลับขั้น 2 */
+    var decFired = 0;
+    w.fetch = function (u, o) { var b = o && o.body ? String(o.body) : ''; if (b.indexOf('update_pack_status') >= 0) { decFired++; return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true }); } }); } return baseF(u, o); };
+    d.getElementById('btnSumFail').click();
+    setTimeout(function () {
+      ok('v1.29: ปุ่มตัดสิน ไม่ผ่าน ยิง update_pack_status', decFired >= 1, decFired);
+      /* ส่งหลักฐานเพิ่มเติม (การ์ดในแท็บ 2) */
+      var st8 = gat.state(); st8.packs = [{ PACK_ID: 'PACK-9992', BU: 'PKG', TITLE: 'ทดสอบลิงก์', STATUS: 'ไม่ผ่าน — รอ BU ส่งหลักฐานเพิ่มเติม (ขั้น 2)', AI_NOTE: '', LINKS: 'https://docs.bu.com/ev1' }];
+      gat._fillPackSelectors(); gat._renderExtraTable(); gat._fillInspectPack();
+      ok('v1.29: ตารางไม่ผ่าน (แท็บ 2) มีแถว 1', d.getElementById('extraBody').querySelectorAll('tr').length === 1, d.getElementById('extraBody').children.length);
+      var exSel = d.getElementById('extraPackPick'); exSel.value = 'PACK-9992'; exSel.dispatchEvent(new w.Event('change'));
+      var sendFired = 0;
+      w.fetch = function (u, o) { var b = o && o.body ? String(o.body) : ''; if (b.indexOf('update_pack_status') >= 0) { sendFired++; return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true }); } }); } return baseF(u, o); };
+      d.getElementById('extraLinks').value = 'https://docs.bu.com/extra1 [ประเด็น 2]';
+      d.getElementById('extraBy').value = 'ป้าย (BU PAO)';
+      d.getElementById('btnExtraSend').click();
+      setTimeout(function () {
+        ok('v1.29: ส่งหลักฐานเพิ่มเติมยิง update_pack_status', sendFired >= 1, sendFired);
+        /* ขั้น 6 — ส่งผลให้ BU */
+        var st9 = gat.state(); st9.packs = [{ PACK_ID: 'PACK-9992', BU: 'PKG', TITLE: 'ทดสอบลิงก์', STATUS: 'ผ่านการตรวจ — รอปิดประเด็น (ขั้น 5)', AI_NOTE: '', LINKS: 'https://docs.bu.com/ev1' }];
+        gat._fillPackSelectors(); gat._renderResult4();
+        var spSel = d.getElementById('sendPackPick');
+        ok('v1.29: แท็บ 6 dropdown มี PACK ที่ตัดสินแล้ว', Array.from(spSel.options).some(function (o) { return o.value === 'PACK-9992'; }), Array.from(spSel.options).map(function (o) { return o.value; }).join(','));
+        spSel.value = 'PACK-9992'; spSel.dispatchEvent(new w.Event('change'));
+        var send6 = 0;
+        w.fetch = function (u, o) { var b = o && o.body ? String(o.body) : ''; if (b.indexOf('update_pack_status') >= 0) { send6++; return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true }); } }); } return baseF(u, o); };
+        d.getElementById('sendPackBy').value = 'แดง (GAT)';
+        d.getElementById('btnSendResult').click();
+        setTimeout(function () {
+          ok('v1.29: ส่งผลให้ BU ยิง update_pack_status', send6 >= 1, send6);
+          /* ขั้น 5 — ปิดใหญ่: มีใบเปิด → block (แยก timeout กัน race โหลดชีตทับ recs) */
+          setTimeout(function () {
+            var stA = gat.state(); stA.recs = [{ REC_ID: 'GAT-REC-9001', TITLE: 'เปิดค้าง', STATUS: 'รอ BU ดำเนินการ' }]; stA.packs = [{ PACK_ID: 'PACK-9992', BU: 'PKG', TITLE: 'x', STATUS: 'ผ่านการตรวจ — รอปิดประเด็น (ขั้น 5)', AI_NOTE: '' }];
+            gat._renderRecs(); gat._renderCloseBig();
+            var cbSel = d.getElementById('closeBigPackPick'); cbSel.value = 'PACK-9992'; cbSel.dispatchEvent(new w.Event('change'));
+            var bcFired = 0;
+            w.fetch = function (u, o) { var b = o && o.body ? String(o.body) : ''; if (b.indexOf('update_pack_status') >= 0) { bcFired++; return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true }); } }); } return baseF(u, o); };
+            d.getElementById('btnCloseBig').click();
+            ok('v1.29: ปิดใหญ่ถูกบล็อกเพราะมีใบเปิด', bcFired === 0, bcFired);
+            w.fetch = baseF;
+            globalThis.flow29Res = true;
+          }, 90);
+        }, 20);
+      }, 20);
+    }, 20);
+  }, 20);
 
   // --- v1.20: แท็บ 1 GAT ติ๊กเรื่องที่จะตรวจ → ส่งเข้าขั้น 3 (ไม่รอ PACK) ---
   try { localStorage.removeItem('gat_plan_pick'); } catch (e) {}
@@ -155,14 +201,8 @@ setTimeout(() => {
   var chk2 = Array.from(d.querySelectorAll('.not-pick')).find(function (c) { return (c.getAttribute('data-idx') || '').endsWith('#1'); });
   if (chk2) chk2.checked = true;
   d.getElementById('btnGotoAipFromPlan').click();
-  ok('v1.20: ปุ่มส่งเข้าขั้น 3 เปิดแท็บ aiprompt', d.getElementById('pane-aiprompt').classList.contains('on'));
-  ok('v1.20: dropdown แท็บ 3 มีโหมด "ตามเรื่องที่ติ๊ก"', Array.from(d.getElementById('aiPackPick').options).some(function (o) { return o.value === '__PLAN__'; }));
-  // note: __PLAN__ option ถูกเติมตอนเปลี่ยนแท็บ — เรียก _fillPackSelectors ซ้ำเพื่อ sync หลังบันทึกแผน
-  gat._fillPackSelectors();
-  var sel99 = d.getElementById('aiPackPick'); sel99.value = '__PLAN__'; sel99.dispatchEvent(new w.Event('change'));
-  Array.from(d.querySelectorAll('button')).find(function (b) { return b.id === 'btnAiBuild'; }).click();
-  var pr2 = d.getElementById('aiPrompt').value;
-  ok('v1.20: ชุดคำสั่ง AI อ้างเรื่องที่ติ๊กจากแผน (PACK ยังไม่มาก็ตรวจได้)', pr2.indexOf('PLAN-2569-002')>=0 != null && (pr2.indexOf('เรื่องที่ 2') >= 0 || pr2.indexOf('แผนแจ้ง') >= 0), pr2.slice(0, 60));
+  ok('v1.20/29: ปุ่มจบขั้น 1 เปิดแท็บ 2 (packs)', d.getElementById('pane-packs').classList.contains('on'));
+  ok('v1.20/29: หลังจบขั้น 1 dropdown ขั้น 2 (packNotif) ยังเห็นแผน', d.getElementById('packNotif').options.length >= 2);
 
   // --- v1.22: การ์ด Checklist เลขตรงลำดับใหม่: แท็บ 1 (p02pick) = ขั้น 1 GAT / แท็บ 2 (packs) = ขั้น 2 BU ---
   gat.showTab('p02pick');
@@ -210,7 +250,7 @@ setTimeout(() => {
   var d = w.document;
   ok27('มีหน้า loginGate ซ่อนใน DOM', !!d.getElementById('loginGate') && d.getElementById('loginGate').style.display === 'none');
   ok27('gate มีช่อง lgUser/lgKey/ปุ่ม lgGo', !!d.getElementById('lgUser') && !!d.getElementById('lgKey') && !!d.getElementById('lgGo'));
-  ok27('ฟอร์มแท็บ 2 มีแถว ① (fmnum 5 วง)', d.querySelectorAll('#pane-packs .fmnum').length === 5, d.querySelectorAll('#pane-packs .fmnum').length);
+  ok27('ฟอร์มแท็บ 2 มีแถว ① (fmnum 9 วง — ฟอร์มหลัก 5 + การ์ดส่งเพิ่มเติม 4)', d.querySelectorAll('#pane-packs .fmnum').length === 9, d.querySelectorAll('#pane-packs .fmnum').length);
   ok27('ฟอร์มแท็บ 2: packTitle อยู่หลัง evidBox (ลำดับ ⑤)', (function () {
     var ev = d.getElementById('packEvidBox'), ti = d.getElementById('packTitle');
     return !!(ev && ti && ti.closest('.fmline') && (ti.closest('.fmline').compareDocumentPosition(ev) & 2));
@@ -248,8 +288,8 @@ setTimeout(() => {
       ok27('body data-role = bu', d.body.getAttribute('data-role') === 'BU', d.body.getAttribute('data-role'));
       var selBu = d.getElementById('packBu');
       ok27('BU: packBu ล็อกค่าตัวเอง', selBu.disabled === true && selBu.value === 'PAO', selBu.value + '/' + selBu.disabled);
-      var hiddenNav = ['p02pick', 'aisel', 'aisend', 'close', 'd10'].filter(function (t) { var el = d.querySelector('nav a[data-tab="' + t + '"]'); return el && el.style.display === 'none'; });
-      ok27('BU: ซ่อนแท็บ 1,3,4,7,8 (sample)', hiddenNav.length === 5, hiddenNav.join(','));
+      var hiddenNav = ['p02pick', 'inspect', 'sum4', 'aisend', 'close', 'd10'].filter(function (t) { var el = d.querySelector('nav a[data-tab="' + t + '"]'); return el && el.style.display === 'none'; });
+      ok27('BU: ซ่อนแท็บ GAT 1,3,4,5,6,7 (sample)', hiddenNav.length === 6, hiddenNav.join(','));
       ok27('แถบชื่อผู้ใช้ขึ้นบน topbar (whoBar)', !!d.getElementById('whoBar') && d.getElementById('whoBar').textContent.indexOf('นักตรวจทดสอบ') >= 0);
       ok27('ปุ่มออกจากระบบมี (.btn-keep)', !!d.querySelector('#whoBar .btn-keep, .top-live .btn-keep'));
       /* ping ครั้งแรก (boot) หรือ import หลังล็อกอิน ต้องยิง token ไปแล้วอย่างน้อย 1 */
@@ -269,7 +309,7 @@ setTimeout(() => {
   }, 700);
 
   // 5) ข้อความคัดลอก (buildSummaryText ผ่าน export)
-  ok('แท็บครบหลัง render (v1.28 = 17 pane — aicand ถอด, aiprompt คงเป็นหน้าเตรียม AI)', d.querySelectorAll('.tabpane').length === 17);
+  ok('แท็บครบหลัง render (v1.29 = 14 pane — วงจร 7 ขั้น, ตัด aiprompt/aisel/bufix/buanswer)', d.querySelectorAll('.tabpane').length === 15);
 
   // 6) Dashboard ยังแสดงแหล่งข้อมูล + BU chart (โดยไม่ crash)
   gat.showTab('dashboard');
@@ -286,10 +326,10 @@ setTimeout(() => {
 
   // 14) v1.13: 10 แท็บชื่อ 1..10 ตามหนึ่งสั่ง + checklist ติดบนแท็บ
   var navIds = Array.from(d.querySelectorAll('nav a[data-tab]')).map(function (a) { return a.getAttribute('data-tab'); });
-  ok('v1.13/1.28: nav หลักครบ 8 แท็บ (ตามสั่ง 9 พ.ย. 69)', ['p02pick','packs','aisel','aisend','bufix','buanswer','close','d10'].every(function (t) { return navIds.indexOf(t) >= 0; }) && navIds.indexOf('aiprompt') < 0 && navIds.indexOf('aicand') < 0);
+  ok('v1.29: nav หลักครบ 7 แท็บวงจร + ฐานข้อมูล (ตามผัง draw.io 9 พ.ย. 69)', ['p02pick','packs','inspect','sum4','close','aisend','d10'].every(function (t) { return navIds.indexOf(t) >= 0; }) && ['aiprompt','aicand','aisel','bufix','buanswer'].every(function (t) { return navIds.indexOf(t) < 0; }));
   // v1.23: stepbox หายทั้ง 10 แท็บ — RUN_STEPS (ข้อมูล) ครบ 10 ขั้น
   var stepsOk = (gat.state && typeof gat !== 'undefined');
-  ok('v1.28: RUN_STEPS ข้อมูลวงจร 8 ขั้น (ไม่โชว์บนแท็บ)', typeof w.RUN_STEPS !== 'undefined' ? w.RUN_STEPS.length === 8 : true);
+  ok('v1.29: RUN_STEPS ข้อมูลวงจร 7 ขั้น (ไม่โชว์บนแท็บ)', typeof w.RUN_STEPS !== 'undefined' ? w.RUN_STEPS.length === 7 : true);
 
   // --- v1.11: แท็บแยกตาม 10 กระบวนการ ---
   // seed REC ในขอบเขต 10 ใบ (เลียนแบบชีตจริง REC-0042–0051 ยังไม่มี BU ตอบ)
@@ -298,27 +338,20 @@ setTimeout(() => {
     return { REC_ID: 'GAT-REC-' + n, REC_NO: 42, SEVERITY: n === '0042' ? '🔴 ขัดกฎหมาย/จำเป็นจริง' : '🟢 ข้อเสนอ', TITLE: 'ทดสอบใบ ' + n, STATUS: 'P-04 ส่งให้ BU แล้ว', BU_DECISION: '' };
   }));
   gat._renderRecs();
-  ok('v1.11+: nav มีทั้ง P-04/P-05/P-06 หรือแท็บไหม่ 5/6/9 อย่างน้อย 1 ชุด', Array.from(d.querySelectorAll('nav a')).some(function (a) { return a.textContent.indexOf('P-04') >= 0 || a.textContent.indexOf('ส่งให้ BU') >= 0; }));
-  ok('v1.11: ฟอร์ม ② BU ตอบอยู่ใน pane-buanswer (ไม่ปน P-04)', d.getElementById('respRecPick').closest('.tabpane').id === 'pane-buanswer');
-  ok('v1.11: ฟอร์ม ③ ปิดอยู่ใน pane-close', d.getElementById('closeRecPick').closest('.tabpane').id === 'pane-close');
-  ok('v1.13: ฟอร์ม ① ออกใบมือย้ายไป pane-aisend (ขั้น 6)', d.getElementById('recRegPick').closest('.tabpane').id === 'pane-aisend');
+  ok('v1.29: nav มีแท็บ 6 ส่งผลให้ BU (aisend)', Array.from(d.querySelectorAll('nav a')).some(function (a) { return a.textContent.indexOf('ส่งผลการตรวจให้ BU') >= 0; }));
+  ok('v1.29: ฟอร์มปิดย่อยอยู่ใน pane-close', d.getElementById('closeRecPick').closest('.tabpane').id === 'pane-close');
+  ok('v1.29: ฟอร์ม ① ออกใบมือย้ายไป pane-sum4 (ขั้น 4)', d.getElementById('recRegPick').closest('.tabpane').id === 'pane-sum4');
   ok('v1.11: ทะเบียนกลางอยู่ที่แท็บ recs เฉพาะ', d.getElementById('recBody').closest('.tabpane').id === 'pane-recs');
-  gat.showTab('buanswer');
-  ok('v1.11: ตารางสำเนา P-05 มี 10 แถว (ขอบเขต REC)', d.getElementById('recBodyAns').querySelectorAll('tr').length === 10);
-  ok('v1.11: ตัวนับสำเนา P-05 = รวม 10 รายการ', d.getElementById('recCountAns').textContent.indexOf('10') >= 0);
   gat.showTab('close');
-  ok('v1.11: ตารางสำเนา P-06 มี 10 แถว', d.getElementById('recBodyClose').querySelectorAll('tr').length === 10);
-  gat.showTab('buanswer');
-  ok('v1.11: dropdown ตอบใบ = 10 ตัวเลือก + หัว', d.getElementById('respRecPick').options.length === 11);
-  gat.showTab('close');
-  ok('v1.11: dropdown ปิดใบว่าง (BU ยังไม่ตอบ)', d.getElementById('closeRecPick').options.length === 1);
+  ok('v1.11: ตารางสำเนาแท็บ 5 มี 10 แถว', d.getElementById('recBodyClose').querySelectorAll('tr').length === 10);
+  ok('v1.11: dropdown ปิดย่อย = 10 ใบเปิด (ขอบเขต REC)', d.getElementById('closeRecPick').options.length === 11);
   // seed ใบที่ BU ตอบแล้ว 1 ใบ (ทับ REC-0051) → ต้องขึ้นใน dropdown ปิด
   var st2 = gat.state();
   st2.recs = st2.recs.filter(function (r) { return r.REC_ID !== 'GAT-REC-0051'; });
   st2.recs.push({ REC_ID: 'GAT-REC-0051', REC_NO: 42, SEVERITY: '🔴 ขัดกฎหมาย/จำเป็นจริง', TITLE: 'ทดสอบ BU ตอบแล้ว', STATUS: 'BU ตอบแล้ว', BU_DECISION: 'แก้ไข', EVIDENCE_URL: 'https://example.com/x' });
   gat._renderRecs();
   gat.showTab('close');
-  ok('v1.11: BU ตอบแล้วขึ้นใน dropdown ปิด (P-06)', d.getElementById('closeRecPick').options.length === 2);
+  ok('v1.29: ใบที่ BU ตอบแล้วยังขึ้นใน dropdown ปิดย่อย (11)', d.getElementById('closeRecPick').options.length === 11);
 
   /* ผลรวม print ในบล็อก async (หลังบล็อก 4 เสร็จ) — บล็อกนี้รอ scheduler */
 }, 400);
