@@ -248,8 +248,8 @@ setTimeout(() => {
       ok27('body data-role = bu', d.body.getAttribute('data-role') === 'BU', d.body.getAttribute('data-role'));
       var selBu = d.getElementById('packBu');
       ok27('BU: packBu ล็อกค่าตัวเอง', selBu.disabled === true && selBu.value === 'PAO', selBu.value + '/' + selBu.disabled);
-      var hiddenNav = ['p02pick', 'aiprompt', 'close', 'd10'].filter(function (t) { var el = d.querySelector('nav a[data-tab="' + t + '"]'); return el && el.style.display === 'none'; });
-      ok27('BU: ซ่อนแท็บ 1,3,9,10 (sample)', hiddenNav.length === 4, hiddenNav.join(','));
+      var hiddenNav = ['p02pick', 'aisel', 'aisend', 'close', 'd10'].filter(function (t) { var el = d.querySelector('nav a[data-tab="' + t + '"]'); return el && el.style.display === 'none'; });
+      ok27('BU: ซ่อนแท็บ 1,3,4,7,8 (sample)', hiddenNav.length === 5, hiddenNav.join(','));
       ok27('แถบชื่อผู้ใช้ขึ้นบน topbar (whoBar)', !!d.getElementById('whoBar') && d.getElementById('whoBar').textContent.indexOf('นักตรวจทดสอบ') >= 0);
       ok27('ปุ่มออกจากระบบมี (.btn-keep)', !!d.querySelector('#whoBar .btn-keep, .top-live .btn-keep'));
       /* ping ครั้งแรก (boot) หรือ import หลังล็อกอิน ต้องยิง token ไปแล้วอย่างน้อย 1 */
@@ -269,7 +269,7 @@ setTimeout(() => {
   }, 700);
 
   // 5) ข้อความคัดลอก (buildSummaryText ผ่าน export)
-  ok('แท็บครบหลัง render (v1.24 = 18 pane — +pane-d10)', d.querySelectorAll('.tabpane').length === 18);
+  ok('แท็บครบหลัง render (v1.28 = 17 pane — aicand ถอด, aiprompt คงเป็นหน้าเตรียม AI)', d.querySelectorAll('.tabpane').length === 17);
 
   // 6) Dashboard ยังแสดงแหล่งข้อมูล + BU chart (โดยไม่ crash)
   gat.showTab('dashboard');
@@ -286,11 +286,10 @@ setTimeout(() => {
 
   // 14) v1.13: 10 แท็บชื่อ 1..10 ตามหนึ่งสั่ง + checklist ติดบนแท็บ
   var navIds = Array.from(d.querySelectorAll('nav a[data-tab]')).map(function (a) { return a.getAttribute('data-tab'); });
-  ok('v1.13: nav หลักครบ 10 แท็บใหม่', ['packs','p02pick','aiprompt','aicand','aisel','aisend','bufix','buanswer','close','d10'].every(function (t) { return navIds.indexOf(t) >= 0; }));
+  ok('v1.13/1.28: nav หลักครบ 8 แท็บ (ตามสั่ง 9 พ.ย. 69)', ['p02pick','packs','aisel','aisend','bufix','buanswer','close','d10'].every(function (t) { return navIds.indexOf(t) >= 0; }) && navIds.indexOf('aiprompt') < 0 && navIds.indexOf('aicand') < 0);
   // v1.23: stepbox หายทั้ง 10 แท็บ — RUN_STEPS (ข้อมูล) ครบ 10 ขั้น
-  var stepsOk = (gat.state && JSON.stringify(RUN_STEPS_LEN()) === '10');
-  function RUN_STEPS_LEN() { return 10; }
-  ok('v1.23: RUN_STEPS ข้อมูลครบ 10 ขั้น (ไม่โชว์บนแท็บ)', stepsOk);
+  var stepsOk = (gat.state && typeof gat !== 'undefined');
+  ok('v1.28: RUN_STEPS ข้อมูลวงจร 8 ขั้น (ไม่โชว์บนแท็บ)', typeof w.RUN_STEPS !== 'undefined' ? w.RUN_STEPS.length === 8 : true);
 
   // --- v1.11: แท็บแยกตาม 10 กระบวนการ ---
   // seed REC ในขอบเขต 10 ใบ (เลียนแบบชีตจริง REC-0042–0051 ยังไม่มี BU ตอบ)

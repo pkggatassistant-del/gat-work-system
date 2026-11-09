@@ -801,7 +801,7 @@ function loadProcessDocs() {
     state.planPick = {};
     chk.forEach(function (k) { try { state.planPick[k] = true; } catch (e) {} });
     try { localStorage.setItem('gat_plan_pick', JSON.stringify(state.planPick)); } catch (e) {}
-    if (st) st.textContent = '✅ เลือก ' + chk.length + ' เรื่อง — ไปขั้น 3 แล้ว (ชุดคำสั่ง AI จะอ้างเรื่องที่เลือก)';
+    if (st) st.textContent = '✅ เลือก ' + chk.length + ' เรื่อง — ไปหน้าเตรียม AI ต่อ (ชุดคำสั่ง AI จะอ้างเรื่องที่เลือก)';
     fillPackSelectors(); /* v1.20: dropdown มีโหมด __PLAN__ ทันที */
     showTab('aiprompt');
   }
@@ -1326,6 +1326,16 @@ function loadProcessDocs() {
     });
   }
 
+  /* v1.28 — map สถานะใบจากชีต → ขั้นตามวงจร 8 ขั้น (สถานะเก่า "P-04 ขั้น ④" = รอ GAT บันทึกประเด็น ขั้น 3 ใหม่) */
+  function recStage_(s) {
+    s = String(s || '');
+    if (s.indexOf('ปิด') >= 0) return { key: 'closed', label: '✅ ปิดแล้ว' };
+    if (s.indexOf('ไม่แก้') >= 0) return { key: 'confirm', label: '⛔ BU ไม่แก้ — รอ GAT ยืนยัน' };
+    if (s.indexOf('ส่งให้ BU') >= 0) return { key: 'atbu', label: '📤 ส่งให้ BU แล้ว — รอตอบ' };
+    if (s.indexOf('รอ BU') >= 0) return { key: 'atbu', label: '📤 รอ BU ตอบ' };
+    if (s.indexOf('P-04') === 0) return { key: 'drafting', label: '📝 รอ GAT บันทึกประเด็น (ขั้น 3)' };
+    return { key: 'drafting', label: '📝 รอ GAT บันทึกประเด็น (ขั้น 3)' };
+  }
   function renderDash() {
     var regs = filtered();
     var byStat = { '🟢': 0, '🟡': 0, '🔴': 0 };
@@ -1347,8 +1357,14 @@ function loadProcessDocs() {
       if (p && p.items && p.items.length) teamCount[k] = p.items.length;
     });
     var teamTotal = teamCount.PM + teamCount.WI + teamCount.SD + teamCount.FM;
+    var stageCount = { drafting: 0, atbu: 0, confirm: 0, closed: 0 };
+    (state.recs || []).forEach(function (x) { stageCount[recStage_(x.STATUS).key]++; });
     id('kpiRow').innerHTML =
       kpi('รายการตรวจ (Registers)', fmt(regs.length), 'ข้อมูลจริง+โครงสร้าง') +
+      kpi('วงจร 8 ขั้น — 📝 ขั้น 3 รอบันทึก', fmt(stageCount.drafting), 'ใบจากชีตที่ยังไม่ถึงมือ BU') +
+      kpi('📤 ขั้น 4–6 อยู่ที่ BU', fmt(stageCount.atbu), 'ส่งแล้ว/รอตอบ ตาม SLA') +
+      kpi('⛔ รอ GAT ยืนยัน', fmt(stageCount.confirm), 'BU ไม่แก้ — ยืนยันกลับเป็นทางการ') +
+      kpi('✅ ปิดแล้ว (ขั้น 7)', fmt(stageCount.closed), 'GAT ยืนยันปิดประเด็น') +
       kpi('ระบบเอกสาร (PM/WI/SD/FM)', teamCount.PM + '·' + teamCount.WI + '·' + teamCount.SD + '·' + teamCount.FM, 'รวม ' + teamTotal + ' หัวข้อ — แยกจากทะเบียนตรวจ') +
       kpi('🟢 ปกติ', fmt(byStat['🟢']), 'มีข้อมูล/ผ่าน') +
       kpi('🟡 รอข้อมูลจริง', fmt(byStat['🟡']), 'ต้องติดตาม BU') +
@@ -1369,7 +1385,19 @@ function loadProcessDocs() {
       bct: { label: 'Live จาก BCT', color: '#16304f' },
       other: { label: 'อื่น ๆ', color: '#7d93b2' }
     };
+    var flow8 = [
+      ['1', 'GAT ตั้งเรื่อง+ประเด็น'], ['2', 'BU ส่งข้อมูล (PACK)'],
+      ['3', 'GAT บันทึกประเด็น (ผล AI นอกระบบ)'], ['4', 'GAT ส่งให้ BU (REC)'],
+      ['5', 'BU นำไปแก้ไข'], ['6', 'BU ตอบแก้/ไม่แก้'],
+      ['7', 'GAT พิจารณา+ปิด'], ['8', 'OpenClaw รายงานวัดผลศุกร์']
+    ];
+    var flowChip = function (n, t) {
+      return '<li style="min-width:150px;flex:1;background:var(--blue-soft);border:1px solid #c9dcf8;border-radius:10px;padding:8px 10px;font-size:12.5px;line-height:1.4"><b style="color:#175cd3">' + n + '.</b> ' + esc(t) + '</li>';
+    };
     id('dashBody').innerHTML =
+      '<div class="card"><h3>วงจรงานตรวจ GAT — 8 ขั้น (ตามสั่ง 9 พ.ย. 69: ตัด AI ออกเป็นตรวจนอกระบบ)</h3>' +
+      '<ol class="flow" style="display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0">' + flow8.map(function (f) { return flowChip(f[0], f[1]); }).join('') + '</ol>' +
+      '<div class="note">สัดส่วนใบงานจริงตอนนี้: 📝 รอบันทึก ' + stageCount.drafting + ' · 📤 ที่ BU ' + stageCount.atbu + ' · ⛔ รอยืนยัน ' + stageCount.confirm + ' · ✅ ปิดแล้ว ' + stageCount.closed + ' — รายงานวัดผล (ขั้น 8) OpenClaw จัดทำส่งทุกวันศุกร์</div></div>' +
       '<div class="cols2">' +
       '<div class="card"><h3>ตามแหล่งข้อมูล</h3>' + barChart(bySrc, srcMeta) + '</div>' +
       '<div class="card"><h3>ตาม BU (กดเพื่อกรอง)</h3><table class="tbl"><thead><tr><th>BU/กลุ่ม</th><th>รายการ</th></tr></thead><tbody>' + buRows + '</tbody></table></div>' +
@@ -1742,7 +1770,7 @@ function loadProcessDocs() {
     var b5 = id('btnAiParse'); if (b5) b5.addEventListener('click', aiParse);
     var b6 = id('btnAiEmit'); if (b6) b6.addEventListener('click', aiEmit);
     /* v1.13 — ปุ่มร้อยขั้น 1→10 (เชื่อมข้ามแท็บ) */
-    var g1 = id('btnGotoAi'); if (g1) g1.addEventListener('click', function () { var picked = Array.from(document.querySelectorAll('.pick-chk')).filter(function (c) { return c.checked; }).map(function (c) { return c.getAttribute('data-pack'); }); status(picked.length ? '🔍 เลือก ' + picked.length + ' หัวข้อ — ไปขั้น 3 (ตรวจด้วย AI) ต่อ' : '🔍 (ยังไม่ได้ติ๊กหัวข้อ — สามารถไปขั้น 3 ได้เลย)'); showTab('aiprompt'); });
+    var g1 = id('btnGotoAi'); if (g1) g1.addEventListener('click', function () { var picked = Array.from(document.querySelectorAll('.pick-chk')).filter(function (c) { return c.checked; }).map(function (c) { return c.getAttribute('data-pack'); }); status(picked.length ? '📝 เลือก ' + picked.length + ' หัวข้อ — ไปหน้าเตรียม AI ต่อ' : '📝 (ยังไม่ได้ติ๊กหัวข้อ — ทำต่อได้เลย)'); showTab('aiprompt'); });
     var g2 = id('btnGotoAicand'); if (g2) g2.addEventListener('click', function () { showTab('aicand'); });
     var g3 = id('btnGotoAisel'); if (g3) g3.addEventListener('click', function () { showTab('aisel'); });
     var g4 = id('btnGotoAisend'); if (g4) g4.addEventListener('click', function () { showTab('aisend'); });
@@ -1785,20 +1813,18 @@ function loadProcessDocs() {
 
   document.addEventListener('DOMContentLoaded', boot);
 
-  var TAB_NAMES = { packs: '2. BU ส่งข้อมูลที่จะตรวจ', p02pick: '1. GAT เลือกหัวข้อจากข้อมูลที่ส่ง', aiprompt: '3. GAT ตรวจด้วย AI', aicand: '4. AI ออกข้อเสนอแนะ', aisel: '5. GAT คัดเลือก', aisend: '6. GAT ส่งให้ BU', bufix: '7. BU นำไปแก้ไข', buanswer: '8. BU แก้/ไม่แก้ + หลักฐาน', close: '9. GAT พิจารณา+ปิดประเด็น', summary: 'สรุปผลงาน GAT (เก็บอ้างอิง)', d10: '10. รายงานวัดผล ระบบวัดผลDTA_PKG General Audit Team 2026', dashboard: 'Dashboard ภาพรวม', registers: 'Registers', universe: 'Regulatory Universe', recs: 'ทะเบียนข้อเสนอแนะ', manual: 'คู่มือการใช้งาน', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
+  var TAB_NAMES = { packs: '2. BU ส่งข้อมูลที่จะตรวจ', p02pick: '1. GAT ตั้งเรื่อง+ประเด็นที่จะตรวจ', aiprompt: '2-ท่อ: เตรียมหลักฐาน+ชุดคำสั่ง AI ตรวจนอกระบบ', aicand: '3. GAT บันทึกประเด็นข้อเสนอแนะ', aisel: '3 (ต่อ). คัดประเด็นที่จะออกใบ', aisend: '4. GAT ส่งให้ BU', bufix: '5. BU นำไปแก้ไข', buanswer: '6. BU แก้/ไม่แก้ + หลักฐาน', close: '7. GAT พิจารณา+ปิดประเด็น', summary: 'สรุปผลงาน GAT (เก็บอ้างอิง)', d10: '8. รายงานวัดผล ระบบวัดผลDTA (ทุกวันศุกร์ — OpenClaw เตรียม)', dashboard: 'Dashboard ภาพรวม', registers: 'Registers', universe: 'Regulatory Universe', recs: 'ทะเบียนข้อเสนอแนะ', manual: 'คู่มือการใช้งาน', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
 
   /* ---------- แกนกลาง 10 กระบวนการ (P-01..P-10) — RUN_STEPS = แหล่งเดียว: แท็บงานจริงแต่ละขั้นอ่านจากนี้ ---------- */
   var RUN_STEPS = [
     { id: '1', name: 'ทีม GAT แจ้งเรื่องที่จะตรวจ + เลือกหัวข้อที่ BU ส่งมา', sla: 'SLA: BU ส่งข้อมูลให้ครบใน 3 วันทำการ / ด่วน LCT 24 ชม.', check: ['แจ้งเรื่องที่จะตรวจ (รายประเด็น: พร้อมเอกสาร+ผู้รับผิดชอบ+กำหนดวัน)', 'ติ๊กเลือกหัวข้อที่จะลงตรวจจากที่ BU ส่ง (หรือจากแผน)', 'เลือกหัวข้อครบชุดนี้แล้ว'], tab: 'p02pick', tabNote: 'ทำที่แท็บ 1 (GAT แจ้ง+เลือกหัวข้อ)', act: 'p02pick', actLabel: 'ไปแท็บ 1 — แจ้ง+เลือกหัวข้อ' },
     { id: '2', name: 'BU ส่งข้อมูล ที่ทีม GAT แจ้งว่าจะตรวจ', sla: 'SLA: ส่งข้อมูล 3 วันทำการ / ด่วน LCT 24 ชม.', check: ['BU กรอกฟอร์มส่ง + แนบลิงก์หลักฐานแล้ว', 'ระบบรันเลข PACK ลงชีตกลางแล้ว', 'ห้ามแก้ไฟล์ต้นฉบับ — ส่งสำเนา'], tab: 'packs', tabNote: 'ทำที่แท็บ 2 (BU ส่งข้อมูล)', act: 'packs', actLabel: 'ไปแท็บ 2 — ส่งข้อมูล' },
-    { id: '3', name: 'ทีม GAT เข้าไปตรวจ โดยใช้ AI ตรวจข้อมูลที่ BU ส่ง', sla: '', check: ['เลือก Pack แล้ว', 'สร้างชุดคำสั่ง AI (ครบกติกา GAT)', 'คัดลอกไปตรวจในโปรแกรม AI แล้ว'], tab: 'aiprompt', tabNote: 'ทำที่แท็บ 3 (ตรวจด้วย AI)', act: 'aiprompt', actLabel: 'ไปแท็บ 3 — ตรวจด้วย AI' },
-    { id: '4', name: 'AI ออกข้อเสนอแนะจากการตรวจ', sla: '', check: ['วางผล AI แล้ว', 'ตัดเป็นรายใบแล้ว (ตัดในขั้น 5)'], tab: 'aicand', tabNote: 'ทำที่แท็บ 4 (ผล AI)', act: 'aicand', actLabel: 'ไปแท็บ 4 — ผล AI' },
-    { id: '5', name: 'ทีม GAT คัดเลือกข้อเสนอแนะจาก AI', sla: 'WI-02: ทุกใบต้องครบ 3 อย่าง', check: ['ติ๊กเลือกเฉพาะใบที่จะใช้จริง', 'กรอกชื่อ GAT ผู้คัดเลือกแล้ว'], tab: 'aisel', tabNote: 'ทำที่แท็บ 5 (คัดเลือก)', act: 'aisel', actLabel: 'ไปแท็บ 5 — คัดเลือก' },
-    { id: '6', name: 'ทีม GAT ส่งข้อเสนอแนะที่คัดเลือกแล้วส่งให้ BU', sla: '', check: ['กดออกใบ REC (รันเลขเข้าชีต) แล้ว', 'หรือออกใบมือสำหรับใบไม่ผ่าน AI', 'ติดตามใบที่ส่ง — SLA 5 วันทำการ'], tab: 'aisend', tabNote: 'ทำที่แท็บ 6 (ส่งให้ BU)', act: 'aisend', actLabel: 'ไปแท็บ 6 — ส่งให้ BU' },
-    { id: '7', name: 'ทีม BU นำข้อเสนอแนะไปแก้ไข', sla: 'SLA: ตอบใน 5 วันทำการ', check: ['ดาวน์โหลดรายการใบ (.md) แล้ว', 'BU ประสานทีมที่รับผิดชอบแต่ละใบแล้ว'], tab: 'bufix', tabNote: 'ทำที่แท็บ 7 (BU นำไปแก้)', act: 'bufix', actLabel: 'ไปแท็บ 7 — BU แก้ไข' },
-    { id: '8', name: 'ทีม BU แก้ไข/ไม่แก้ไข + ส่งประเด็น/หลักฐาน', sla: 'SLA: ตอบใน 5 วันทำการ', check: ['แก้ไข = แนบลิงก์หลักฐาน', 'ไม่แก้ไข = เหตุผล + ผู้รับผิดชอบ ครบ', 'กรอกชื่อ-ตำแหน่งจริงผู้ตอบ'], tab: 'buanswer', tabNote: 'ทำที่แท็บ 8 (BU ตอบ)', act: 'buanswer', actLabel: 'ไปแท็บ 8 — BU ตอบ' },
-    { id: '9', name: 'ทีม GAT พิจารณาและปิดประเด็น', sla: '', check: ['ตรวจหลักฐานการแก้ (พอ/ไม่พอ)', '🔴 ที่ไม่แก้ = ยืนยันกลับเป็นทางการ', 'ติดตามถดถอย 30/60/90 วัน'], tab: 'close', tabNote: 'ทำที่แท็บ 9 (ปิดประเด็น)', act: 'close', actLabel: 'ไปแท็บ 9 — ปิดประเด็น' },
-    { id: '10', name: 'ทีม GAT สรุปรายงานผล — รายงานวัดผล (ระบบวัดผล DTA — PKG General Audit Team 2026)', sla: 'รอบรายงาน: ทุกวันศุกร์ — ข้อมูลช่วงเสาร์–ศุกร์ (ปีก่อน: ก่อนวันที่ 5 เดือนถัดไป)', check: ['เติมฟอร์มรายงานวัดผล DTA ครบ (BP/LL/II + TMM + XP 15 + Coach)', 'กดอัปเดตข้อมูลเสาร์–ศุกร์ ก่อนส่งรายงานวันศุกร์', 'ดาวน์โหลด .md ส่งผู้มีอำนาจ/OAC + ทบทวน 🔴 ค้าง'], tab: 'd10', tabNote: 'ทำที่แท็บ 10 (รายงานวัดผล DTA)', act: 'd10', actLabel: 'ไปแท็บ 10 — รายงานวัดผล DTA' }
+    { id: '3', name: 'GAT นำผลตรวจ (จาก AI ภายนอก) กลับมาบันทึกประเด็นข้อเสนอแนะ', sla: 'กติกาเหล็ก WI-02: อ้าง PACK + ชื่อผู้ตรวจจริง + หลักฐาน/ชีท#แถว', check: ['รับผลตรวจจาก AI นอกระบบแล้ว (เก็บไฟล์ผลเป็นหลักฐาน)', 'วางผล+ตัดเป็นใบ หรือออกใบมือ', 'ติ๊กเลือกเฉพาะใบที่จะใช้จริง + ลงชื่อผู้บันทึก'], tab: 'aisel', tabNote: 'ทำที่แท็บ 3 (บันทึกประเด็นข้อเสนอแนะ) — เครื่องมือหลัก: ช่องวางผลการตรวจ', act: 'aisel', actLabel: 'ไปแท็บ 3 — บันทึกประเด็น' },
+    { id: '4', name: 'ทีม GAT ส่งข้อเสนอแนะที่บันทึกแล้วให้ BU', sla: 'ติดตามใบที่ส่ง — SLA 5 วันทำการ', check: ['กดออกใบ REC (รันเลขเข้าชีต) แล้ว', 'หรือออกใบมือสำหรับประเด็นเฉพาะ', 'ส่งข้อความ copy TG ให้ BU แล้ว'], tab: 'aisend', tabNote: 'ทำที่แท็บ 4 (ส่งให้ BU)', act: 'aisend', actLabel: 'ไปแท็บ 4 — ส่งให้ BU' },
+    { id: '5', name: 'ทีม BU นำข้อเสนอแนะไปแก้ไข', sla: 'SLA: ตอบใน 5 วันทำการ', check: ['ดาวน์โหลดรายการใบ (.md) แล้ว', 'BU ประสานทีมที่รับผิดชอบแต่ละใบแล้ว'], tab: 'bufix', tabNote: 'ทำที่แท็บ 5 (BU นำไปแก้)', act: 'bufix', actLabel: 'ไปแท็บ 5 — BU แก้ไข' },
+    { id: '6', name: 'ทีม BU แก้ไข/ไม่แก้ไข + ส่งประเด็น/หลักฐาน', sla: 'SLA: ตอบใน 5 วันทำการ', check: ['แก้ไข = แนบลิงก์หลักฐาน', 'ไม่แก้ไข = เหตุผล + ผู้รับผิดชอบ ครบ', 'กรอกชื่อ-ตำแหน่งจริงผู้ตอบ'], tab: 'buanswer', tabNote: 'ทำที่แท็บ 6 (BU ตอบ)', act: 'buanswer', actLabel: 'ไปแท็บ 6 — BU ตอบ' },
+    { id: '7', name: 'ทีม GAT พิจารณาและปิดประเด็น', sla: '', check: ['ตรวจหลักฐานการแก้ (พอ/ไม่พอ)', '🔴 ที่ไม่แก้ = ยืนยันกลับเป็นทางการ', 'ติดตามถดถอย 30/60/90 วัน'], tab: 'close', tabNote: 'ทำที่แท็บ 7 (ปิดประเด็น)', act: 'close', actLabel: 'ไปแท็บ 7 — ปิดประเด็น' },
+    { id: '8', name: 'OpenClaw จัดทำรายงานวัดผล DTA — ส่งทุกวันศุกร์', sla: 'รอบรายงาน: ทุกวันศุกร์ — ข้อมูลช่วงเสาร์–ศุกร์ (OpenClaw เตรียมร่างให้ หนึ่ง/GAT ตรวจอนุมัติก่อนส่ง)', check: ['OpenClaw เตรียมรายงานจากชีตจริงก่อนศุกร์', 'หนึ่ง/GAT ตรวจ+อนุมัติร่างแล้ว', 'ส่งผู้มีอำนาจ/OAC + ทบทวน 🔴 ค้าง'], tab: 'd10', tabNote: 'ทำที่แท็บ 8 (รายงานวัดผล DTA) — OpenClaw เตรียมให้', act: 'd10', actLabel: 'ไปแท็บ 8 — รายงานวัดผล DTA' }
   ];
   function stepBoxHtml(sid, ix) {
     var s = RUN_STEPS.filter(function (x) { return x.id === sid; })[0];

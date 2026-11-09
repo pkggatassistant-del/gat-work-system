@@ -200,17 +200,15 @@ ol.manual li{margin-bottom:8px}
     </div>
   </div>
   <nav id="mainNav">
-    <div class="nav-hd">ระบบปฏิบัติงาน 10 ขั้น</div>
-    <a data-tab="p02pick"><span class="ic">🗂</span> 1. GAT เลือกหัวข้อจากข้อมูลที่ส่ง</a>
+    <div class="nav-hd">ระบบปฏิบัติงาน 8 ขั้น</div>
+    <a data-tab="p02pick"><span class="ic">🗂</span> 1. GAT ตั้งเรื่อง+ประเด็นที่จะตรวจ</a>
     <a data-tab="packs"><span class="ic">📤</span> 2. BU ส่งข้อมูลที่จะตรวจ</a>
-    <a data-tab="aiprompt"><span class="ic">🔍</span> 3. GAT ตรวจด้วย AI</a>
-    <a data-tab="aicand"><span class="ic">💡</span> 4. AI ออกข้อเสนอแนะ</a>
-    <a data-tab="aisel"><span class="ic">✂️</span> 5. GAT คัดเลือกข้อเสนอแนะ</a>
-    <a data-tab="aisend"><span class="ic">🧾</span> 6. GAT ส่งให้ BU</a>
-    <a data-tab="bufix"><span class="ic">🛠</span> 7. BU นำไปแก้ไข</a>
-    <a data-tab="buanswer"><span class="ic">✍️</span> 8. BU แก้/ไม่แก้ + หลักฐาน/เหตุผล</a>
-    <a data-tab="close"><span class="ic">🔒</span> 9. GAT พิจารณา+ปิดประเด็น</a>
-    <a data-tab="d10"><span class="ic">📊</span> 10. รายงานวัดผล DTA</a>
+    <a data-tab="aisel"><span class="ic">📝</span> 3. GAT บันทึกประเด็นข้อเสนอแนะ</a>
+    <a data-tab="aisend"><span class="ic">🧾</span> 4. GAT ส่งให้ BU</a>
+    <a data-tab="bufix"><span class="ic">🛠</span> 5. BU นำไปแก้ไข</a>
+    <a data-tab="buanswer"><span class="ic">✍️</span> 6. BU แก้/ไม่แก้ + หลักฐาน/เหตุผล</a>
+    <a data-tab="close"><span class="ic">🔒</span> 7. GAT พิจารณา+ปิดประเด็น</a>
+    <a data-tab="d10"><span class="ic">📊</span> 8. รายงานวัดผล DTA</a>
     <div class="nav-hd">ฐานข้อมูล</div>
     <a data-tab="registers"><span class="ic">🗄</span> Registers</a>
     <a data-tab="universe"><span class="ic">🌐</span> Regulatory Universe</a>
@@ -290,7 +288,7 @@ ol.manual li{margin-bottom:8px}
       <!-- v1.20: GAT ติ๊กเรื่องที่จะตรวจ → ส่งเข้าขั้น 3 ได้ทันที (ไม่ต้องรอ PACK) -->
       <div id="notPickBox"></div>
       <div class="filters">
-        <button id="btnGotoAipFromPlan" class="gold">🔍 ส่งเรื่องที่ติ๊กเข้าขั้น 3 — ตรวจด้วย AI</button>
+        <button id="btnGotoAipFromPlan" class="gold">📝 ส่งเรื่องที่ติ๊กเข้าขั้น 3 — บันทึกประเด็นข้อเสนอแนะ</button>
       </div>
       <div id="notList"></div>
     </div>
@@ -372,11 +370,11 @@ ol.manual li{margin-bottom:8px}
   <section class="tabpane" id="pane-p02pick">
     <div class="card">
       <div class="card-hd"><b>🗂 ขั้น 1 (ครึ่งหลัง) — ทีม GAT เลือกหัวข้อที่ BU ส่งข้อมูลมาให้</b></div>
-      <p class="desc">ดูสถานะการส่งจากชีตจริง → เลือก <b>หัวข้อ/Pack ที่จะลงตรวจ</b> — เลือกแล้วส่งต่อขั้น 3 (ตรวจด้วย AI)</p>
+      <p class="desc">ดูสถานะการส่งจากชีตจริง → เลือก <b>หัวข้อ/Pack ที่จะลงตรวจ</b> — เลือกแล้วส่งต่อขั้น 3 (บันทึกประเด็นข้อเสนอแนะ)</p>
       <div class="filters"><button class="button-lite" id="btnLoadPacksPick">🔄 รีเฟรชสถานะการส่ง</button></div>
       <div style="overflow-x:auto"><table id="pickTable" class="table"><thead><tr><th style="width:44px">เลือก</th><th>เลข Pack</th><th>BU</th><th>ขอบเขต</th><th>หัวเรื่อง</th><th>สถานะ</th></tr></thead><tbody id="pickBody"><tr><td colspan="6" class="empty">ยังไม่มีข้อมูล — กด รีเฟรชสถานะ</td></tr></tbody></table></div>
       <div class="filters">
-        <button id="btnGotoAi" class="gold">🔍 ไปขั้น 3 — ตรวจด้วย AI</button>
+        <button id="btnGotoAi" class="gold">📝 ไปขั้น 3 — บันทึกประเด็นข้อเสนอแนะ</button>
         <button id="btnPickRemove" class="button-lite" style="border-color:#c0392b;color:#c0392b">🗑 ลบออกจากรายการ (เลือกช่องก่อน)</button>
         <span id="pickStatus" class="status"></span>
       </div>
@@ -393,8 +391,8 @@ ol.manual li{margin-bottom:8px}
   <!-- ============ 3. แท็บ GAT ตรวจด้วย AI ============ -->
   <section class="tabpane" id="pane-aiprompt">
     <div class="card">
-      <div class="card-hd"><b>🔍 ขั้น 3 — ทีม GAT เข้าไปตรวจ โดยใช้ AI ตรวจข้อมูลที่ BU ส่ง</b></div>
-      <p class="desc">เลือก Pack → กดสร้างชุดคำสั่ง AI (ระบบกรอกหัวข้อ/กติกา GAT ให้ครบ) → คัดลอกไปวางในโปรแกรม AI ที่ใช้ตรวจ</p>
+      <div class="card-hd"><b>🧩 ขั้น 2 ต่อยอด — เตรียมหลักฐาน + ชุดคำสั่งสำหรับ AI ตรวจนอกระบบ (ตามสั่ง 9 พ.ย. 69: AI วิเคราะห์อยู่นอกเว็บ)</b></div>
+      <p class="desc">เลือก Pack → กดสร้างชุดคำสั่ง AI (ระบบกรอกหัวข้อ/กติกา GAT ให้ครบ) → คัดลอกไปวางในโปรแกรม AI ที่ใช้ตรวจ → ได้ผลแล้วนำกลับมาบันทึกที่ <b>แท็บ 3 — GAT บันทึกประเด็นข้อเสนอแนะ</b></p>
       <div class="filters">
         <select id="aiPackPick" style="flex:1;min-width:280px"><option value="">— เลือก Pack ที่ BU ส่ง —</option></select>
         <button class="button-lite" id="btnAiBuild">🧩 สร้างชุดคำสั่ง AI (จาก Pack ที่เลือก)</button>
@@ -413,36 +411,35 @@ ol.manual li{margin-bottom:8px}
       <div class="filters"><textarea id="aiPrompt" placeholder="ชุดคำสั่ง AI จะปรากฏที่นี่ — กดคัดลอก พาไปวางใน AI ที่ใช้ตรวจ" style="width:100%;min-height:150px" readonly></textarea></div>
       <div class="filters"><button class="button-lite" id="btnAiCopy">📋 คัดลอกชุดคำสั่ง</button></div>
       <div class="filters">
-        <span class="desc" style="flex:1">เมื่อ AI ตรวจเสร็จ → วางผลใน <b>ขั้น 4 AI ออกข้อเสนอแนะ</b> ต่อทันที</span>
-        <button class="button-lite" id="btnGotoAicand">💡 ไปขั้น 4 — AI ออกข้อเสนอแนะ</button>
+        <span class="desc" style="flex:1">เมื่อ AI ตรวจเสร็จ (นอกระบบ) → GAT นำผลกลับมาบันทึกที่ <b>แท็บ 3</b> — วางผลในช่อง "ผลการตรวจ" + ตัดเป็นใบ + ออก REC</span>
+        <button class="button-lite" id="btnGotoAicand">📝 ไปแท็บ 3 — บันทึกประเด็นข้อเสนอแนะ</button>
       </div>
     </div>
   </section>
 
-  <!-- ============ 4. แท็บ AI ออกข้อเสนอแนะ ============ -->
-  <section class="tabpane" id="pane-aicand">
+  <!-- ============ 3. แท็บ GAT บันทึกประเด็นข้อเสนอแนะ (v1.28: ผลตรวจจาก AI ภายนอก — วางผล/ตัดใบ/คัด/ออกใบ แท็บเดียว) ============ -->
+  <section class="tabpane" id="pane-aisel">
     <div class="card">
-      <div class="card-hd"><b>💡 ขั้น 4 — AI ออกข้อเสนอแนะจากการตรวจ</b></div>
-      <p class="desc">GAT วางผลที่ AI ตรวจได้ (ข้อความเดียวขึ้นบรรทัดใหม่ = 1 ใบประเด็น) → กดตัดเป็นใบ = ได้รายชื่อ "ข้อเสนอแนะจาก AI" รอคัดเลือก</p>
-      <div class="filters"><textarea id="aiResult" placeholder="วางผลวิเคราะห์ของ AI ที่นี่ (ข้อความเดียวขึ้นบรรทัดใหม่ = 1 ใบประเด็น)" style="width:100%;min-height:150px"></textarea></div>
+      <div class="card-hd"><b>📝 ขั้น 3 — ทีม GAT บันทึกประเด็นข้อเสนอแนะ (นำผลตรวจจาก AI ภายนอก กลับมาบันทึกในระบบ)</b></div>
+      <p class="desc">AI ตรวจ<b>นอกระบบ</b> (ชุดคำสั่งสร้างจากหน้า "เตรียมหลักฐาน+ชุดคำสั่ง AI") → GAT วางผลในช่องด้านล่าง → ✂️ ตัดเป็นใบ → ติ๊กเลือก + ลงชื่อผู้บันทึก → 🧾 ออกใบ REC ต่อทันที · <b>กติกาเหล็ก WI-02:</b> ทุกใบอ้าง PACK ต้นทาง + หลักฐาน/ชีท#แถว + ชื่อ-ตำแหน่งผู้ตรวจจริง</p>
+    </div>
+    <div class="card">
+      <div class="card-hd"><b>📥 วางผลการตรวจ — ตัดเป็นใบ</b></div>
+      <div class="filters"><textarea id="aiResult" placeholder="วางผลวิเคราะห์จาก AI ภายนอกที่นี่ (บล็อก [ใบ: …] หรือข้อความขึ้นบล็อกใหม่ = 1 ใบประเด็น)" style="width:100%;min-height:150px"></textarea></div>
       <div class="filters">
         <input id="aiSev" style="width:170px" value="">
-        <button class="button-lite" id="btnAiParse">✂️ ตัดเป็นใบ (รายการจะปรากฏในขั้น 5 ต่อ)</button>
-        <button class="button-lite" id="btnGotoAisel">✂️ ไปขั้น 5 — คัดเลือก</button>
+        <button class="button-lite" id="btnAiParse">✂️ ตัดเป็นใบ — รายการปรากฏด้านล่างพร้อมติ๊กเลือก</button>
       </div>
       <div id="aiStatus" class="status" style="margin-top:8px"></div>
     </div>
-  </section>
-
-  <!-- ============ 5. แท็บ GAT คัดเลือกข้อเสนอแนะจาก AI ============ -->
-  <section class="tabpane" id="pane-aisel">
     <div class="card">
-      <div class="card-hd"><b>✂️ ขั้น 5 — ทีม GAT คัดเลือกข้อเสนอแนะจาก AI</b></div>
-      <p class="desc">ติ๊ก ✅ เฉพาะใบที่จะใช้จริง (ตัดใบซ้ำ/ใบตั้งข้อสังเกตไม่ได้ตาม WI-02) — กรอกชื่อผู้คัดเลือก แล้วกดขั้น 6 ต่อ</p>
+      <div class="card-hd"><b>✂️ คัดเลือกประเด็นที่จะออกเป็นใบ</b></div>
+      <p class="desc">ติ๊ก ✅ เฉพาะใบที่จะใช้จริง (ตัดใบซ้ำ/ใบตั้งข้อสังเกตไม่ได้ตาม WI-02) — 🔴 ระบบติ๊กให้ก่อนอัตโนมัติ</p>
       <div id="aiCandidates"></div>
-      <div class="filters"><input id="aiBy" placeholder="ชื่อ GAT ผู้คัดเลือก" style="width:240px"></div>
+      <div class="filters"><input id="aiBy" placeholder="ชื่อ-ตำแหน่งจริง GAT ผู้บันทึกประเด็น" style="width:280px"></div>
       <div class="filters">
-        <button class="button-lite" id="btnGotoAisend">🧾 ไปขั้น 6 — ส่งให้ BU</button>
+        <button id="btnAiEmit" class="gold">🧾 ออกใบ REC จากใบที่ติ๊กเลือก (รันเลข → ชีต) — เสร็จแท็บนี้</button>
+        <button class="button-lite" id="btnGotoAisend">🧾 ไปแท็บ 4 — ส่งให้ BU (ออกใบมือ/ติดตาม)</button>
       </div>
     </div>
   </section>
@@ -450,11 +447,8 @@ ol.manual li{margin-bottom:8px}
   <!-- ============ 6. แท็บ GAT ส่งให้ BU ============ -->
   <section class="tabpane" id="pane-aisend">
     <div class="card">
-      <div class="card-hd"><b>🧾 ขั้น 6 — ทีม GAT ส่งข้อเสนอแนะที่คัดเลือกแล้วให้ BU</b></div>
-      <p class="desc">กด <b>ออกใบ REC</b> = รันเลข GAT-REC → ชีตกลาง + สถานะเปลี่ยน "ส่งให้ BU แล้ว" — BU เห็นใบที่แท็บ 8 ต่อ</p>
-      <div class="filters">
-        <button id="btnAiEmit" class="gold">🧾 ออกใบ REC จากใบที่ติ๊กเลือก (รันเลข → ชีต)</button>
-      </div>
+      <div class="card-hd"><b>🧾 ขั้น 4 — ทีม GAT ส่งข้อเสนอแนะที่บันทึกแล้วให้ BU</b></div>
+      <p class="desc">กด <b>ออกใบ REC</b> = รันเลข GAT-REC → ชีตกลาง + สถานะเปลี่ยน "ส่งให้ BU แล้ว" — BU เห็นใบที่แท็บ 6 ต่อ</p>
       <div class="card">
         <h3>✍️ ออกใบ REC มือ (GAT <span class="pill n">ใบที่ไม่ผ่าน AI / ออกตรง ๆ</span>)</h3>
         <p class="desc">เลือกต้นเรื่องจาก Registers → ระดับ → ผู้ออก/REF_PM_WI/ผู้อนุมัติ → กด รันเลข (ส่งเข้า BCT อัตโนมัติ)</p>
@@ -483,8 +477,8 @@ ol.manual li{margin-bottom:8px}
   <!-- ============ 7. แท็บ BU นำไปแก้ไข ============ -->
   <section class="tabpane" id="pane-bufix">
     <div class="card">
-      <div class="card-hd"><b>🛠 ขั้น 7 — ทีม BU นำข้อเสนอแนะไปแก้ไข</b></div>
-      <p class="desc">ดาวน์โหลดรายการใบที่ BU ต้องทำ ครบชุด (อ่านง่าย พาไปแก้ได้ทันที) — เมื่อแก้แล้ว → บันทึกคำตอบที่ <b>แท็บ 8</b></p>
+      <div class="card-hd"><b>🛠 ขั้น 5 — ทีม BU นำข้อเสนอแนะไปแก้ไข</b></div>
+      <p class="desc">ดาวน์โหลดรายการใบที่ BU ต้องทำ ครบชุด (อ่านง่าย พาไปแก้ได้ทันที) — เมื่อแก้แล้ว → บันทึกคำตอบที่ <b>แท็บ 6</b></p>
       <div class="filters">
         <button id="btnBufixDl" class="gold">⬇ ดาวน์โหลดรายการใบที่ BU ต้องทำ (.md)</button>
       </div>
@@ -495,7 +489,7 @@ ol.manual li{margin-bottom:8px}
   <!-- ============ P-05 BU ตอบใบ ============ -->
   <section class="tabpane" id="pane-buanswer">
     <div class="card">
-      <div class="card-hd"><h3>✍️ BU ตอบใบ (แก้ไข / ไม่แก้ไข) — ขั้น P-05</h3></div>
+      <div class="card-hd"><h3>✍️ BU ตอบใบ (แก้ไข / ไม่แก้ไข) — ขั้น ⑥</h3></div>
       <p class="desc">BU กรอกบนชีท BCT ตรงคอลัมน์ <code>BU_DECISION / EVIDENCE_URL / NO_FIX_REASON / RESPONSIBLE</code> หรือกรอกผ่านฟอร์มนี้ — ระบบส่งค่าทันที</p>
       <div class="filters"><select id="respRecPick" style="flex:1;min-width:240px"><option value="">— เลือกเลขข้อเสนอแนะ —</option></select></div>
       <div class="filters">
@@ -531,7 +525,7 @@ ol.manual li{margin-bottom:8px}
   <!-- ============ P-06 GAT ปิดประเด็น ============ -->
   <section class="tabpane" id="pane-close">
     <div class="card">
-      <h3>🔒 GAT ตรวจคำตอบ → ปิดประเด็น (ขั้น ⑨ — P-06)</h3>
+      <h3>🔒 GAT ตรวจคำตอบ → ปิดประเด็น (ขั้น ⑦)</h3>
       <p class="desc">หลัง BU ส่งคำตอบ (แก้+หลักฐาน / ไม่แก้+เหตุผล): GAT เลือกใบ → กดปิด — ระบบจด AuditLog "close_issue" — สถานะเปลี่ยนเป็น ปิดแล้ว (GAT ยืนยัน) — ไม่สามารถปิดใบที่ BU ยังไม่ตอบ · ป้าย 🔴 ที่ BU ไม่แก้ และขัดกฎหมายจริง GAT ต้องยืนยันกลับอย่างเป็นทางการ (SOP ขั้น ⑤)</p>
       <div class="filters"><select id="closeRecPick" style="flex:1;min-width:280px"><option value="">— เลือกใบที่ BU ตอบแล้ว —</option></select></div>
       <div class="filters">
