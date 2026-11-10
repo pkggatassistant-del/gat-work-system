@@ -530,27 +530,29 @@ ol.manual li{margin-bottom:8px}
 <!-- ============ ขั้น 5: ปิดประเด็น (ย่อย+ใหญ่) (v1.29) ============ -->
   <section class="tabpane" id="pane-close">
     <div class="card">
-      <div class="card-hd"><b>🔒 ขั้น 5 — GAT ปิดประเด็น (ตามผัง: ปิดได้เมื่อตรวจผ่านตามข้อเสนอแนะที่ร้องขอ)</b></div>
-      <p class="desc">ปิดได้ 2 เหตุการณ์: <b>① ปิดประเด็นหลัก</b> — ประเด็น/หัวข้อหนึ่งตรวจจบแล้ว (ตรวจครบตามข้อเสนอแนะที่ร้องขอ) ปิดเฉพาะหัวข้อนั้น · <b>② ปิดประเด็นย่อย</b> — ตรวจครบทุกประเด็นของเรื่อง (เหลือประเด็นไม่ผ่านอยู่ = ยังปิดไม่ได้) · ระบบตรวจให้: ปิดประเด็นย่อยได้เมื่อปิดหลักครบทุกใบเปิด</p>
+      <div class="card-hd"><b>🔒 ขั้น 5 — GAT ปิดประเด็น (v1.39: ② ติ๊กปิดรายหัวข้อที่การ์ด ② · ① ปิดชื่อเรื่องที่การ์ด ①)</b></div>
+      <p class="desc">ปิดได้ 2 เหตุการณ์: <b>② ปิดประเด็นย่อย</b> — ติ๊กปิดรายหัวข้อในการ์ด ② ได้ทยอยทีละข้อ (บันทึกลงชีตทันทีต่อหัวข้อ · ครบทุกข้อของแพ็ก = สถานะ "ปิดประเด็นย่อยแล้ว (ขั้น 5)" อัตโนมัติ) · <b>① ปิดประเด็นหลัก</b> — ปิดชื่อเรื่อง (REC) ได้เมื่อประเด็นย่อยของทุกแพ็กที่โยงกับเรื่องนั้นปิดครบ — ระบบกันหยุ่นให้</p>
     </div>
     <div class="card">
-      <div class="card-hd"><b>🔒 ① ปิดประเด็นหลัก (ต่อใบ/ต่อประเด็น)</b></div>
-      <p class="desc">เลือกใบ REC ที่ตรวจจบแล้ว (ผ่านตามข้อเสนอแนะที่ร้องขอ) → ปิดรายใบ — จด AuditLog "close_issue"</p>
-      <div class="filters"><select id="closeRecPick" style="flex:1;min-width:300px"><option value="">— เลือกใบที่ตรวจจบแล้ว —</option></select></div>
+      <div class="card-hd"><b>🔒 ① ปิดประเด็นหลัก (ปิดชื่อเรื่อง · REC — ปิดได้เมื่อหัวข้อย่อยครบ)</b></div>
+      <p class="desc">เลือกชื่อเรื่องที่ตรวจจบแล้ว → ระบบตรวจว่า "ประเด็นย่อย" ของทุกแพ็กในเรื่องนั้นปิดครบ (ผ่านการ์ด ②) → ก่อนอนุญาตให้ปิด — จด AuditLog "close_issue"</p>
+      <div class="filters"><select id="closeRecPick" style="flex:1;min-width:300px"><option value="">— เลือกประเด็นหลัก (ชื่อเรื่อง) ที่ตรวจจบแล้ว —</option></select></div>
+      <div id="closeRecGate" class="desc" style="margin-top:4px"></div>
       <div class="filters">
         <input id="closeBy" placeholder="ชื่อ-ตำแหน่งจริงผู้ปิด (GAT)" style="width:260px">
         <input id="closeNote" placeholder="หลักฐานการปิด (เช่น ผลตรวจ PACK-xxxx ผ่าน)" style="flex:1;min-width:260px">
-        <button id="btnCloseRec" class="gold">🔒 ปิดประเด็นหลัก (GAT ยืนยัน)</button>
+        <button id="btnCloseRec" class="gold">🔒 ปิดประเด็นหลัก (GAT ยืนยัน — ระบบเช็คข้อย่อยก่อน)</button>
       </div>
     </div>
     <div class="card">
-      <div class="card-hd"><b>🔒 ② ปิดประเด็นย่อย (ต่อเรื่อง/PACK — ปิดได้เมื่อครบทุกประเด็น)</b></div>
+      <div class="card-hd"><b>🔒 ② ปิดประเด็นย่อย (ติ๊กปิดรายหัวข้อ — ทยอยได้ ครบแพ็กปิดอัตโนมัติ)</b></div>
+      <p class="desc">เลือกเรื่อง (PACK) → ตารางหัวข้อโชว์ด้านล่าง → ติ๊กถูกทีละข้อ = ปิดทันที (บันทึกชีต AI_NOTE รายหัวข้อ · ปิดช่วยกันหลายเครื่องได้) · ครบทุกข้อ: ระบบปิดแพ็กให้เอง (ขั้น 5) · แพ็กที่ไม่มีโครงหัวข้อ (ส่งก่อน v1.33): กดปุ่มด้านล่างปิดทั้งแพ็กได้เลย</p>
       <div class="filters"><select id="closeBigPackPick" style="flex:1;min-width:320px"><option value="">เลือกเรื่อง (PACK) ตามชื่อเรื่อง</option></select>
       <input id="closeBigBy" placeholder="ชื่อ-ตำแหน่งผู้ปิด (GAT)" style="width:240px"></div>
       <div id="closeBigCheck" class="desc" style="margin-top:6px"></div>
       <div class="filters">
-        <input id="closeBigNote" placeholder="บันทึกการปิด (เช่น ตรวจครบตามข้อเสนอแนะ ทุกประเด็นผ่าน)" style="flex:1;min-width:280px">
-        <button id="btnCloseBig" class="gold">🔒 ปิดประเด็นย่อย (เมื่อครบทุกประเด็น)</button>
+        <input id="closeBigNote" placeholder="บันทึกการปิด (เช่น ตรวจครบตามข้อเสนอแนะ ทุกประเด็นผ่าน — ใส่เมื่อปิดข้อสุดท้าย)" style="flex:1;min-width:280px">
+        <button id="btnCloseBig" class="gold">🔒 ปิดรวมทั้งแพ็ก (เฉพาะแพ็กไม่มีโครงหัวข้อ / ติ๊กครบแล้ว)</button>
       </div>
     </div>
     <div class="card">
