@@ -280,7 +280,7 @@ var GAT = (function () {
   }
   function importBCT() {
     status('กำลังดึงข้อมูลจาก BCT…');
-    Promise.all([gasGet('list_registers'), gasGet('list_entries'), gasGet('list_recs').catch(function(){return gasGet('list_issues');}), gasGet('list_packs').catch(function(){return {ok:false};})])
+    Promise.all([gasGet('list_registers'), gasGet('list_entries'), gasGet('list_recs').catch(function(){return gasGet('list_issues');}), gasGet('list_packs').catch(function(){return {ok:false};}), gasGet('list_notifs').catch(function(){return {ok:false};})])
       .then(function (res) {
         state.registersBCT = (res[0].ok ? res[0].data : []);
         state.entries = (res[1].ok ? res[1].data : []);
@@ -288,6 +288,25 @@ var GAT = (function () {
         try { renderPacks(); fillPackSelectors(); renderAiCandidates(); } catch (e) {}
         state.recs = (res[2].ok ? res[2].data : []);
         state.issues = state.recs;
+        /* v1.38.2 — ดึงใบแจ้งจากชีต (list_notifs) กลับเข้า dropdown แท็บ 1/2 ทุกเครื่อง — merge ของเดิมตาม NOTIF_ID (เครื่องไหนมี sub ครบอยู่แล้วใช้ของเครื่องนั้น) */
+        if (res[4] && res[4].ok && Array.isArray(res[4].data)) {
+          try {
+            var local = loadNotifs();
+            res[4].data.forEach(function (r) {
+              if (!r || !r.NOTIF_ID) return;
+              var exist = local.filter(function (n) { return n.NOTIF_ID === r.NOTIF_ID; })[0];
+              if (exist) return; /* เครื่องมีแล้ว (sub/items ครบ) — คงเดิม */
+              local.push({
+                NOTIF_ID: r.NOTIF_ID, BU: r.BU || '', PERIOD: r.PERIOD || '',
+                TITLE: r.TITLE || '', EVENT: r.EVENT || '', OWNER: r.OWNER || '', DUE: r.DUE || '',
+                items: String(r.ITEMS || '').split(' ⏎ ').map(function (s) { return s.trim(); }).filter(Boolean),
+                sub: [], HEAD: '', BY: r.BY || 'GAT', SAVED_AT: r.SAVED_AT || ''
+              });
+            });
+            saveNotifs(local);
+            fillNotifPickers(); renderNotifList();
+          } catch (e) {}
+        }
         state.registers = seedToRegisters(state.seed)
           .filter(function (r) {
             // ถ้ามี register จาก BCT ทับ seed รหัสเดียวกัน ให้ใช้ BCT
@@ -2360,5 +2379,5 @@ function loadProcessDocs() {
 
   return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, initD10: initD10, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess,
  _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _notifs: function (l) { if (l) saveNotifs(l); return loadNotifs(); }, _appTgText: appTgText, _copyNotifTg: copyNotifTg, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks, _renderRecs: renderRecs, _renderPickTable: renderPickTable, _removePickPacks: removePickPacks, _renderSentTable: renderSentTable,
-    _renderInspect: renderInspect, _saveAuditResult: saveAuditResult, _inspItemRows: inspItemRows, _packPlanTitle: packPlanTitle, _packShowName: packShowName, _inspItemsSummarize: inspItemsSummarize, _inspStateGet: inspStateGet, _inspStateSave: inspStateSave, _renderInspItems: renderInspItems, _renderResult4: renderResult4, _sumDecide: sumDecide, _sumTgText4: sumTgText4, _copySumTg: copySumTg, _renderExtraTable: renderExtraTable, _sendExtraEvidence: sendExtraEvidence, _sendResultToBU: sendResultToBU, _renderCloseBig: renderCloseBig, _closeBig: closeBig, _fillInspectPack: fillInspectPack };
+    _renderInspect: renderInspect, _saveAuditResult: saveAuditResult, _inspItemRows: inspItemRows, _packPlanTitle: packPlanTitle, _packShowName: packShowName, _inspItemsSummarize: inspItemsSummarize, _inspStateGet: inspStateGet, _inspStateSave: inspStateSave, _renderInspItems: renderInspItems, _renderResult4: renderResult4, _sumDecide: sumDecide, _sumTgText4: sumTgText4, _copySumTg: copySumTg, _renderExtraTable: renderExtraTable, _sendExtraEvidence: sendExtraEvidence, _sendResultToBU: sendResultToBU, _renderCloseBig: renderCloseBig, _closeBig: closeBig, _fillInspectPack: fillInspectPack, _importBCT: importBCT };
 })();
