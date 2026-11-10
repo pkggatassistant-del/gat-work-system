@@ -181,7 +181,7 @@ setTimeout(() => {
         d.getElementById('btnSendResult').click();
         setTimeout(function () {
           ok('v1.29: ส่งผลให้ BU ยิง update_pack_status', send6 >= 1, send6);
-          /* ขั้น 5 — ปิดใหญ่: มีใบเปิด → block (แยก timeout กัน race โหลดชีตทับ recs) */
+          /* ขั้น 5 — ปิดย่อย: มีใบเปิด → block (แยก timeout กัน race โหลดชีตทับ recs) */
           setTimeout(function () {
             var stA = gat.state(); stA.recs = [{ REC_ID: 'GAT-REC-9001', TITLE: 'เปิดค้าง', STATUS: 'รอ BU ดำเนินการ' }]; stA.packs = [{ PACK_ID: 'PACK-9992', BU: 'PKG', TITLE: 'x', STATUS: 'ผ่านการตรวจ — รอปิดประเด็น (ขั้น 5)', AI_NOTE: '' }];
             gat._renderRecs(); gat._renderCloseBig();
@@ -189,7 +189,7 @@ setTimeout(() => {
             var bcFired = 0;
             w.fetch = function (u, o) { var b = o && o.body ? String(o.body) : ''; if (b.indexOf('update_pack_status') >= 0) { bcFired++; return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true }); } }); } return baseF(u, o); };
             d.getElementById('btnCloseBig').click();
-            ok('v1.29: ปิดใหญ่ถูกบล็อกเพราะมีใบเปิด', bcFired === 0, bcFired);
+            ok('v1.29: ปิดย่อยถูกบล็อกเพราะมีใบเปิด', bcFired === 0, bcFired);
             w.fetch = baseF;
             globalThis.flow29Res = true;
           }, 90);
@@ -349,19 +349,19 @@ setTimeout(() => {
   }));
   gat._renderRecs();
   ok('v1.29: nav มีแท็บ 6 ส่งผลให้ BU (aisend)', Array.from(d.querySelectorAll('nav a')).some(function (a) { return a.textContent.indexOf('ส่งผลการตรวจให้ BU') >= 0; }));
-  ok('v1.29: ฟอร์มปิดย่อยอยู่ใน pane-close', d.getElementById('closeRecPick').closest('.tabpane').id === 'pane-close');
+  ok('v1.29: ฟอร์มปิดหลักอยู่ใน pane-close', d.getElementById('closeRecPick').closest('.tabpane').id === 'pane-close');
   ok('v1.29: ฟอร์ม ① ออกใบมือย้ายไป pane-sum4 (ขั้น 4)', d.getElementById('recRegPick').closest('.tabpane').id === 'pane-sum4');
   ok('v1.11: ทะเบียนกลางอยู่ที่แท็บ recs เฉพาะ', d.getElementById('recBody').closest('.tabpane').id === 'pane-recs');
   gat.showTab('close');
   ok('v1.11: ตารางสำเนาแท็บ 5 มี 10 แถว', d.getElementById('recBodyClose').querySelectorAll('tr').length === 10);
-  ok('v1.11: dropdown ปิดย่อย = 10 ใบเปิด (ขอบเขต REC)', d.getElementById('closeRecPick').options.length === 11);
+  ok('v1.11: dropdown ปิดหลัก = 10 ใบเปิด (ขอบเขต REC)', d.getElementById('closeRecPick').options.length === 11);
   // seed ใบที่ BU ตอบแล้ว 1 ใบ (ทับ REC-0051) → ต้องขึ้นใน dropdown ปิด
   var st2 = gat.state();
   st2.recs = st2.recs.filter(function (r) { return r.REC_ID !== 'GAT-REC-0051'; });
   st2.recs.push({ REC_ID: 'GAT-REC-0051', REC_NO: 42, SEVERITY: '🔴 ขัดกฎหมาย/จำเป็นจริง', TITLE: 'ทดสอบ BU ตอบแล้ว', STATUS: 'BU ตอบแล้ว', BU_DECISION: 'แก้ไข', EVIDENCE_URL: 'https://example.com/x' });
   gat._renderRecs();
   gat.showTab('close');
-  ok('v1.29: ใบที่ BU ตอบแล้วยังขึ้นใน dropdown ปิดย่อย (11)', d.getElementById('closeRecPick').options.length === 11);
+  ok('v1.29: ใบที่ BU ตอบแล้วยังขึ้นใน dropdown ปิดหลัก (11)', d.getElementById('closeRecPick').options.length === 11);
 
   /* ผลรวม print ในบล็อก async (หลังบล็อก 4 เสร็จ) — บล็อกนี้รอ scheduler */
 }, 400);

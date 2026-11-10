@@ -205,7 +205,7 @@ ol.manual li{margin-bottom:8px}
     <a data-tab="packs"><span class="ic">📤</span> 2. BU ส่งหลักฐาน (แรก+ส่งเพิ่มเติม)</a>
     <a data-tab="inspect"><span class="ic">🔍</span> 3. GAT ตรวจหลักฐาน</a>
     <a data-tab="sum4"><span class="ic">📋</span> 4. GAT สรุปผลการตรวจ</a>
-    <a data-tab="close"><span class="ic">🔒</span> 5. ปิดประเด็น (ย่อย+ใหญ่)</a>
+    <a data-tab="close"><span class="ic">🔒</span> 5. ปิดประเด็น (หลัก+ย่อย)</a>
     <a data-tab="aisend"><span class="ic">🧾</span> 6. ส่งผลการตรวจให้ BU</a>
     <a data-tab="d10"><span class="ic">📊</span> 7. รายงานวัดผล DTA (ศุกร์)
     <div class="nav-hd">ฐานข้อมูล</div>
@@ -530,26 +530,26 @@ ol.manual li{margin-bottom:8px}
   <section class="tabpane" id="pane-close">
     <div class="card">
       <div class="card-hd"><b>🔒 ขั้น 5 — GAT ปิดประเด็น (ตามผัง: ปิดได้เมื่อตรวจผ่านตามข้อเสนอแนะที่ร้องขอ)</b></div>
-      <p class="desc">ปิดได้ 2 เหตุการณ์: <b>① ปิดย่อย</b> — ประเด็น/หัวข้อหนึ่งตรวจจบแล้ว (ตรวจครบตามข้อเสนอแนะที่ร้องขอ) ปิดเฉพาะหัวข้อนั้น · <b>② ปิดใหญ่</b> — ตรวจครบทุกประเด็นของเรื่อง (เหลือประเด็นไม่ผ่านอยู่ = ยังปิดไม่ได้) · ระบบตรวจให้: ปิดใหญ่ได้เมื่อปิดย่อยครบทุกใบเปิด</p>
+      <p class="desc">ปิดได้ 2 เหตุการณ์: <b>① ปิดประเด็นหลัก</b> — ประเด็น/หัวข้อหนึ่งตรวจจบแล้ว (ตรวจครบตามข้อเสนอแนะที่ร้องขอ) ปิดเฉพาะหัวข้อนั้น · <b>② ปิดประเด็นย่อย</b> — ตรวจครบทุกประเด็นของเรื่อง (เหลือประเด็นไม่ผ่านอยู่ = ยังปิดไม่ได้) · ระบบตรวจให้: ปิดประเด็นย่อยได้เมื่อปิดหลักครบทุกใบเปิด</p>
     </div>
     <div class="card">
-      <div class="card-hd"><b>🔒 ① ปิดประเด็นย่อย (ต่อใบ/ต่อประเด็น)</b></div>
+      <div class="card-hd"><b>🔒 ① ปิดประเด็นหลัก (ต่อใบ/ต่อประเด็น)</b></div>
       <p class="desc">เลือกใบ REC ที่ตรวจจบแล้ว (ผ่านตามข้อเสนอแนะที่ร้องขอ) → ปิดรายใบ — จด AuditLog "close_issue"</p>
       <div class="filters"><select id="closeRecPick" style="flex:1;min-width:300px"><option value="">— เลือกใบที่ตรวจจบแล้ว —</option></select></div>
       <div class="filters">
         <input id="closeBy" placeholder="ชื่อ-ตำแหน่งจริงผู้ปิด (GAT)" style="width:260px">
         <input id="closeNote" placeholder="หลักฐานการปิด (เช่น ผลตรวจ PACK-xxxx ผ่าน)" style="flex:1;min-width:260px">
-        <button id="btnCloseRec" class="gold">🔒 ปิดประเด็นย่อย (GAT ยืนยัน)</button>
+        <button id="btnCloseRec" class="gold">🔒 ปิดประเด็นหลัก (GAT ยืนยัน)</button>
       </div>
     </div>
     <div class="card">
-      <div class="card-hd"><b>🔒 ② ปิดประเด็นใหญ่ (ต่อเรื่อง/PACK — ปิดได้เมื่อครบทุกประเด็น)</b></div>
-      <div class="filters"><select id="closeBigPackPick" style="flex:1;min-width:320px"><option value="">— เลือกเรื่อง (PACK) ที่จะปิด —</option></select>
+      <div class="card-hd"><b>🔒 ② ปิดประเด็นย่อย (ต่อเรื่อง/PACK — ปิดได้เมื่อครบทุกประเด็น)</b></div>
+      <div class="filters"><select id="closeBigPackPick" style="flex:1;min-width:320px"><option value="">เลือกเรื่อง (PACK) ตามชื่อเรื่อง</option></select>
       <input id="closeBigBy" placeholder="ชื่อ-ตำแหน่งผู้ปิด (GAT)" style="width:240px"></div>
       <div id="closeBigCheck" class="desc" style="margin-top:6px"></div>
       <div class="filters">
         <input id="closeBigNote" placeholder="บันทึกการปิด (เช่น ตรวจครบตามข้อเสนอแนะ ทุกประเด็นผ่าน)" style="flex:1;min-width:280px">
-        <button id="btnCloseBig" class="gold">🔒 ปิดประเด็นใหญ่ (เมื่อครบทุกประเด็น)</button>
+        <button id="btnCloseBig" class="gold">🔒 ปิดประเด็นย่อย (เมื่อครบทุกประเด็น)</button>
       </div>
     </div>
     <div class="card">
@@ -557,7 +557,7 @@ ol.manual li{margin-bottom:8px}
         <h3>🧾 ทะเบียนข้อเสนอแนะ (สำเนา)</h3>
         <span id="recCountClose" style="font-size:12px;color:var(--muted)"></span>
       </div>
-      <p class="desc">สถานะ: 🟢 ปิดย่อย = "ปิดแล้ว" · เรื่องปิดใหญ่ = สถานะรวม "ปิดประเด็นใหญ่แล้ว" บนชีต PACK</p>
+      <p class="desc">สถานะ: 🟢 ปิดหลัก = "ปิดแล้ว" · เรื่องปิดย่อย = สถานะรวม "ปิดประเด็นย่อยแล้ว" บนชีต PACK</p>
       <div class="tblwrap">
       <table class="tbl">
         <thead><tr><th>เลขที่</th><th>ระดับ</th><th>หัวข้อ</th><th>อ้างชีท+แถว</th><th>สถานะ</th><th>การตัดสิน BU</th><th>หลักฐาน/เหตุผล · ผู้รับผิดชอบ</th></tr></thead>

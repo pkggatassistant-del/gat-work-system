@@ -830,13 +830,13 @@ function loadProcessDocs() {
       else status('❌ ' + (res.error || 'ส่งไม่สำเร็จ'));
     });
   }
-  /* ขั้น 5 — ปิดประเด็นใหญ่ (ต่อเรื่อง/PACK) — ระบบตรวจว่าปิดย่อยครบ */
+  /* ขั้น 5 — ปิดประเด็นย่อย (ต่อเรื่อง/PACK) — ระบบตรวจว่าปิดหลักครบ (v1.38: dropdown กรองหลวมลง ไม่ว่างง่าย + โชว์ชื่อเรื่องนำ) */
   function renderCloseBig() {
     var sel = document.getElementById('closeBigPackPick'); if (!sel) return;
     var cur = sel.value;
-    var list = (state.packs || []).filter(function (x) { var s = String(x.STATUS || ''); return s.indexOf('รอปิดประเด็น') >= 0 || s.indexOf('ผ่านการตรวจ') >= 0 || s.indexOf('ส่งผลให้ BU') >= 0; });
-    sel.innerHTML = '<option value="">เลือกเรื่อง (PACK) ที่จะปิด</option>' + list.map(function (x) {
-      return '<option value="' + escP(x.PACK_ID) + '">' + escP(x.PACK_ID + ' · ' + x.BU + ' · ' + packShowName(x)) + '</option>';
+    var list = (state.packs || []).filter(function (x) { var s = String(x.STATUS || ''); return !(s.indexOf('ปิดประเด็นย่อยแล้ว') >= 0 || s.indexOf('ปิดประเด็นใหญ่แล้ว') >= 0 || s.indexOf('ลบ') >= 0); });
+    sel.innerHTML = '<option value="">เลือกเรื่อง (PACK) ตามชื่อเรื่อง</option>' + list.map(function (x) {
+      return '<option value="' + escP(x.PACK_ID) + '">' + escP(packShowName(x) + ' (' + x.PACK_ID + ')') + '</option>';
     }).join('');
     if (cur) sel.value = cur;
     var box = document.getElementById('closeBigCheck');
@@ -846,18 +846,18 @@ function loadProcessDocs() {
     var openRecs = scopedRecs().filter(function (r) { return String(r.STATUS || '').indexOf('ปิด') < 0; });
     var closedRecs = scopedRecs().filter(function (r) { return String(r.STATUS || '').indexOf('ปิด') >= 0; });
     box.innerHTML = openRecs.length
-      ? '<span style="color:#c0392b">⚠️ ยังมีใบประเด็นเปิดอยู่ ' + openRecs.length + ' ใบ (ปิดย่อยให้ครบที่การ์ด ① ก่อน) — ปิดใหญ่ได้เมื่อ ' + (closedRecs.length + openRecs.length) + ' ใบจบหมด</span>'
-      : '✅ ใบประเด็นปิดครบทั้งหมด ' + closedRecs.length + ' ใบ — ปิดใหญ่ได้ (หลังปิด: วงจรของเรื่องนี้จบ → สถานะ ปิดประเด็นใหญ่แล้ว (ขั้น 5))';
+      ? '<span style="color:#c0392b">⚠️ ยังมีใบประเด็นเปิดอยู่ ' + openRecs.length + ' ใบ (ปิดหลักให้ครบที่การ์ด ① ก่อน) — ปิดย่อยได้เมื่อ ' + (closedRecs.length + openRecs.length) + ' ใบจบหมด</span>'
+      : '✅ ใบประเด็นปิดครบทั้งหมด ' + closedRecs.length + ' ใบ — ปิดย่อยได้ (หลังปิด: วงจรของเรื่องนี้จบ → สถานะ ปิดประเด็นย่อยแล้ว (ขั้น 5))';
   }
   function closeBig() {
     var pid = document.getElementById('closeBigPackPick').value;
-    if (!pid) { status('⚠️ เลือกเรื่อง (PACK) ก่อน'); return; }
+    if (!pid) { status('⚠️ เลือกเรื่อง (PACK) ตามชื่อเรื่องก่อน'); return; }
     var openRecs = scopedRecs().filter(function (r) { return String(r.STATUS || '').indexOf('ปิด') < 0; });
     if (openRecs.length) { status('⛔ ยังปิดไม่ได้ — มีประเด็นไม่ผ่าน/เปิดอยู่ ' + openRecs.length + ' ใบ: ' + openRecs.map(function (x) { return x.REC_ID; }).join(', ')); return; }
     var by = document.getElementById('closeBigBy').value.trim() || 'GAT';
     var note = document.getElementById('closeBigNote').value.trim() || 'ตรวจครบตามข้อเสนอแนะ ทุกประเด็นผ่าน';
-    postToBCT('update_pack_status', { PACK_ID: pid, STATUS: 'ปิดประเด็นใหญ่แล้ว (ขั้น 5) — ' + note, BY: by }, function (res) {
-      if (res.ok) { status('🔒 ปิดประเด็นใหญ่ ' + pid + ' แล้ว — ' + by + ' · บันทึกชีต + AuditLog'); loadPacks(); }
+    postToBCT('update_pack_status', { PACK_ID: pid, STATUS: 'ปิดประเด็นย่อยแล้ว (ขั้น 5) — ' + note, BY: by }, function (res) {
+      if (res.ok) { status('🔒 ปิดประเด็นย่อย ' + pid + ' แล้ว — ' + by + ' · บันทึกชีต + AuditLog'); loadPacks(); }
       else status('❌ ' + (res.error || 'ปิดไม่สำเร็จ'));
     });
   }
@@ -1775,7 +1775,7 @@ function loadProcessDocs() {
   /* v1.29 — map สถานะใบ/PACK จากชีต → ขั้นตามวงจร 7 ขั้น (ผัง draw.io 9 พ.ย. 69) — สถานะเก่า 8 ขั้น แปลงอัตโนมัติ */
   function recStage_(s) {
     s = String(s || '');
-    if (s.indexOf('ปิดประเด็นใหญ่') >= 0 || s.indexOf('ปิดแล้ว') >= 0 || s.indexOf('ปิด') >= 0) return { key: 'closed', label: '✅ ปิดประเด็นแล้ว (ขั้น 5)' };
+    if (s.indexOf('ปิดประเด็นย่อยแล้ว') >= 0 || s.indexOf('ปิดประเด็นใหญ่แล้ว') >= 0 || s.indexOf('ปิดแล้ว') >= 0 || s.indexOf('ปิด') >= 0) return { key: 'closed', label: '✅ ปิดประเด็นแล้ว (ขั้น 5)' };
     if (s.indexOf('ส่งผลให้ BU') >= 0 || s.indexOf('ส่งให้ BU') >= 0) return { key: 'atbu', label: '📤 ส่งผลให้ BU แล้ว (ขั้น 6)' };
     if (s.indexOf('ไม่ผ่าน') >= 0) return { key: 'failed', label: '⛔ ไม่ผ่าน — รอ BU ส่งหลักฐานเพิ่มเติม (ขั้น 2)' };
     if (s.indexOf('รอปิดประเด็น') >= 0 || s.indexOf('ผ่านการตรวจ') >= 0) return { key: 'passed', label: '✅ ผ่านการตรวจ — รอปิดประเด็น (ขั้น 5)' };
@@ -1824,7 +1824,7 @@ function loadProcessDocs() {
       kpi('📤 อยู่ที่ BU (ขั้น 2/6)', fmt(stageCount.atbu), 'ส่งผล/ส่งหลักฐานแล้ว — ตาม SLA') +
       kpi('⛔ ไม่ผ่าน — รอส่งเพิ่มเติม (ขั้น 2)', fmt(stageCount.failed), 'วนกลับขั้น 2 → 3 → 4') +
       kpi('✅ ผ่าน — รอปิดประเด็น (ขั้น 5)', fmt(stageCount.passed), 'ตัดสินผ่านที่ขั้น 4 แล้ว') +
-      kpi('🔒 ปิดประเด็นแล้ว (ขั้น 5)', fmt(stageCount.closed), 'ปิดย่อยครบ + ปิดใหญ่') +
+      kpi('🔒 ปิดประเด็นแล้ว (ขั้น 5)', fmt(stageCount.closed), 'ปิดหลักครบ + ปิดย่อย') +
       kpi('ระบบเอกสาร (PM/WI/SD/FM)', teamCount.PM + '·' + teamCount.WI + '·' + teamCount.SD + '·' + teamCount.FM, 'รวม ' + teamTotal + ' หัวข้อ — แยกจากทะเบียนตรวจ') +
       kpi('🟢 ปกติ', fmt(byStat['🟢']), 'มีข้อมูล/ผ่าน') +
       kpi('🟡 รอข้อมูลจริง', fmt(byStat['🟡']), 'ต้องติดตาม BU') +
@@ -1848,7 +1848,7 @@ function loadProcessDocs() {
     var flow7 = [
       ['1', 'GAT ตั้งเรื่อง+ประเด็นที่จะตรวจ'], ['2', 'BU ส่งหลักฐาน (แรก+เพิ่มเติม)'],
       ['3', 'GAT ตรวจหลักฐาน'], ['4', 'GAT สรุปผลการตรวจ (ผ่าน/ไม่ผ่าน — ไม่ผ่านกลับ 2)'],
-      ['5', 'ปิดประเด็น (ย่อย+ใหญ่)'], ['6', 'ส่งผลการตรวจให้ BU'],
+      ['5', 'ปิดประเด็น (หลัก+ย่อย)'], ['6', 'ส่งผลการตรวจให้ BU'],
       ['7', 'OpenClaw รายงานวัดผลศุกร์']
     ];
     var flowChip = function (n, t) {
@@ -2249,7 +2249,7 @@ function loadProcessDocs() {
 
   document.addEventListener('DOMContentLoaded', boot);
 
-  var TAB_NAMES = { p02pick: '1. GAT ตั้งเรื่อง+ประเด็นที่จะตรวจ', packs: '2. BU ส่งหลักฐาน (แรก + ส่งเพิ่มเติม)', inspect: '3. GAT ตรวจหลักฐาน', sum4: '4. GAT สรุปผลการตรวจ', close: '5. ปิดประเด็น (ย่อย+ใหญ่)', aisend: '6. ส่งผลการตรวจให้ BU', d10: '7. รายงานวัดผล DTA (ทุกวันศุกร์ — OpenClaw เตรียม)', summary: 'สรุปผลงาน GAT (เก็บอ้างอิง)', dashboard: 'Dashboard ภาพรวม', registers: 'Registers', universe: 'Regulatory Universe', recs: 'ทะเบียนข้อเสนอแนะ', manual: 'คู่มือการใช้งาน', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
+  var TAB_NAMES = { p02pick: '1. GAT ตั้งเรื่อง+ประเด็นที่จะตรวจ', packs: '2. BU ส่งหลักฐาน (แรก + ส่งเพิ่มเติม)', inspect: '3. GAT ตรวจหลักฐาน', sum4: '4. GAT สรุปผลการตรวจ', close: '5. ปิดประเด็น (หลัก+ย่อย)', aisend: '6. ส่งผลการตรวจให้ BU', d10: '7. รายงานวัดผล DTA (ทุกวันศุกร์ — OpenClaw เตรียม)', summary: 'สรุปผลงาน GAT (เก็บอ้างอิง)', dashboard: 'Dashboard ภาพรวม', registers: 'Registers', universe: 'Regulatory Universe', recs: 'ทะเบียนข้อเสนอแนะ', manual: 'คู่มือการใช้งาน', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
 
   /* ---------- แกนกลาง 10 กระบวนการ (P-01..P-10) — RUN_STEPS = แหล่งเดียว: แท็บงานจริงแต่ละขั้นอ่านจากนี้ ---------- */
   var RUN_STEPS = [
@@ -2257,7 +2257,7 @@ function loadProcessDocs() {
     { id: '2', name: 'BU ส่งหลักฐานตามหัวข้อขั้น 1 (ส่งรอบแรก + ส่งเพิ่มเติมเมื่อไม่ผ่าน)', sla: 'SLA: ส่งหลักฐาน 3 วันทำการ / ด่วน LCT 24 ชม.', check: ['เลือกประเด็นที่ GAT แจ้ง + กรอกฟอร์ม + แนบหลักฐานครบทุกประเด็น', 'ระบบรันเลข PACK ลงชีตกลางแล้ว (ไม่ผ่าน = ส่งเพิ่มเติมด้วยการ์ดด้านล่างแท็บ 2)', 'ห้ามแก้ไฟล์ต้นฉบับ — ส่งสำเนา'], tab: 'packs', tabNote: 'ทำที่แท็บ 2 (BU ส่งหลักฐาน)', act: 'packs', actLabel: 'ไปแท็บ 2 — ส่งหลักฐาน' },
     { id: '3', name: 'ทีม GAT ตรวจสอบหลักฐานที่ BU ส่งมา (รายละเอียดการตรวจ + ผลการตรวจ)', sla: 'กติกาเหล็ก WI-02: อ้าง PACK + หลักฐาน/ชีท#แถว + ชื่อผู้ตรวจจริง', check: ['เลือก PACK ที่ BU ส่ง + เปิดหลักฐานที่แนบมาครบ', 'บันทึกรายละเอียดการตรวจ (วิธี/มาตรฐานที่ใช้) + ผลรายประเด็น', 'ระบุผลรวม: ผ่าน / ไม่ผ่าน (ไม่ผ่าน = กลับขั้น 2)'], tab: 'inspect', tabNote: 'ทำที่แท็บ 3 (ตรวจหลักฐาน)', act: 'inspect', actLabel: 'ไปแท็บ 3 — ตรวจหลักฐาน' },
     { id: '4', name: 'ทีม GAT สรุปผลการตรวจ (แบบฟอร์มผลจากขั้น 3) — ตัดสิน ผ่าน/ไม่ผ่าน', sla: 'ออกใบ REC ที่ขั้น 4 เท่านั้น · ไม่ผ่าน = กลับขั้น 2', check: ['เลือก PACK → ระบบดึงผลขั้น 3 มาแสดงเป็นแบบฟอร์มผลการตรวจ', 'ตัดสิน: ผ่าน = ไปขั้น 6 · ไม่ผ่าน = กลับขั้น 2', 'พบประเด็นควรบันทึกเป็นใบ = ออกใบ GAT-REC ที่ขั้น 4'], tab: 'sum4', tabNote: 'ทำที่แท็บ 4 (สรุปผลการตรวจ)', act: 'sum4', actLabel: 'ไปแท็บ 4 — สรุปผล' },
-    { id: '5', name: 'ทีม GAT ปิดประเด็น (ย่อยต่อหัวข้อที่ตรวจจบ + ปิดใหญ่เมื่อครบทุกประเด็น)', sla: 'ปิดใหญ่ได้เมื่อตรวจครบ — มีประเด็นไม่ผ่าน = ยังไม่ปิด', check: ['ปิดย่อย: ใบ/หัวข้อที่ตรวจจบตามข้อเสนอแนะที่ร้องขอ', 'ปิดใหญ่: ตรวจครบทุกประเด็นของเรื่อง (ระบบตรวจนับใบเปิด)', 'ถ้ามีประเด็นไม่ผ่าน = งานยังไม่ปิด — รอวนขั้น 2→3→4'], tab: 'close', tabNote: 'ทำที่แท็บ 5 (ปิดประเด็น)', act: 'close', actLabel: 'ไปแท็บ 5 — ปิดประเด็น' },
+    { id: '5', name: 'ทีม GAT ปิดประเด็น (หลักต่อหัวข้อที่ตรวจจบ + ปิดย่อยเมื่อครบทุกประเด็น)', sla: 'ปิดย่อยได้เมื่อตรวจครบ — มีประเด็นไม่ผ่าน = ยังไม่ปิด', check: ['ปิดหลัก: ใบ/หัวข้อที่ตรวจจบตามข้อเสนอแนะที่ร้องขอ', 'ปิดย่อย: ตรวจครบทุกประเด็นของเรื่อง (ระบบตรวจนับใบเปิด)', 'ถ้ามีประเด็นไม่ผ่าน = งานยังไม่ปิด — รอวนขั้น 2→3→4'], tab: 'close', tabNote: 'ทำที่แท็บ 5 (ปิดประเด็น)', act: 'close', actLabel: 'ไปแท็บ 5 — ปิดประเด็น' },
     { id: '6', name: 'ทีม GAT ส่งผลการตรวจไปยัง BU (ทั้งผ่านและไม่ผ่าน)', sla: 'ไม่ผ่าน: BU ส่งหลักฐานเพิ่มเติมที่ขั้น 2 ภายใน SLA', check: ['เลือก PACK ที่ตัดสินแล้ว → กดส่งผลให้ BU', 'ผลไม่ผ่าน: แจ้ง BU ให้กลับไปขั้น 2 ส่งหลักฐานเพิ่มเติม', 'ใบ REC ที่ส่งพร้อมผล — ติดตามตาม SLA 5 วันทำการ'], tab: 'aisend', tabNote: 'ทำที่แท็บ 6 (ส่งผลให้ BU)', act: 'aisend', actLabel: 'ไปแท็บ 6 — ส่งผลให้ BU' },
     { id: '7', name: 'OpenClaw ทำรายงานวัดผล DTA — ส่งทุกวันศุกร์', sla: 'รอบรายงาน: ทุกวันศุกร์ — ข้อมูลช่วงเสาร์–ศุกร์ (OpenClaw เตรียมร่างให้ หนึ่ง/GAT ตรวจอนุมัติก่อนส่ง)', check: ['OpenClaw เตรียมรายงานจากชีตจริงก่อนศุกร์', 'หนึ่ง/GAT ตรวจ+อนุมัติร่างแล้ว', 'ส่งผู้มีอำนาจ/OAC + ทบทวน 🔴 ค้าง'], tab: 'd10', tabNote: 'ทำที่แท็บ 7 (รายงานวัดผล DTA) — OpenClaw เตรียมให้', act: 'd10', actLabel: 'ไปแท็บ 7 — รายงานวัดผล DTA' }
   ];
