@@ -884,7 +884,12 @@ function loadProcessDocs() {
     return t;
   }
   function loadNotifs() {
-    try { return JSON.parse(localStorage.getItem('gat_notifs') || '[]'); } catch (e) { return []; }
+    try {
+      var ls = JSON.parse(localStorage.getItem('gat_notifs') || '[]');
+      /* v1.34.3 — migrate แผนเก่าที่ไม่มี TITLE (สร้างก่อน v1.31): ตั้งชื่อแสดงให้ชัดว่าเป็นแผนเก่า */
+      ls.forEach(function (n) { if (!n.TITLE) n.TITLE = 'แผนแจ้งเก่า (ก่อน v1.31 — ไม่มีชื่อเรื่อง)'; });
+      return ls;
+    } catch (e) { return []; }
   }
   function saveNotifs(list) { try { localStorage.setItem('gat_notifs', JSON.stringify(list)); } catch (e) {} }
   function renderNotifList() {
@@ -906,7 +911,7 @@ function loadProcessDocs() {
       var sel = document.getElementById(id2); if (!sel) return;
       var cur = sel.value;
       sel.innerHTML = '<option value="">— เรื่องที่ GAT แจ้ง (เลือกเรื่องที่ส่ง) —</option>' + list.map(function (n) {
-        return '<option value="' + escP(n.NOTIF_ID) + '">' + escP((n.TITLE ? n.TITLE + ' (' + n.NOTIF_ID + ')' : n.NOTIF_ID) + ' · ' + n.BU + ' · ' + (n.PERIOD || '') + ' · ' + (n.items || []).length + ' ประเด็น') + '</option>';
+        return '<option value="' + escP(n.NOTIF_ID) + '">' + escP((n.TITLE || '(แผนเก่า — ไม่มีชื่อเรื่อง)') + ' (' + n.NOTIF_ID + ') · ' + n.BU + ' · ' + (n.PERIOD || '') + ' · ' + (n.items || []).length + ' ประเด็น') + '</option>';
       }).join('');
       if (cur) sel.value = cur;
     });
