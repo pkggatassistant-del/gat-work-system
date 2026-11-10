@@ -2,7 +2,7 @@
  * ============================================================
  *  GAT Work System — Google Apps Script Backend (BCT Bridge)
  *  ประจำ Google Spreadsheet: BCT (บอร์ดบันทึกรายการตรวจสอบของทีม BU)
- *  รุ่น v1.7 (5 พ.ย. 2569) — เพิ่ม 10 แท็บตามกระบวนการ 10 ขั้น (แท็บ ①ดึงแผน…⑩ผลงาน ประจำชีท) + setupProcessTabs() + tabs_status + auto-sync ①⑥⑩ — actions เดิม v1.6 ครบทุกข้อ
+ *  รุ่น v1.7.1 (5 พ.ย. 2569) — เพิ่ม 10 แท็บตามกระบวนการ 10 ขั้น (แท็บ ①ดึงแผน…⑩ผลงาน ประจำชีท) + setupProcessTabs() + tabs_status + auto-sync ①⑥⑩ — actions เดิม v1.6 ครบทุกข้อ
  *
  *  วงจรข้อเสนอแนะ (Recommendation / REC):
  *   ① GAT ตรวจจาก Web GAT → ออกข้อเสนอแนะ → ระบบรันเลขอัตโนมัติ GAT-REC-0001, 0002, …
@@ -21,7 +21,7 @@
  */
 
 var CONFIG = {
-  VERSION: 'v1.7 (5 พ.ย. 69) — เพิ่มแท็บกระบวนการ 10 ขั้น (setupProcessTabs) + sync_process_tabs + tabs_status — เดิม v1.6 ครบ',
+  VERSION: 'v1.7.1 (10 พ.ย. 69) — เพิ่มแท็บกระบวนการ 10 ขั้น (setupProcessTabs) + sync_process_tabs + tabs_status — เดิม v1.6 ครบ',
   SHEETS: {
     REGISTERS: 'GAT_Registers',   // Master Register: รายการตรวจสอบ/ภาระต้องส่ง
     ENTRIES: 'GAT_Entries',       // รายการบันทึกผลตรวจสอบรายครั้ง (BU กรอก)
@@ -724,6 +724,8 @@ function updatePackStatus_(data) {
     ? (data.FIELD === 'AI_NOTE' ? 12 : 11)
     : 8; // STATUS column
   var val = data.STATUS || '';
+  /* v1.7.1 — AI_NOTE: รับ NOTE เนื้อหาผลการตรวจ (บล็อกจาก inspBuildNote + ตารางตรวจต่อประเด็น v1.34) */
+  if (data.FIELD === 'AI_NOTE' && data.NOTE) val = data.STATUS + '\n' + data.NOTE;
   if (data.FIELD === 'AI_REVIEW_AT') val = Utilities.formatDate(new Date(), CONFIG.TZ, 'yyyy-MM-dd HH:mm');
   sh.getRange(hit, col).setValue(val);
   return 1;

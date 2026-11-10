@@ -423,6 +423,12 @@ ol.manual li{margin-bottom:8px}
       <div id="inspPackMeta" class="desc" style="margin-top:6px"></div>
     </div>
     <div class="card">
+      <div class="card-hd"><b>🧾 ตรวจต่อประเด็น (หลัก+ย่อย ตามที่ BU ส่งในขั้น 2) — เลือกสถานะ + ผล</b></div>
+      <p class="desc">เลือก PACK แล้วระบบแสดงประเด็นหลัก/ย่อยที่ BU แนบหลักฐานมา → GAT ตรวจทีละรายการ: ตั้ง <b>สถานะตรวจ</b> (ตรวจสอบแล้ว/ยังไม่ได้ตรวจสอบ) + <b>ผลตรวจ</b> (ผ่าน/ไม่ผ่าน) — ระบบรวมเป็นบล็อกผลรายประเด็นอัตโนมัติตอนบันทึก (เติมช่อง "ผลการตรวจรายประเด็น" ให้ แก้เองได้)</p>
+      <div id="inspItemsBox" style="margin-top:8px"><span class="empty">— เลือก PACK ด้านบนก่อน —</span></div>
+      <div class="filters" style="margin-top:6px"><button class="button-lite" id="btnInspItemsToText">⤵️ ย่อผลตรวจรายประเด็นลงช่องผลด้านล่าง</button></div>
+    </div>
+    <div class="card">
       <div class="card-hd"><b>📝 ฟอร์มผลการตรวจ (ต่อ PACK)</b></div>
       <p class="desc">ระบุ <b>ผู้ตรวจ</b> + <b>วันที่ตรวจ</b> + รายละเอียดวิธีตรวจ + ผลรายประเด็น + สรุปผล — บันทึกแล้วระบบพิมพ์บล็อกมาตรฐานลงช่องผลการตรวจของชีต (PACKS: AI_NOTE) + สถานะรายแพ็ค</p>
       <div class="filters"><input id="inspBy" placeholder="ชื่อ-ตำแหน่งจริงผู้ตรวจ (GAT) — บังคับ" style="flex:1;min-width:260px">

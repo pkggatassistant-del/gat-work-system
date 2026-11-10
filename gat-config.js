@@ -12,7 +12,7 @@
 
 window.GAT_CONFIG = {
   REC_SCOPE: ['GAT-REC-0042','GAT-REC-0043','GAT-REC-0044','GAT-REC-0045','GAT-REC-0046','GAT-REC-0047','GAT-REC-0048','GAT-REC-0049','GAT-REC-0050','GAT-REC-0051'], // v1.10 โหมดทดสอบเรื่องเดียว (GA-LC) - เคลียร์ [] เพื่อโชว์ทุกใบ
-  VERSION: 'v1.33.3 (9 พ.ย. 69) — แท็บ 2 ตัด "เลือก BU" ออกตามสั่ง (ระบบจัด BU ตามเรื่องอัตโนมัติ) — ลำดับใหม่ ① เลือกเรื่อง ② ติ๊กประเด็นหลัก ③ แนบหลักฐานย่อย ④ หัวเรื่องการส่ง',
+  VERSION: 'v1.34 (10 พ.ย. 69) — ขั้น 3 ใหม่ตามสั่ง: เลือก PACK แล้วโชว์ตารางประเด็นหลัก+ย่อยที่ BU แนบ (ขั้น 2) — GAT ติ๊ก/เลือกสถานะ ตรวจสอบแล้ว-ยังไม่ได้ตรวจสอบ + ผล ผ่าน-ไม่ผ่าน + เหตุผลต่อรายการ, ปุ่มย่อลงช่องผล, บันทึกอัตโนมัติแนบผลต่อประเด็นลง AI_NOTE ของชีต (GAS ต้องเป็น v1.7.1)',
 
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง - ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
   BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbzuKrVSmPSphudtgIgmREMBiYYYETUNsTsyCzrUKgZ3C08Is1A-pf3Vsvadj7R8ArOv/exec'), // v1.27.1 default = GAS v1.7 (deploy ใหม่ 5 พ.ย. 69 — tabs_status 10/10 ผ่าน; เปลี่ยนเองได้ในแท็บ BCT Import/Export)

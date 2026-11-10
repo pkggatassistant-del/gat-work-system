@@ -528,6 +528,128 @@ function loadProcessDocs() {
       var pk = (state.packs || []).filter(function (x) { return x.PACK_ID === sel.value; })[0];
       meta.innerHTML = pk ? ('หัวเรื่อง: <b>' + escP(pk.TITLE || '') + '</b> · ขอบเขต: ' + escP(pk.SCOPE || '') + ' · รอบ: ' + escP(pk.PERIOD || '') + '<br>หลักฐานที่ BU แนบ:<br>' + (String(pk.LINKS || '').split('\n').filter(Boolean).map(function (l) { return '・ <a href="' + escP(l.trim()) + '" target="_blank" rel="noopener" class="mono" style="word-break:break-all">' + escP(l.trim()) + '</a>'; }).join('<br>') || '—') + (pk.NOTE ? '<br>หมายเหตุ BU: ' + escP(String(pk.NOTE).slice(0, 220)) : '')) : '';
     }
+
+    renderInspItems();
+  }
+  /* v1.34 — ตารางตรวจต่อประเด็น (หลัก+ย่อย ตามที่ BU ส่งขั้น 2): สถานะตรวจ + ผลตรวจ ต่อรายการ */
+  function inspPackNotif(pk) {
+    if (!pk) return null;
+    var pid = String(pk.NOTE || '').match(/อ้างแผน: ([A-Z0-9-]+)/);
+    if (!pid) return null;
+    return loadNotifs().filter(function (n) { return n.NOTIF_ID === pid[1]; })[0] || null;
+  }
+  function inspItemRows(pk) {
+    /* คืนรายการ [{key, label, evLabel, checked}] เรียงจาก ITEM + LINKS ของ pack */
+    var rows = [];
+    var item = String(pk.ITEM || '');
+    var links = String(pk.LINKS || '');
+    var evBlocks = [];
+    var re = /\[ประเด็น ([0-9.]+): ([^\]]*)\]\n([^\n\[]+)/g, m;
+    while ((m = re.exec(links)) !== null) evBlocks.push({ no: m[1], title: m[2].trim(), link: m[3].trim() });
+    /* split ระดับบรรทัด: " | " ที่อยู่ "นอก" วงเล็บเท่านั้น */
+    var lines = [];
+    if (item) {
+      var depth = 0, cur = '';
+      for (var ci = 0; ci < item.length; ci++) {
+        var ch = item[ci];
+        if (ch === '(') depth++;
+        else if (ch === ')') depth = Math.max(0, depth - 1);
+        if (ch === '|' && depth === 0) { lines.push(cur); cur = ''; }
+        else cur += ch;
+      }
+      lines.push(cur);
+    }
+    lines = lines.map(function (x) { return x.trim(); }).filter(Boolean);
+    lines.forEach(function (line) {
+      var mm = line.match(/^([0-9]+)\.\s*(.*)$/);
+      if (!mm) return;
+      var no = mm[1], rest = mm[2];
+      var subPart = rest.match(/\((.*)\)$/);
+      var mainTitle = rest.replace(/\s*\(.*\)$/, '').trim();
+      var subs = subPart ? subPart[1].split('|').map(function (x) { return x.trim(); }).filter(Boolean) : [];
+      if (!subs.length) {
+        var ev = evBlocks.filter(function (e) { return e.no === no; })[0] || {};
+        rows.push({ key: no, label: no + '. ' + mainTitle, evLabel: ev.link || '—', checked: false, result: '' });
+      } else {
+        subs.forEach(function (sb, k) {
+          var sm = sb.match(/^([0-9]+\.[0-9]+)\s*(.*)$/);
+          var sno = sm ? sm[1] : no + '.' + (k + 1);
+          var stitle = sm ? (sm[2] || sb) : sb;
+          var ev2 = evBlocks.filter(function (e) { return e.no === sno; })[0] || {};
+          rows.push({ key: sno, label: sno + ' ' + stitle + ' — ย่อยของ ' + no + ' ' + mainTitle, evLabel: ev2.link || '—', checked: false, result: '' });
+        });
+      }
+    });
+    return rows;
+  }
+  function inspStateGet(pid) {
+    try { return JSON.parse(localStorage.getItem('gat_insp_items_' + pid) || '{}'); } catch (e) { return {}; }
+  }
+  function inspStateSave(pid, stMap) {
+    try { localStorage.setItem('gat_insp_items_' + pid, JSON.stringify(stMap)); } catch (e) {}
+  }
+  function renderInspItems() {
+    var box = document.getElementById('inspItemsBox'); if (!box) return;
+    var sel = document.getElementById('inspPackPick');
+    var pk = (state.packs || []).filter(function (x) { return x.PACK_ID === sel.value; })[0];
+    if (!pk) { box.innerHTML = '<span class="empty">— เลือก PACK ด้านบนก่อน —</span>'; return; }
+    var stMap = inspStateGet(pk.PACK_ID);
+    var rows = inspItemRows(pk);
+    if (!rows.length) {
+      box.innerHTML = '<span class="empty">PACK นี้ไม่มีโครงประเด็น (ส่งก่อน v1.33) — ใช้ช่อง "ผลการตรวจรายประเด็น" ด้านล่างตามเดิม</span>';
+      return;
+    }
+    var h = '<div style="border:1px solid #cdd8e6;border-radius:10px;padding:10px;background:#fff;max-height:460px;overflow:auto">' +
+      '<div style="color:#1a2b45;margin-bottom:6px"><b>ประเด็นที่ BU ส่ง ' + escP(pk.PACK_ID) + ':</b> <span style="color:#7d93b2;font-size:12.5px">ตั้งสถานะ/ผลทุกรายการ → กด ⤵️ ย่อลงช่องผล (หรือพิมพ์เองด้านล่าง)</span></div>';
+    h += rows.map(function (r, ix) {
+      var s0 = stMap[r.key] || {};
+      var chk = (s0.chk !== undefined) ? s0.chk : false;
+      var resOp = function (v, lb) { return '<option value="' + v + '"' + (s0.res === v ? ' selected' : '') + '>' + lb + '</option>'; };
+      return '<div style="border-bottom:1px dashed #e3e9f2;padding:6px 0;color:#1a2b45">' +
+        '<div><label style="cursor:pointer"><input type="checkbox" data-iik="' + escP(r.key) + '" class="inspChk"' + (chk ? ' checked' : '') + '> <b>' + escP(r.label) + '</b></label></div>' +
+        '<div style="font-size:12.5px;margin:2px 0 4px 26px">หลักฐาน: ' + (r.evLabel !== '—' ? '<a href="' + escP(r.evLabel) + '" target="_blank" rel="noopener">เปิดลิงก์ที่ BU แนบ</a>' : '<span style="color:#c0392b">ไม่มีลิงก์อ่านได้</span>') + '</div>' +
+        '<div style="margin-left:26px;display:flex;gap:8px;flex-wrap:wrap">' +
+        '<label style="font-size:12.5px">สถานะ: <select class="inspChkSel" data-iik="' + escP(r.key) + '"><option value="ยังไม่ได้ตรวจสอบ"' + (s0.chk !== true ? ' selected' : '') + '>ยังไม่ได้ตรวจสอบ</option><option value="ตรวจสอบแล้ว"' + (s0.chk === true ? ' selected' : '') + '>ตรวจสอบแล้ว</option></select></label>' +
+        '<label style="font-size:12.5px">ผล: <select class="inspResSel" data-iik="' + escP(r.key) + '"><option value="">— ผลตรวจ —</option><option value="ผ่าน"' + (s0.res === 'ผ่าน' ? ' selected' : '') + '>✅ ผ่าน</option><option value="ไม่ผ่าน"' + (s0.res === 'ไม่ผ่าน' ? ' selected' : '') + '>⛔ ไม่ผ่าน</option></select></label>' +
+        '<input class="inspNote" data-iik="' + escP(r.key) + '" placeholder="เหตุผล/อ้างหลักฐาน (ถ้าไม่ผ่าน)" style="flex:1;min-width:180px;font-size:12.5px" value="' + escP(s0.note || '') + '">' +
+        '</div></div>';
+    }).join('');
+    h += '</div>';
+    box.innerHTML = h;
+    box.querySelectorAll('.inspChk').forEach(function (el) {
+      el.addEventListener('change', function () {
+        var m2 = inspStateGet(pk.PACK_ID); var k = el.getAttribute('data-iik');
+        m2[k] = m2[k] || {}; m2[k].chk = el.checked;
+        var selEl = box.querySelector('.inspChkSel[data-iik="' + k + '"]'); if (selEl) selEl.value = el.checked ? 'ตรวจสอบแล้ว' : 'ยังไม่ได้ตรวจสอบ';
+        inspStateSave(pk.PACK_ID, m2);
+      });
+    });
+    box.querySelectorAll('.inspChkSel,.inspResSel,.inspNote').forEach(function (el) {
+      var evName = el.classList.contains('inspChkSel') ? 'change' : (el.classList.contains('inspNote') ? 'input' : 'change');
+      el.addEventListener(evName, function () {
+        var m2 = inspStateGet(pk.PACK_ID); var k = el.getAttribute('data-iik');
+        m2[k] = m2[k] || {};
+        if (el.classList.contains('inspChkSel')) { m2[k].chk = el.value === 'ตรวจสอบแล้ว'; var cb = box.querySelector('.inspChk[data-iik="' + k + '"]'); if (cb) cb.checked = m2[k].chk; }
+        else if (el.classList.contains('inspResSel')) m2[k].res = el.value;
+        else m2[k].note = el.value;
+        inspStateSave(pk.PACK_ID, m2);
+      });
+    });
+  }
+  function inspItemsSummarize() {
+    var sel = document.getElementById('inspPackPick');
+    var pk = (state.packs || []).filter(function (x) { return x.PACK_ID === sel.value; })[0];
+    if (!pk) return '';
+    var stMap = inspStateGet(pk.PACK_ID);
+    var rows = inspItemRows(pk);
+    if (!rows.length) return '';
+    return rows.map(function (r) {
+      var s0 = stMap[r.key] || {};
+      var st = s0.chk ? 'ตรวจสอบแล้ว' : 'ยังไม่ได้ตรวจสอบ';
+      var res = s0.res ? ' = ' + s0.res : '';
+      var note = s0.note ? ' — ' + s0.note : '';
+      return '[' + escP(r.label) + '] สถานะ: ' + st + res + note;
+    }).join('\n');
   }
   function inspBuildNote(sums) {
     var by = document.getElementById('inspBy').value.trim();
@@ -545,11 +667,19 @@ function loadProcessDocs() {
     var by = document.getElementById('inspBy').value.trim();
     if (!by) { inspStatus('⚠️ ต้องลงชื่อ-ตำแหน่งผู้ตรวจจริง (กฎเหล็ก WI-02)'); return; }
     var sums = document.getElementById('inspSums').value;
+    var itemsMap = (function () { try { return JSON.parse(localStorage.getItem('gat_insp_items_' + pid) || '{}'); } catch (e) { return {}; } })();
+    var itemsFilled = Object.keys(itemsMap).some(function (k) { var v = itemsMap[k] || {}; return v.res || v.chk || v.note; });
     var note = inspBuildNote(sums);
+    /* v1.34 — ถ้าช่อง "ผลการตรวจ" ว่างแต่ตารางตรวจมีข้อมูล → ย่ออัตโนมัติลง note */
+    if (!document.getElementById('inspResult').value.trim() && itemsFilled) {
+      var autoSum = inspItemsSummarize();
+      if (autoSum) note = [note, '', '【ผลตรวจต่อประเด็น (จากตาราง)】', autoSum].join('\n');
+    }
     if (document.getElementById('inspDetail').value.trim() !== 'ร่าง') {
       // บันทึกลงชีตทันที (สถานะ 8 + AI_NOTE คอลัมน์ 12 ในครั้งเดียว)
     }
-    var draft = (document.getElementById('inspDetail').value.trim() === '' && document.getElementById('inspResult').value.trim() === '');
+    /* v1.34 — นับ "ตารางตรวจต่อประเด็น" เป็นเนื้อหาเช่นกัน (itemsFilled ประกาศด้านบน) */
+    var draft = (document.getElementById('inspDetail').value.trim() === '' && document.getElementById('inspResult').value.trim() === '' && !itemsFilled);
     var st = document.getElementById('inspStatus');
     if (draft) { inspStatus('⚠️ กรอก "รายละเอียดการตรวจ" หรือ "ผลการตรวจ" ก่อน (อย่างน้อย 1 ช่อง)'); return; }
     var statText;
@@ -557,7 +687,7 @@ function loadProcessDocs() {
     else if (sums === 'ไม่ผ่าน') statText = 'ตรวจแล้ว — ไม่ผ่าน กลับขั้น 2 (ขั้น 3)';
     else statText = 'ตรวจแล้ว — ผ่าน รอสรุปผลขั้น 4 (ขั้น 3)';
     inspStatus('กำลังบันทึกลงชีต…');
-    postToBCT('update_pack_status', { PACK_ID: pid, STATUS: statText, FIELD: 'AI_NOTE', BY: by }, function (res) {
+    postToBCT('update_pack_status', { PACK_ID: pid, STATUS: statText, NOTE: note, FIELD: 'AI_NOTE', BY: by }, function (res) {
       if (res.ok) {
         inspStatus('✅ บันทึกผลการตรวจ ' + pid + ' ลงชีตแล้ว (AUDITLOG จดอัตโนมัติ) — ผลรวม: ' + sums + (sums === 'ผ่าน' ? ' → ไปขั้น 4 (สรุปผล)' : ' → BU ส่งหลักฐานเพิ่มเติมที่แท็บ 2'));
         loadPacks(); showTab('sum4');
@@ -1988,6 +2118,14 @@ function loadProcessDocs() {
     try { state.planPick = JSON.parse(localStorage.getItem('gat_plan_pick') || '{}'); } catch (e) { state.planPick = {}; }
     /* ขั้น 3 — ตรวจหลักฐาน */
     var ip = id('inspPackPick'); if (ip) ip.addEventListener('change', renderInspect);
+    var bit = id('btnInspItemsToText'); if (bit) bit.addEventListener('click', function () {
+      var t = inspItemsSummarize();
+      var ta = document.getElementById('inspResult');
+      if (!ta) return;
+      if (!t) { ta.value = 'PACK นี้ไม่มีโครงประเด็น — พิมพ์ผลเอง'; return; }
+      ta.value = t;
+      inspStatus('⤵️ ย่อผลตรวจรายประเด็นลงช่อง "ผลการตรวจรายประเด็น" แล้ว — แก้เพิ่มได้ก่อนบันทึก');
+    });
     var ir = id('btnInspRefresh'); if (ir) ir.addEventListener('click', function () { loadPacks(); });
     var iv = id('btnInspSave'); if (iv) iv.addEventListener('click', saveAuditResult);
     /* ขั้น 4 — สรุปผล + ออกใบ REC */
@@ -2125,5 +2263,5 @@ function loadProcessDocs() {
 
   return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, initD10: initD10, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess,
  _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _notifs: function (l) { if (l) saveNotifs(l); return loadNotifs(); }, _appTgText: appTgText, _copyNotifTg: copyNotifTg, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks, _renderRecs: renderRecs, _renderPickTable: renderPickTable, _removePickPacks: removePickPacks, _renderSentTable: renderSentTable,
-    _renderInspect: renderInspect, _saveAuditResult: saveAuditResult, _renderResult4: renderResult4, _sumDecide: sumDecide, _renderExtraTable: renderExtraTable, _sendExtraEvidence: sendExtraEvidence, _sendResultToBU: sendResultToBU, _renderCloseBig: renderCloseBig, _closeBig: closeBig, _fillInspectPack: fillInspectPack };
+    _renderInspect: renderInspect, _saveAuditResult: saveAuditResult, _inspItemRows: inspItemRows, _inspItemsSummarize: inspItemsSummarize, _inspStateGet: inspStateGet, _inspStateSave: inspStateSave, _renderInspItems: renderInspItems, _renderResult4: renderResult4, _sumDecide: sumDecide, _renderExtraTable: renderExtraTable, _sendExtraEvidence: sendExtraEvidence, _sendResultToBU: sendResultToBU, _renderCloseBig: renderCloseBig, _closeBig: closeBig, _fillInspectPack: fillInspectPack };
 })();
