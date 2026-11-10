@@ -1121,6 +1121,10 @@ function loadProcessDocs() {
     return Array.prototype.map.call(tas, function (t) { return { idx: t.getAttribute('data-evrid'), text: t.value.trim() }; });
   }
   function sendPack() {
+    /* v1.35 — กันบันทึกซ้ำ: ปุ่มล็อกระหว่าง POST จริง (validate ก่อน ไม่ล็อก) */
+    var btnP = document.getElementById('btnSendPack');
+    var un = function () { if (btnP) { btnP.dataset.sending = ''; btnP.disabled = false; btnP.textContent = '📤 ส่งข้อมูลเข้าระบบ (รันเลข PACK)'; } };
+    if (btnP && btnP.dataset.sending === '1') return;
     var st = document.getElementById('packStatus');
     var buEl = document.getElementById('packBu');
     var bu = (buEl && buEl.value) ? buEl.value : '';
@@ -1177,15 +1181,17 @@ function loadProcessDocs() {
     }).join('\n\n');
     note = (note ? note + '\n' : '') + 'อ้างแผน: ' + notifId + ' — ส่งตามประเด็น (' + picked.length + '/' + (notifObj.items || []).length + ')';
     if (st) st.textContent = 'กำลังส่ง…';
+    if (btnP) { btnP.dataset.sending = '1'; btnP.disabled = true; btnP.textContent = '⏳ กำลังส่ง… รอผล'; }
     postToBCT('submit_pack', { BU: bu, SCOPE: notifId ? 'แผน ' + notifId + (notifObj.PERIOD ? ' (' + notifObj.PERIOD + ')' : '') : '', PERIOD: document.getElementById('packPeriod').value.trim(), TITLE: title, LINKS: links, NOTE: note, ITEM: item, BY: by }, function (res) {
       if (res.ok) {
         if (st) st.textContent = '✅ รันเลขสำเร็จ: ' + res.PACK_ID + ' — ส่งตามประเด็น ' + picked.length + ' รายการ + หลักฐานครบ → เข้าขั้น 3 (GAT เลือกตรวจ)';
+        if (btnP) { btnP.textContent = '✅ รันเลข ' + res.PACK_ID + ' แล้ว'; var pkBtn = btnP; setTimeout(function () { pkBtn.dataset.sending = ''; pkBtn.disabled = false; pkBtn.textContent = '📤 ส่งข้อมูลเข้าระบบ (รันเลข PACK)'; }, 1500); } else un();
         packSelItemsSave({}); /* v1.27 — เคลียร์ติ๊กหลังส่งสำเร็จ */
         document.getElementById('packTitle').value = ''; if (document.getElementById('packNote')) document.getElementById('packNote').value = '';
         renderPackEvid();
         loadPacks();
-      } else if (st) st.textContent = '❌ ' + (res.error || 'ส่งไม่สำเร็จ — ตรวจว่า GAS เป็น v1.7');
-    });
+      } else { if (st) st.textContent = '❌ ' + (res.error || 'ส่งไม่สำเร็จ — ตรวจว่า GAS เป็น v1.7'); un(); }
+    }, un);
   }
 
   function fillPackSelectors() {
@@ -2013,7 +2019,7 @@ function loadProcessDocs() {
       /* v1.27 — token หมดอายุ/ถูกเผา → กลับหน้าล็อกอิน */
       if (res && res.needLogin) { saveAuth(null); state.auth = null; showLoginGate('เซสชันหมดอายุ — ล็อกอินใหม่'); }
       if (cb) cb(res);
-    }).catch(function (e) { status('❌ ผิดพลาด: ' + e); });
+    }).catch(function (e) { status('❌ ผิดพลาด: ' + e); if (onFail) try { onFail({ error: String(e) }); } catch (e2) {} });
   }
 
   /* ---------- แท็บคู่มือ (โหลด GAT-MANUAL.md) ---------- */
