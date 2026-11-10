@@ -738,9 +738,37 @@ function loadProcessDocs() {
       '<tr><td style="color:#7d93b2">หัวเรื่อง/ขอบเขต</td><td>' + escP(pk.TITLE || '') + (pk.SCOPE ? ' · ' + escP(pk.SCOPE) : '') + '</td></tr>' +
       '<tr><td style="color:#7d93b2">สถานะปัจจุบัน</td><td><b>' + escP(st || '-') + '</b></td></tr>' +
       '<tr><td style="color:#7d93b2;width:130px">รายละเอียดการตรวจ<br>(จากขั้น 3)</td><td style="white-space:pre-wrap">' + escP(String(pk.AI_NOTE || '(ไม่มีข้อมูลรายละเอียด — ตรวจที่ขั้น 3 ก่อน)').slice(0, 1200)) + '</td></tr>' +
+      '<tr><td style="color:#7d93b2">ผู้ตรวจ</td><td>' + escP(pk.CREATED_BY ? String(pk.CREATED_BY) : '-') + '</td></tr>' +
       '</table>' +
+      '<div style="margin-top:8px"><b style="font-size:13px;color:#1a2b45">ข้อความผลการตรวจสำหรับส่ง BU (copy ได้):</b>' +
+      '<textarea id="sumTgText" readonly style="width:100%;min-height:150px;font-family:inherit;font-size:12.5px;margin-top:4px;color:#1a2b45;background:#f8fafc;border:1px solid #cdd8e6;border-radius:8px;padding:8px">' + escP(sumTgText4(pk)) + '</textarea>' +
+      '<div class="filters" style="margin-top:6px"><button class="button-lite" id="btnSumTgCopy">📋 คัดลอกข้อความผลการตรวจ — ส่งให้ BU (TG)</button></div></div>' +
       (isPass ? '<div class="status" style="margin-top:6px">✅ ขั้น 4 ตัดสิน "ผ่าน" แล้ว — ส่งผลต่อที่แท็บ 6 (ส่งผลการตรวจให้ BU)</div>' : '');
   }
+  /* v1.37 — ขั้น 4: ข้อความผลการตรวจสรุปจากขั้น 3 (AI_NOTE) เตรียม copy ส่ง BU (ตามสั่ง: เลือกชื่อเรื่อง → ดึงผลขั้น 3 → copy ส่ง BU) */
+  function sumTgText4(pk) {
+    var plan = packPlanTitle(pk);
+    var L = [];
+    L.push('📄 ผลการตรวจ — ' + (plan || pk.PACK_ID) + ' (' + pk.PACK_ID + ')');
+    L.push('BU ที่ส่ง: ' + (pk.BU || '—') + ' · ขอบเขต: ' + (pk.SCOPE || '—') + ' · รอบ: ' + (pk.PERIOD || '—'));
+    L.push('สถานะ: ' + (pk.STATUS || '—'));
+    var note = String(pk.AI_NOTE || '');
+    L.push('');
+    if (note) { L.push(note); }
+    else { L.push('(ยังไม่มีข้อมูลผลการตรวจจากขั้น 3 — ให้ GAT ตรวจและบันทึกที่แท็บ 3 ก่อน)'); }
+    L.push('');
+    L.push('ถ้าไม่ผ่าน: กรุณาส่งหลักฐานเพิ่มเติมที่เว็บ GAT แท็บ 2 (ส่งหลักฐานเพิ่มเติม)');
+    L.push('เข้าเว็บ: https://pkggatassistant-del.github.io/gat-work-system/');
+    L.push('— ทีม GAT (ขั้น 4 สรุปผลการตรวจ)');
+    return L.join('\n');
+  }
+  function copySumTg() {
+    var sel = document.getElementById('sumPackPick');
+    var pk = (state.packs || []).filter(function (x) { return x.PACK_ID === (sel ? sel.value : ''); })[0];
+    if (!pk) { status('⚠️ เลือก PACK ก่อน'); return; }
+    copyText(sumTgText4(pk), '📋 คัดลอกผลการตรวจ ' + pk.PACK_ID + ' แล้ว — วางใน TG ส่ง BU ได้เลย');
+  }
+
   function sumDecide(pass) {
     var pid = document.getElementById('sumPackPick').value;
     if (!pid) { if (sumStatus) sumStatus('⚠️ เลือก PACK ก่อน'); return; }
@@ -2185,6 +2213,7 @@ function loadProcessDocs() {
     var sp = id('sumPackPick'); if (sp) sp.addEventListener('change', renderResult4);
     var sf = id('btnSumFail'); if (sf) sf.addEventListener('click', function () { sumDecide(false); });
     var sr = id('btnSumPass'); if (sr) sr.addEventListener('click', function () { sumDecide(true); });
+    var sst = id('btnSumTgCopy'); if (sst) sst.addEventListener('click', copySumTg);
     /* ขั้น 2 เพิ่มเติม — ส่งหลักฐานเพิ่มเติม */
     var ex = id('extraPackPick'); if (ex) ex.addEventListener('change', fillInspectPack);
     var exs = id('btnExtraSend'); if (exs) exs.addEventListener('click', sendExtraEvidence);
@@ -2316,5 +2345,5 @@ function loadProcessDocs() {
 
   return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, initD10: initD10, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess,
  _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _notifs: function (l) { if (l) saveNotifs(l); return loadNotifs(); }, _appTgText: appTgText, _copyNotifTg: copyNotifTg, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks, _renderRecs: renderRecs, _renderPickTable: renderPickTable, _removePickPacks: removePickPacks, _renderSentTable: renderSentTable,
-    _renderInspect: renderInspect, _saveAuditResult: saveAuditResult, _inspItemRows: inspItemRows, _packPlanTitle: packPlanTitle, _packShowName: packShowName, _inspItemsSummarize: inspItemsSummarize, _inspStateGet: inspStateGet, _inspStateSave: inspStateSave, _renderInspItems: renderInspItems, _renderResult4: renderResult4, _sumDecide: sumDecide, _renderExtraTable: renderExtraTable, _sendExtraEvidence: sendExtraEvidence, _sendResultToBU: sendResultToBU, _renderCloseBig: renderCloseBig, _closeBig: closeBig, _fillInspectPack: fillInspectPack };
+    _renderInspect: renderInspect, _saveAuditResult: saveAuditResult, _inspItemRows: inspItemRows, _packPlanTitle: packPlanTitle, _packShowName: packShowName, _inspItemsSummarize: inspItemsSummarize, _inspStateGet: inspStateGet, _inspStateSave: inspStateSave, _renderInspItems: renderInspItems, _renderResult4: renderResult4, _sumDecide: sumDecide, _sumTgText4: sumTgText4, _copySumTg: copySumTg, _renderExtraTable: renderExtraTable, _sendExtraEvidence: sendExtraEvidence, _sendResultToBU: sendResultToBU, _renderCloseBig: renderCloseBig, _closeBig: closeBig, _fillInspectPack: fillInspectPack };
 })();
