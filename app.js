@@ -513,7 +513,7 @@ function loadProcessDocs() {
     var cur = sel.value;
     var list = (state.packs || []).filter(function (x) { var s = String(x.STATUS || ''); return s.indexOf('ตรวจแล้ว') < 0 && s.indexOf('ส่งผลให้ BU') < 0 && s.indexOf('ปิด') < 0 && s.indexOf('ลบออก') < 0; });
     sel.innerHTML = '<option value="">— เลือก PACK ที่ BU ส่ง —</option>' + list.map(function (x) {
-      return '<option value="' + escP(x.PACK_ID) + '">' + escP(x.PACK_ID + ' · ' + x.BU + ' · ' + packPlanTitle(x) + ' · ' + String(x.STATUS || 'รอ GAT เลือกตรวจ')) + '</option>';
+      return '<option value="' + escP(x.PACK_ID) + '">' + escP(x.PACK_ID + ' · ' + x.BU + ' · ' + packShowName(x) + ' · ' + String(x.STATUS || 'รอ GAT เลือกตรวจ')) + '</option>';
     }).join('');
     if (cur) sel.value = cur;
     var tb = document.getElementById('inspBody');
@@ -526,7 +526,7 @@ function loadProcessDocs() {
     var meta = document.getElementById('inspPackMeta');
     if (meta) {
       var pk = (state.packs || []).filter(function (x) { return x.PACK_ID === sel.value; })[0];
-      meta.innerHTML = pk ? ('หัวเรื่อง: <b>' + escP(packPlanTitle(pk)) + '</b>' + (pk.TITLE && packPlanTitle(pk) !== pk.TITLE ? ' <span style="opacity:.7">(ข้อความส่ง BU: ' + escP(String(pk.TITLE || '').slice(0, 40)) + ')</span>' : '') + ' · ขอบเขต: ' + escP(pk.SCOPE || '') + ' · รอบ: ' + escP(pk.PERIOD || '') + '<br>หลักฐานที่ BU แนบ:<br>' + (String(pk.LINKS || '').split('\n').filter(Boolean).map(function (l) { return '・ <a href="' + escP(l.trim()) + '" target="_blank" rel="noopener" class="mono" style="word-break:break-all">' + escP(l.trim()) + '</a>'; }).join('<br>') || '—') + (pk.NOTE ? '<br>หมายเหตุ BU: ' + escP(String(pk.NOTE).slice(0, 220)) : '')) : '';
+      meta.innerHTML = pk ? ('หัวเรื่อง: <b>' + escP(packShowName(pk)) + '</b>' + (pk.TITLE && packPlanTitle(pk) !== pk.TITLE ? ' <span style="opacity:.7">(ข้อความส่ง BU: ' + escP(String(pk.TITLE || '').slice(0, 40)) + ')</span>' : '') + ' · ขอบเขต: ' + escP(pk.SCOPE || '') + ' · รอบ: ' + escP(pk.PERIOD || '') + '<br>หลักฐานที่ BU แนบ:<br>' + (String(pk.LINKS || '').split('\n').filter(Boolean).map(function (l) { return '・ <a href="' + escP(l.trim()) + '" target="_blank" rel="noopener" class="mono" style="word-break:break-all">' + escP(l.trim()) + '</a>'; }).join('<br>') || '—') + (pk.NOTE ? '<br>หมายเหตุ BU: ' + escP(String(pk.NOTE).slice(0, 220)) : '')) : '';
     }
 
     renderInspItems();
@@ -703,7 +703,7 @@ function loadProcessDocs() {
     var cur = sel.value;
     var list = (state.packs || []).filter(function (x) { var s = String(x.STATUS || ''); return s.indexOf('ตรวจแล้ว') >= 0 || s.indexOf('ส่งหลักฐานเพิ่มเติม') >= 0 || s.indexOf('ไม่ผ่าน') >= 0 || s.indexOf('รอปิดประเด็น') >= 0; });
     sel.innerHTML = '<option value="">— เลือก PACK ที่ตรวจแล้ว (ขั้น 3) —</option>' + list.map(function (x) {
-      return '<option value="' + escP(x.PACK_ID) + '">' + escP(x.PACK_ID + ' · ' + x.BU + ' · ' + packPlanTitle(x) + ' · ' + String(x.STATUS || '')) + '</option>';
+      return '<option value="' + escP(x.PACK_ID) + '">' + escP(x.PACK_ID + ' · ' + x.BU + ' · ' + packShowName(x) + ' · ' + String(x.STATUS || '')) + '</option>';
     }).join('');
     if (cur) sel.value = cur;
     var sendSel = document.getElementById('sendPackPick'); /* v1.29: แท็บ 6 ใช้รายการเดียวกัน (PACK ที่ตัดสินแล้ว) */
@@ -790,7 +790,7 @@ function loadProcessDocs() {
     var cur = sel.value;
     var list = (state.packs || []).filter(function (x) { var s = String(x.STATUS || ''); return s.indexOf('รอปิดประเด็น') >= 0 || s.indexOf('ผ่านการตรวจ') >= 0 || s.indexOf('ส่งผลให้ BU') >= 0; });
     sel.innerHTML = '<option value="">เลือกเรื่อง (PACK) ที่จะปิด</option>' + list.map(function (x) {
-      return '<option value="' + escP(x.PACK_ID) + '">' + escP(x.PACK_ID + ' · ' + x.BU + ' · ' + packPlanTitle(x)) + '</option>';
+      return '<option value="' + escP(x.PACK_ID) + '">' + escP(x.PACK_ID + ' · ' + x.BU + ' · ' + packShowName(x)) + '</option>';
     }).join('');
     if (cur) sel.value = cur;
     var box = document.getElementById('closeBigCheck');
@@ -821,7 +821,7 @@ function loadProcessDocs() {
     var cur = exSel.value;
     var list = (state.packs || []).filter(function (x) { var s = String(x.STATUS || ''); return s.indexOf('ไม่ผ่าน') >= 0 || s.indexOf('หลักฐานเพิ่มเติม') >= 0; });
     exSel.innerHTML = '<option value="">— เลือก PACK ที่ไม่ผ่าน —</option>' + list.map(function (x) {
-      return '<option value="' + escP(x.PACK_ID) + '">' + escP(x.PACK_ID + ' · ' + x.BU + ' · ' + packPlanTitle(x)) + '</option>';
+      return '<option value="' + escP(x.PACK_ID) + '">' + escP(x.PACK_ID + ' · ' + x.BU + ' · ' + packShowName(x)) + '</option>';
     }).join('');
     if (cur) exSel.value = cur;
     var meta = document.getElementById('extraPackMeta');
@@ -875,6 +875,13 @@ function loadProcessDocs() {
       return ms[1];
     }
     return String(pk.TITLE || '').slice(0, 46);
+  }
+  /* v1.34.3 — ชื่อโชว์ใน dropdown: ชื่อเรื่องจากแผน + (ส่วน x/n) ถ้า BU ส่งแยกหลาย pack ต่อเรื่อง */
+  function packShowName(pk) {
+    var t = packPlanTitle(pk);
+    var m = String(pk.NOTE || '').match(/ส่งตามประเด็น \((\d+)\/(\d+)\)/);
+    if (m && m[2] !== '1') t += ' — ส่วน ' + m[1] + '/' + m[2];
+    return t;
   }
   function loadNotifs() {
     try { return JSON.parse(localStorage.getItem('gat_notifs') || '[]'); } catch (e) { return []; }
@@ -2280,5 +2287,5 @@ function loadProcessDocs() {
 
   return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, initD10: initD10, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess,
  _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _notifs: function (l) { if (l) saveNotifs(l); return loadNotifs(); }, _appTgText: appTgText, _copyNotifTg: copyNotifTg, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks, _renderRecs: renderRecs, _renderPickTable: renderPickTable, _removePickPacks: removePickPacks, _renderSentTable: renderSentTable,
-    _renderInspect: renderInspect, _saveAuditResult: saveAuditResult, _inspItemRows: inspItemRows, _packPlanTitle: packPlanTitle, _inspItemsSummarize: inspItemsSummarize, _inspStateGet: inspStateGet, _inspStateSave: inspStateSave, _renderInspItems: renderInspItems, _renderResult4: renderResult4, _sumDecide: sumDecide, _renderExtraTable: renderExtraTable, _sendExtraEvidence: sendExtraEvidence, _sendResultToBU: sendResultToBU, _renderCloseBig: renderCloseBig, _closeBig: closeBig, _fillInspectPack: fillInspectPack };
+    _renderInspect: renderInspect, _saveAuditResult: saveAuditResult, _inspItemRows: inspItemRows, _packPlanTitle: packPlanTitle, _packShowName: packShowName, _inspItemsSummarize: inspItemsSummarize, _inspStateGet: inspStateGet, _inspStateSave: inspStateSave, _renderInspItems: renderInspItems, _renderResult4: renderResult4, _sumDecide: sumDecide, _renderExtraTable: renderExtraTable, _sendExtraEvidence: sendExtraEvidence, _sendResultToBU: sendResultToBU, _renderCloseBig: renderCloseBig, _closeBig: closeBig, _fillInspectPack: fillInspectPack };
 })();
