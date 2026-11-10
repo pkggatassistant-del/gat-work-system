@@ -541,11 +541,20 @@ function loadProcessDocs() {
   function inspItemRows(pk) {
     /* คืนรายการ [{key, label, evLabel, checked}] เรียงจาก ITEM + LINKS ของ pack */
     var rows = [];
-    var item = String(pk.ITEM || '');
     var links = String(pk.LINKS || '');
     var evBlocks = [];
     var re = /\[ประเด็น ([0-9.]+): ([^\]]*)\]\n([^\n\[]+)/g, m;
     while ((m = re.exec(links)) !== null) evBlocks.push({ no: m[1], title: m[2].trim(), link: m[3].trim() });
+    /* v1.35.1 — ITEM ว่าง (ชีตจริง: ITEM=None เมื่อ BU ส่งแบบแตกส่วน) → 1 บล็อก "[ประเด็น n: ชื่อ]" = 1 แถวตรวจตรงๆ (LINKS ราบเรียบ ไม่มีโครงย่อย อย่าตีความวงเล็บท้ายเป็นประเด็นย่อย) */
+    var item = String(pk.ITEM || '');
+    if (!item && evBlocks.length) {
+      evBlocks.forEach(function (e) {
+        var clean = String(e.title).replace(new RegExp('^' + String(e.no).replace('.', '\\.') + '[\\).\\]]\\s*'), '').replace(/^\d+\.\s*/, '').trim();
+        var um = String(e.link || '').match(/https?:\/\/[^\s]+/);
+        rows.push({ key: e.no, label: e.no + '. ' + (clean || e.title), evLabel: um ? um[0] : (e.link || '—'), checked: false, result: '' });
+      });
+      return rows;
+    }
     /* split ระดับบรรทัด: " | " ที่อยู่ "นอก" วงเล็บเท่านั้น */
     var lines = [];
     if (item) {
@@ -569,7 +578,7 @@ function loadProcessDocs() {
       var subs = subPart ? subPart[1].split('|').map(function (x) { return x.trim(); }).filter(Boolean) : [];
       if (!subs.length) {
         var ev = evBlocks.filter(function (e) { return e.no === no; })[0] || {};
-        rows.push({ key: no, label: no + '. ' + mainTitle, evLabel: ev.link || '—', checked: false, result: '' });
+        rows.push({ key: no, label: no + '. ' + mainTitle.replace(new RegExp('^' + no + '[\\).\\]]\\s*'), ''), evLabel: ev.link || '—', checked: false, result: '' });
       } else {
         subs.forEach(function (sb, k) {
           var sm = sb.match(/^([0-9]+\.[0-9]+)\s*(.*)$/);
