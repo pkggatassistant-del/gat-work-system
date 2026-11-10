@@ -861,8 +861,7 @@ function loadProcessDocs() {
       else status('❌ ' + (res.error || 'ส่งไม่สำเร็จ'));
     });
   }
-  /* ขั้น 5 — v1.39: ② ปิดประเด็นย่อย = ติ๊กปิดรายหัวข้อ (ทยอยได้ บันทึกชีตทันที ครบแพ็กปิดอัตโนมัติ) · ① ปิดประเด็นหลัก = ปิดชื่อเรื่อง (REC) กันหยุ่นด้วยข้อย่อย */
-  function thNow() { try { return new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }); } catch (e) { return String(new Date()); } }
+  /* ขั้น 5 — v1.40: เหตุการณ์เดียว = ปิดประเด็นหลัก (ชื่อเรื่อง/REC) · สถานะปิดย่อยพาดมาจากผลตรวจขั้น 3 ต่อประเด็น (จากตารางตรวจ gat_insp_items_*) — ไม่มีติ๊กปิดที่นี่อีกต่อไป (ตามสั่งพี่หนึ่ง 10 พ.ย. 69) */
   function closeItemStateGet(pid) {
     try {
       var m = JSON.parse(localStorage.getItem('gat_item_close_' + pid) || '{}');
@@ -904,11 +903,28 @@ function loadProcessDocs() {
     } catch (e) {}
     return out;
   }
-  function closeItemClosedMap(pk) {
-    var m = closeItemStateGet(pk.PACK_ID);
-    return inspItemRows(pk).map(function (r) { return (m[r.key] && m[r.key].done) ? r.key : null; }).filter(Boolean);
+  /* v1.40 — แผนทีผลตรวจขั้น 3 ต่อหัวข้อ: บรรทัด "[label] สถานะ: … = ผ่าน/ไม่ผ่าน" (AI_NOTE ขั้น 3) หรือตารางตรวจ (gat_insp_items_*) — คืน {key: 'ผ่าน'|'ไม่ผ่าน'} ของข้อที่มีผลแล้ว */
+  function itemCloseResultMap(pk) {
+    var out = {};
+    var info = closeItemNoteInfo(pk); /* จากเนื้อหา ขั้น 3 ในชีต (AI_NOTE) — key = label ในโน้ต */
+    inspItemRows(pk).forEach(function (r) {
+      var hit = '';
+      if (info[r.label] && info[r.label].res) hit = info[r.label].res;
+      else if (info[r.key] && info[r.key].res) hit = info[r.key].res;
+      if (!hit) {
+        var base = String(r.label).split(' — ')[0].trim(); /* คำนำหน้าก่อนคำอธิบายท้าย (หัวข้อที่ขอตรวจ ฯลฯ) */
+        if (base && info[base] && info[base].res) hit = info[base].res;
+      }
+      if (hit) out[r.key] = hit;
+    });
+    var st3 = inspStateGet(pk.PACK_ID); /* จากตารางตรวจขั้น 3 ในเครื่อง (ผลเรียงตาม key) */
+    inspItemRows(pk).forEach(function (r) {
+      if (out[r.key]) return;
+      if (st3[r.key] && st3[r.key].res) out[r.key] = st3[r.key].res;
+    });
+    return out;
   }
-  /* v1.39 — ①: แพ็กที่โยงกับใบ (ชื่อเรื่องตรงกัน ผ่าน NOTE "อ้างแผน" หรือ TITLE) — ตัดแพ็กที่ปิด/ลบแล้ว */
+  /* v1.40 — ①: แพ็กที่โยงกับใบ (ชื่อเรื่องตรงกัน ผ่าน NOTE "อ้างแผน" หรือ TITLE) — ตัดแพ็กที่ปิด/ลบแล้ว · ตัดแพ็กที่ยังไม่ตรวจ (ไม่มีหลักฐานขั้น 3 ใน AI_NOTE) */
   function packsOfRec(rec) {
     if (!rec) return [];
     var t = String(rec.TITLE || '').trim();
@@ -916,17 +932,20 @@ function loadProcessDocs() {
     return (state.packs || []).filter(function (x) {
       var s = String(x.STATUS || '');
       if (s.indexOf('ลบ') >= 0 || s.indexOf('ปิดประเด็นย่อยแล้ว') >= 0 || s.indexOf('ปิดประเด็นใหญ่แล้ว') >= 0) return false;
+      if (!String(packPlanTitle(x) || String(x.TITLE || '')).trim()) return false;
+      /* v1.40 — แพ็กที่ 'รอ GAT เลือกตรวจ' (ยังไม่เข้าขั้น 3) ยังไม่ถูกนับในเกณฑ์ปิด */
+      if (s.indexOf('รอ GAT เลือกตรวจ') >= 0) return false;
       return String(packPlanTitle(x) || String(x.TITLE || '')).trim() === t || String(x.TITLE || '').trim() === t;
     });
   }
-  /* v1.39 — ①: รายการข้อย่อยที่ยังเปิดของ "ใบ" = ทุกแพ็กที่โยงกัน + ทุกหัวข้อที่ยังไม่ติ๊ก */
+  /* v1.40 — ①: รายการประเด็นย่อยที่ยังไม่ครบของ "ใบ" = แพ็กที่โยงกัน + หัวข้อที่ยังไม่มีผล ผ่าน/ไม่ผ่าน จากผลตรวจขั้น 3 */
   function itemCloseOpenOfRec(recId) {
     var rec = (state.recs || []).filter(function (x) { return x.REC_ID === recId; })[0];
     if (!rec) return [];
     var open = [];
     packsOfRec(rec).forEach(function (pk) {
-      var doneSet = {}; closeItemClosedMap(pk).forEach(function (k) { doneSet[k] = true; });
-      inspItemRows(pk).forEach(function (r) { if (!doneSet[r.key]) open.push('PACK ' + pk.PACK_ID + ' ข้อ ' + r.key + ' — ' + r.label); });
+      var st3 = itemCloseResultMap(pk);
+      inspItemRows(pk).forEach(function (r) { if (!st3[r.key]) open.push('PACK ' + pk.PACK_ID + ' ข้อ ' + r.key + ' — ' + r.label); });
     });
     return open;
   }
@@ -939,24 +958,9 @@ function loadProcessDocs() {
     var links = packsOfRec(rec);
     if (!links.length) { g.innerHTML = '<span style="color:#8a6d3b">ℹ️ ไม่พบแพ็กที่ชื่อเรื่องตรงกับใบนี้ — ปิดประเด็นหลักได้ (ระบบจด AuditLog ให้)</span>'; return; }
     var open = itemCloseOpenOfRec(recId); /* v1.39 — fix: ประกาศ open ก่อนใช้ */
-    /* v1.39 — ป้าย ① โชว์ข้อมูลขั้น 3/4 ต่อหัวข้อที่ค้าง (จาก AI_NOTE ขั้น 3 + สถานะขั้น 4) */
-    if (open.length) {
-      open = open.map(function (t) {
-        var mm = t.match(/^PACK ([A-Z0-9-]+) ข้อ ([^\s]+) — (.*)$/);
-        if (!mm) return t;
-        var pk2 = (state.packs || []).filter(function (x) { return x.PACK_ID === mm[1]; })[0];
-        var inf = pk2 ? (closeItemNoteInfo(pk2)[mm[2]] || {}) : {};
-        var bits = [];
-        if (inf.st) bits.push('ตรวจ (ขั้น 3): ' + inf.st);
-        var pkst2 = pk2 ? String(pk2.STATUS || '') : '';
-        if (pkst2.indexOf('ไม่ผ่าน') >= 0) bits.push('ขั้น 4: ❌ ไม่ผ่าน');
-        else if (pkst2.indexOf('ผ่านการตรวจ') >= 0 || pkst2.indexOf('รอปิดประเด็น') >= 0) bits.push('ขั้น 4: ✅ ผ่าน');
-        return t + (bits.length ? ' <span style="font-size:11.5px;color:#7d93b2">[' + bits.join(' · ') + ']</span>' : '');
-      });
-    }
     g.innerHTML = open.length
-      ? '<span style="color:#c0392b">⛔ ปิดประเด็นหลักยังไม่ได้ — ต้องปิดประเด็นย่อยให้ครบก่อน (ค้าง ' + open.length + ' ข้อ): ' + open.slice(0, 6).map(function (t) { return esc(t); }).join(' · ') + (open.length > 6 ? ' · …' : '') + '</span>'
-      : '<span style="color:#0e8345">✅ ประเด็นย่อยครบทุกแพ็กแล้ว — ปิดประเด็นหลัก (ชื่อเรื่อง) ได้</span>';
+      ? '<span style="color:#c0392b">⛔ ปิดประเด็นหลักยังไม่ได้ — ต้องมีผลตรวจ (ผ่าน/ไม่ผ่าน) ครบทุกประเด็นย่อยก่อน (ค้าง ' + open.length + ' ข้อ): ' + open.slice(0, 6).map(function (t) { return esc(t); }).join(' · ') + (open.length > 6 ? ' · …' : '') + '</span>'
+      : '<span style="color:#0e8345">✅ ประเด็นย่อยครบทุกแพ็ก (มีผลตรวจขั้น 3 ครบ) — ปิดประเด็นหลัก (ชื่อเรื่อง) ได้</span>';
   }
   function renderCloseBig() {
     var sel = document.getElementById('closeBigPackPick'); if (!sel) return;
@@ -971,71 +975,36 @@ function loadProcessDocs() {
     var pid = sel.value;
     var pk = (state.packs || []).filter(function (x) { return x.PACK_ID === pid; })[0];
     if (!pk) { box.innerHTML = ''; return; }
-    try { closeItemSyncFromSheet(); } catch (e) {}
     var rows = inspItemRows(pk);
     if (!rows.length) {
-      box.innerHTML = '<span style="color:#8a6d3b">ℹ️ PACK นี้ไม่มีโครงหัวข้อ (ส่งก่อน v1.33) — กดปุ่ม ② ด้านล่างเพื่อปิดทั้งแพ็กตามเดิม</span>';
+      box.innerHTML = '<span style="color:#8a6d3b">ℹ️ PACK นี้ไม่มีโครงหัวข้อ (ส่งก่อน v1.33) — กดปุ่มด้านล่างเพื่อปิดทั้งแพ็กตามเดิม</span>';
       return;
     }
-    var m = closeItemStateGet(pk.PACK_ID);
-    var doneCnt = rows.filter(function (r) { return m[r.key] && m[r.key].done; }).length;
-    /* v1.39 — ข้อมูลจากขั้น 3/4: ต่อหัวข้อจาก AI_NOTE (บล็อก ผลตรวจต่อประเด็น ขั้น 3) + ผลตัดสินขั้น 4 จากสถานะของแพ็ก */
-    var infoMap = closeItemNoteInfo(pk);
+    /* v1.40 — ตารางประเด็นย่อย + ผลขั้น 3 (อ่านอย่างเดียว — แก้ผลที่แท็บ 3) */
+    var rMap = itemCloseResultMap(pk);
     var pkst = String(pk.STATUS || '');
     var step4 = pkst.indexOf('ไม่ผ่าน') >= 0 ? '<span style="color:#c0392b">❌ ไม่ผ่าน (ขั้น 4 ส่งกลับขั้น 2)</span>'
       : (pkst.indexOf('ผ่านการตรวจ') >= 0 || pkst.indexOf('รอปิดประเด็น') >= 0) ? '<span style="color:#0e8345">✅ ผ่าน (ขั้น 4)</span>'
       : '<span style="color:#7d93b2">⏳ ยังไม่ตัดสิน (ขั้น 4)</span>';
-    var h = '<div style="margin-bottom:6px"><b style="color:#1a2b45">② ปิดประเด็นย่อย — ติ๊กถูก = ปิดทันที (บันทึกชีตต่อหัวข้อ)</b> <span style="color:#7d93b2;font-size:12.5px">ปิดแล้ว ' + doneCnt + '/' + rows.length + ' หัวข้อ — ครบทุกข้อ: ระบบปิดแพ็กให้เอง (ขั้น 5)</span></div>';
+    var doneCnt = rows.filter(function (r) { return rMap[r.key]; }).length;
+    var h = '<div style="margin-bottom:6px"><b style="color:#1a2b45">ประเด็นย่อย + ผลตรวจขั้น 3 (อ่านอย่างเดียว — แก้ผลที่แท็บ 3)</b> <span style="color:#7d93b2;font-size:12.5px">มีผลแล้ว ' + doneCnt + '/' + rows.length + ' ประเด็น — ครบทุกข้อ: กดปุ่ม "ปิดทั้งแพ็ก" ด้านล่าง</span></div>';
     h += '<div style="margin-bottom:4px;font-size:12.5px;color:#1a2b45">ผลตัดสินขั้น 4 (รายเรื่อง): ' + step4 + '</div>';
     h += '<table class="tbl" style="font-size:13px">';
     rows.forEach(function (r) {
-      var s0 = m[r.key] || {};
-      var isDone = !!s0.done;
-      var inf = infoMap[r.key] || {};
-      var st3 = inf.st || '<span style="color:#7d93b2">ยังไม่มีผลตรวจขั้น 3</span>';
+      var res = rMap[r.key] || '';
+      var badge = res === 'ผ่าน' ? '<span style="color:#0e8345">✅ ผ่าน</span>'
+        : res === 'ไม่ผ่าน' ? '<span style="color:#c0392b">⛔ ไม่ผ่าน</span>'
+        : '<span style="color:#7d93b2">⏳ ยังไม่มีผลตรวจ (ขั้น 3)</span>';
       h += '<tr>' +
-        '<td style="width:44px;text-align:center">' + (isDone
-          ? '<span title="ปิดแล้ว" style="color:#0e8345">✅</span>'
-          : '<input type="checkbox" class="cl-item" data-clk="' + escP(pk.PACK_ID + '|' + r.key) + '">') + '</td>' +
-        '<td style="color:#1a2b45">' + (isDone ? '<s style="color:#7d93b2">' : '') + esc(r.label) + (isDone ? '</s>' : '') +
-        (isDone && s0.by ? ' <span style="font-size:11.5px;color:#7d93b2">— ปิดโดย ' + esc(s0.by) + (s0.at ? ' @ ' + esc(s0.at) : '') + '</span>' : '') + '</td>' +
-        '<td style="font-size:12px;color:#44597a">' + st3 + '</td></tr>';
+        '<td style="color:#1a2b45">' + esc(r.label) + '</td>' +
+        '<td style="width:150px;text-align:center">' + badge + '</td></tr>';
     });
     h += '</table>';
     box.innerHTML = h;
   }
-  /* v1.39 — ② ปิดทีละหัวข้อ: 1 ติ๊ก = 1 โพสต์ AI_NOTE (คงเนื้อหา ผลตรวจขั้น 3 + ต่อ marker "[ปิดข้อ key] โดย …") · ข้อสุดท้าย → packCloseIf ปิดแพ็ก */
-  function closeOneItem(pk, key, by, note) {
-    var rows = inspItemRows(pk);
-    var total = rows.length;
-    var doneList = closeItemClosedMap(pk);
-    var doneSet = {}; doneList.forEach(function (k) { doneSet[k] = true; });
-    var doneCnt = doneList.length + (doneSet[key] ? 0 : 1);
-    var who = (by || '').trim() || 'GAT';
-    var prev = String(pk.AI_NOTE || '');
-    var hdr = '— ขั้น 5 ปิดประเด็นย่อย (v1.39) —';
-    var head, tail;
-    var hIdx = prev.indexOf(hdr);
-    if (hIdx >= 0) { head = prev.slice(0, hIdx) + hdr; tail = prev.slice(hIdx + hdr.length).replace(/^\n+/, ''); }
-    else { head = prev ? prev + '\n' + hdr : hdr; tail = ''; }
-    var lines = tail.split('\n').filter(function (l) { return l.trim() && l.indexOf('[ปิดข้อ ' + key + '] โดย ') !== 0; });
-    lines.push('[ปิดข้อ ' + key + '] โดย ' + who + ' @ ' + thNow() + (note ? ' — ' + note : ''));
-    var merged = head + '\n' + lines.join('\n');
-    status('กำลังปิดหัวข้อ ' + esc(key) + ' — บันทึกลงชีต…');
-    postToBCT('update_pack_status', { PACK_ID: pk.PACK_ID, STATUS: '', FIELD: 'AI_NOTE', NOTE: merged, BY: who }, function (res) {
-      if (!res.ok) { status('❌ ' + (res.error || 'ปิดหัวข้อไม่สำเร็จ') + ' — ติ๊กในเครื่องนี้ไว้แล้ว แต่ชีตยังไม่บันทึก'); return; }
-      var map = closeItemStateGet(pk.PACK_ID);
-      map[key] = { done: true, by: who, at: thNow(), note: note || '' };
-      closeItemStateSave(pk.PACK_ID, map);
-      pk.AI_NOTE = merged;
-      if (doneCnt >= total) packCloseIf(pk, who, total, (note || '').trim());
-      status('✅ ปิดหัวข้อ ' + esc(key) + ' แล้ว (' + doneCnt + '/' + total + ') — บันทึกชีต + AuditLog');
-      try { renderCloseBig(); renderRecs(); } catch (e) {}
-    });
-  }
-  /* v1.39 — ปิดแพ็ก (เมื่อข้อย่อยครบ หรือแพ็กไม่มีโครงข้อ): สถานะคอลัมน์ 8 = ปิดประเด็นย่อยแล้ว (ขั้น 5) */
+  /* v1.39.1 — ปิดแพ็ก (เมื่อประเด็นย่อยมีผลขั้น 3 ครบ หรือแพ็กไม่มีโครงข้อ): สถานะคอลัมน์ 8 = ปิดประเด็นย่อยแล้ว (ขั้น 5) */
   function packCloseIf(pk, by, total, note) {
-    var stTxt = 'ปิดประเด็นย่อยแล้ว (ขั้น 5) — ' + packShowName(pk) + ' — ปิดรายประเด็นครบ ' + total + '/' + total + ' รายการ' + (note ? ' · ' + note : '') + ' · โดย ' + (by || 'GAT');
+    var stTxt = 'ปิดประเด็นย่อยแล้ว (ขั้น 5) — ' + packShowName(pk) + ' — สรุปผลรายประเด็นจากขั้น 3 ครบ ' + total + '/' + total + ' รายการ' + (note ? ' · ' + note : '') + ' · โดย ' + (by || 'GAT');
     postToBCT('update_pack_status', { PACK_ID: pk.PACK_ID, STATUS: stTxt, BY: by || 'GAT' }, function (res) {
       if (res.ok) { pk.STATUS = stTxt; loadPacks(); }
     });
@@ -1047,13 +1016,14 @@ function loadProcessDocs() {
     if (!pk) { status('❌ ไม่พบข้อมูลแพ็ก — กด "กดโหลดสถานะ" ใหม่'); return; }
     var rows = inspItemRows(pk);
     if (rows.length) {
-      var open = rows.filter(function (r) { return closeItemClosedMap(pk).indexOf(r.key) < 0; });
-      if (open.length) { status('⛔ ปิดรวมยังไม่ได้ — ติ๊กปิดรายหัวข้อด้านบนให้ครบก่อน (ค้าง ' + open.length + '/' + rows.length + ' หัวข้อ: ' + open.map(function (r) { return r.key; }).join(', ') + ')'); return; }
+      var rMap = itemCloseResultMap(pk);
+      var open = rows.filter(function (r) { return !rMap[r.key]; });
+      if (open.length) { status('⛔ ปิดรวมยังไม่ได้ — ต้องมีผลตรวจ (ผ่าน/ไม่ผ่าน) ครบทุกประเด็นก่อน — ค้าง ' + open.length + '/' + rows.length + ' หัวข้อ: ' + open.map(function (r) { return r.key; }).join(', ') + ' — แก้ผลที่แท็บ 3'); return; }
       packCloseIf(pk, document.getElementById('closeBigBy').value.trim() || 'GAT', rows.length, document.getElementById('closeBigNote').value.trim());
       status('🔒 ปิดประเด็นย่อยทั้งแพ็ก ' + pid + ' — ส่งบันทึกลงชีต (ขั้น 5)');
       return;
     }
-    /* v1.39 — PACK ไม่มีโครงหัวข้อ (ส่งก่อน v1.33): กดปุ่ม = ปิดทั้งแพ็กโดยตรง (โมเดลใหม่: ไม่ติดประตู "ใบเปิดครบ" อีกต่อไป) */
+    /* v1.40 — PACK ไม่มีโครงหัวข้อ (ส่งก่อน v1.33): กดปุ่ม = ปิดทั้งแพ็กโดยตรง */
     var by2 = document.getElementById('closeBigBy').value.trim() || 'GAT';
     var note2 = document.getElementById('closeBigNote').value.trim() || 'ตรวจครบตามข้อเสนอแนะ ทุกประเด็นผ่าน';
     postToBCT('update_pack_status', { PACK_ID: pid, STATUS: 'ปิดประเด็นย่อยแล้ว (ขั้น 5) — ' + note2, BY: by2 }, function (res) {
@@ -2426,21 +2396,10 @@ function loadProcessDocs() {
     /* ขั้น 6 — ส่งผลให้ BU */
     var spk = id('sendPackPick'); if (spk) spk.addEventListener('change', renderResult4);
     var srb = id('btnSendResult'); if (srb) srb.addEventListener('click', sendResultToBU);
-    /* ขั้น 5 — v1.39: ② ติ๊กรายหัวข้อ (delegated change บน #closeBigCheck) · ① dropdown ปิดเรื่อง */
+    /* ขั้น 5 — v1.40: ตารางผลขั้น 3 อ่านอย่างเดียว (ไม่มีติ๊กในแท็บ 5) · ① dropdown ปิดเรื่อง */
     var cbp = id('closeBigPackPick'); if (cbp) cbp.addEventListener('change', renderCloseBig);
     var cbb = id('btnCloseBig'); if (cbb) cbb.addEventListener('click', closeBig);
     var crp = id('closeRecPick'); if (crp) crp.addEventListener('change', recClosePickChange);
-    var cbx = id('closeBigCheck');
-    if (cbx) cbx.addEventListener('change', function (ev) {
-      var t = ev.target;
-      if (!t || !t.classList || !t.classList.contains('cl-item')) return;
-      var pv = String(t.getAttribute('data-clk') || '').split('|');
-      if (pv.length < 2) return;
-      var pk = (state.packs || []).filter(function (x) { return x.PACK_ID === pv[0]; })[0];
-      if (!pk) { status('❌ ไม่พบแพ็ก ' + pv[0] + ' — กด "กดโหลดสถานะ" ใหม่'); return; }
-      if (!t.checked) { t.checked = false; return; }
-      closeOneItem(pk, pv[1], id('closeBigBy').value.trim() || 'GAT', id('closeBigNote').value.trim());
-    });
     /* v1.14 P-01 แจ้งเรื่อง */
     var n1 = id('btnNotifyPlan'); if (n1) n1.addEventListener('click', saveNotifPlan);
     var n3 = id('btnNotifPush'); if (n3) n3.addEventListener('click', pushPlansToSheet);
@@ -2478,7 +2437,7 @@ if (document.readyState !== 'loading') __gatBootOnce();
     { id: '2', name: 'BU ส่งหลักฐานตามหัวข้อขั้น 1 (ส่งรอบแรก + ส่งเพิ่มเติมเมื่อไม่ผ่าน)', sla: 'SLA: ส่งหลักฐาน 3 วันทำการ / ด่วน LCT 24 ชม.', check: ['เลือกประเด็นที่ GAT แจ้ง + กรอกฟอร์ม + แนบหลักฐานครบทุกประเด็น', 'ระบบรันเลข PACK ลงชีตกลางแล้ว (ไม่ผ่าน = ส่งเพิ่มเติมด้วยการ์ดด้านล่างแท็บ 2)', 'ห้ามแก้ไฟล์ต้นฉบับ — ส่งสำเนา'], tab: 'packs', tabNote: 'ทำที่แท็บ 2 (BU ส่งหลักฐาน)', act: 'packs', actLabel: 'ไปแท็บ 2 — ส่งหลักฐาน' },
     { id: '3', name: 'ทีม GAT ตรวจสอบหลักฐานที่ BU ส่งมา (รายละเอียดการตรวจ + ผลการตรวจ)', sla: 'กติกาเหล็ก WI-02: อ้าง PACK + หลักฐาน/ชีท#แถว + ชื่อผู้ตรวจจริง', check: ['เลือก PACK ที่ BU ส่ง + เปิดหลักฐานที่แนบมาครบ', 'บันทึกรายละเอียดการตรวจ (วิธี/มาตรฐานที่ใช้) + ผลรายประเด็น', 'ระบุผลรวม: ผ่าน / ไม่ผ่าน (ไม่ผ่าน = กลับขั้น 2)'], tab: 'inspect', tabNote: 'ทำที่แท็บ 3 (ตรวจหลักฐาน)', act: 'inspect', actLabel: 'ไปแท็บ 3 — ตรวจหลักฐาน' },
     { id: '4', name: 'ทีม GAT สรุปผลการตรวจ (แบบฟอร์มผลจากขั้น 3) — ตัดสิน ผ่าน/ไม่ผ่าน', sla: 'ออกใบ REC ที่ขั้น 4 เท่านั้น · ไม่ผ่าน = กลับขั้น 2', check: ['เลือก PACK → ระบบดึงผลขั้น 3 มาแสดงเป็นแบบฟอร์มผลการตรวจ', 'ตัดสิน: ผ่าน = ไปขั้น 6 · ไม่ผ่าน = กลับขั้น 2', 'พบประเด็นควรบันทึกเป็นใบ = ออกใบ GAT-REC ที่ขั้น 4'], tab: 'sum4', tabNote: 'ทำที่แท็บ 4 (สรุปผลการตรวจ)', act: 'sum4', actLabel: 'ไปแท็บ 4 — สรุปผล' },
-    { id: '5', name: 'ทีม GAT ปิดประเด็น (② ย่อย = ติ๊กปิดรายหัวข้อ ทยอยได้ · ① หลัก = ปิดชื่อเรื่อง)', sla: 'ปิดย่อย: บันทึกชีตทันทีต่อหัวข้อ ครบแพ็ก = สถานะ ขั้น 5 อัตโนมัติ · ปิดหลักได้เมื่อข้อย่อยครบทุกแพ็ก', check: ['② ปิดประเด็นย่อย: เลือกเรื่อง (PACK) → ติ๊กปิดรายหัวข้อ ทยอยได้ (ครบทุกข้อ = แพ็กปิดอัตโนมัติ ขั้น 5)', '① ปิดประเด็นหลัก: เลือกชื่อเรื่อง → ระบบกันให้ปิดได้เมื่อหัวข้อย่อยของทุกแพ็กครบ', 'ถ้ามีประเด็นไม่ผ่าน = ยังติ๊กปิดไม่ได้ — รอวนขั้น 2→3→4'], tab: 'close', tabNote: 'ทำที่แท็บ 5 (ปิดประเด็น: ② ติ๊กย่อย · ① ปิดเรื่อง)', act: 'close', actLabel: 'ไปแท็บ 5 — ปิดประเด็น' },
+    { id: '5', name: 'ทีม GAT ปิดประเด็นหลัก (ปิดชื่อเรื่อง — เมื่อประเด็นย่อยมีผลตรวจจากขั้น 3 ครบ)', sla: 'ปิดย่อย: บันทึกชีตทันทีต่อหัวข้อ ครบแพ็ก = สถานะ ขั้น 5 อัตโนมัติ · ปิดหลักได้เมื่อข้อย่อยครบทุกแพ็ก', check: ['② ปิดประเด็นย่อย: เลือกเรื่อง (PACK) → ติ๊กปิดรายหัวข้อ ทยอยได้ (ครบทุกข้อ = แพ็กปิดอัตโนมัติ ขั้น 5)', '① ปิดประเด็นหลัก: เลือกชื่อเรื่อง → ระบบกันให้ปิดได้เมื่อหัวข้อย่อยของทุกแพ็กครบ', 'ถ้ามีประเด็นไม่ผ่าน = ยังติ๊กปิดไม่ได้ — รอวนขั้น 2→3→4'], tab: 'close', tabNote: 'ทำที่แท็บ 5 (ปิดประเด็น: ② ติ๊กย่อย · ① ปิดเรื่อง)', act: 'close', actLabel: 'ไปแท็บ 5 — ปิดประเด็น' },
     { id: '6', name: 'ทีม GAT ส่งผลการตรวจไปยัง BU (ทั้งผ่านและไม่ผ่าน)', sla: 'ไม่ผ่าน: BU ส่งหลักฐานเพิ่มเติมที่ขั้น 2 ภายใน SLA', check: ['เลือก PACK ที่ตัดสินแล้ว → กดส่งผลให้ BU', 'ผลไม่ผ่าน: แจ้ง BU ให้กลับไปขั้น 2 ส่งหลักฐานเพิ่มเติม', 'ใบ REC ที่ส่งพร้อมผล — ติดตามตาม SLA 5 วันทำการ'], tab: 'aisend', tabNote: 'ทำที่แท็บ 6 (ส่งผลให้ BU)', act: 'aisend', actLabel: 'ไปแท็บ 6 — ส่งผลให้ BU' },
     { id: '7', name: 'OpenClaw ทำรายงานวัดผล DTA — ส่งทุกวันศุกร์', sla: 'รอบรายงาน: ทุกวันศุกร์ — ข้อมูลช่วงเสาร์–ศุกร์ (OpenClaw เตรียมร่างให้ หนึ่ง/GAT ตรวจอนุมัติก่อนส่ง)', check: ['OpenClaw เตรียมรายงานจากชีตจริงก่อนศุกร์', 'หนึ่ง/GAT ตรวจ+อนุมัติร่างแล้ว', 'ส่งผู้มีอำนาจ/OAC + ทบทวน 🔴 ค้าง'], tab: 'd10', tabNote: 'ทำที่แท็บ 7 (รายงานวัดผล DTA) — OpenClaw เตรียมให้', act: 'd10', actLabel: 'ไปแท็บ 7 — รายงานวัดผล DTA' }
   ];
@@ -2566,5 +2525,5 @@ if (document.readyState !== 'loading') __gatBootOnce();
 
   return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, initD10: initD10, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess,
  _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _notifs: function (l) { if (l) saveNotifs(l); return loadNotifs(); }, _appTgText: appTgText, _copyNotifTg: copyNotifTg, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks, _renderRecs: renderRecs, _renderPickTable: renderPickTable, _removePickPacks: removePickPacks, _renderSentTable: renderSentTable,
-    _renderInspect: renderInspect, _saveAuditResult: saveAuditResult, _inspItemRows: inspItemRows, _packPlanTitle: packPlanTitle, _packShowName: packShowName, _inspItemsSummarize: inspItemsSummarize, _inspStateGet: inspStateGet, _inspStateSave: inspStateSave, _renderInspItems: renderInspItems, _renderResult4: renderResult4, _sumDecide: sumDecide, _sumTgText4: sumTgText4, _copySumTg: copySumTg, _renderExtraTable: renderExtraTable, _sendExtraEvidence: sendExtraEvidence, _sendResultToBU: sendResultToBU, _renderCloseBig: renderCloseBig, _closeBig: closeBig, _closeOneItem: closeOneItem, _packCloseIf: packCloseIf, _packsOfRec: packsOfRec, _itemCloseOpenOfRec: itemCloseOpenOfRec, _closeItemStateGet: closeItemStateGet, _closeItemStateSave: closeItemStateSave, _closeItemSyncFromSheet: closeItemSyncFromSheet, _closeItemNoteInfo: closeItemNoteInfo, _recCloseGateChange: recClosePickChange, _fillInspectPack: fillInspectPack, _importBCT: importBCT }
+    _renderInspect: renderInspect, _saveAuditResult: saveAuditResult, _inspItemRows: inspItemRows, _packPlanTitle: packPlanTitle, _packShowName: packShowName, _inspItemsSummarize: inspItemsSummarize, _inspStateGet: inspStateGet, _inspStateSave: inspStateSave, _renderInspItems: renderInspItems, _renderResult4: renderResult4, _sumDecide: sumDecide, _sumTgText4: sumTgText4, _copySumTg: copySumTg, _renderExtraTable: renderExtraTable, _sendExtraEvidence: sendExtraEvidence, _sendResultToBU: sendResultToBU, _renderCloseBig: renderCloseBig, _closeBig: closeBig, _closeOneItem: function () {}, _itemCloseResultMap: itemCloseResultMap, _packCloseIf: packCloseIf, _packsOfRec: packsOfRec, _itemCloseOpenOfRec: itemCloseOpenOfRec, _closeItemStateGet: closeItemStateGet, _closeItemStateSave: closeItemStateSave, _closeItemSyncFromSheet: closeItemSyncFromSheet, _closeItemNoteInfo: closeItemNoteInfo, _recCloseGateChange: recClosePickChange, _fillInspectPack: fillInspectPack, _importBCT: importBCT }
 })();

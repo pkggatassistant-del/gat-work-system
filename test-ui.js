@@ -419,133 +419,131 @@ setTimeout(() => {
   }, 30);
 }, 0);
 
-// ===== v1.39 — แท็บ 5 ใหม่: ② ติ๊กปิดรายหัวข้อ (AI_NOTE ทันที ครบ→col-8 อัตโนมัติ) + ① ปิดประเด็นหลักกันหยุ่น =====
+
+
+
+
+// ===== v1.40 — แท็บ 5 เหลือเหตุการณ์เดียว: ① ปิดประเด็นหลัก (ปิดชื่อเรื่อง) — ครบ/ไม่ครบ จากผลตรวจขั้น 3 ต่อประเด็นย่อย (ไม่มีติ๊กปิดในแท็บ 5) =====
 (function () {
-  var res139 = { p: 0, f: 0 };
-  globalThis.v139Res = res139;
+  var res140 = { p: 0, f: 0 };
+  globalThis.v140Res = res140;
   var myBase = null;
-  var ok39 = function (name, cond, note) { if (cond) res139.p++; else { res139.f++; console.error('❌ v1.39: ' + name + (note !== undefined && note !== '' && note !== null ? ' :: ' + note : '')); } };
-  var bail = function (m) { res139.f++; console.error('❌ v1.39: FATAL ' + m); };
+  var ok40 = function (name, cond, note) { if (cond) res140.p++; else { res140.f++; console.error('❌ v1.40: ' + name + (note !== undefined && note !== '' && note !== null ? ' :: ' + note : '')); } };
+  var bail = function (m) { res140.f++; console.error('❌ v1.40: FATAL ' + m); };
   var restoreF = function () { try { if (myBase !== null) { w.fetch = myBase; myBase = null; } } catch (e) {} };
-  function runV139() {
+  function runV140() {
     try {
-      var d = w.document, gat = w.GAT;
-      var aiPosts = [], col8Posts = [], closeRecPosts = [], snapPacks, snapRecs;
+      var d = w.document, gat = w.GAT, LSW = w.localStorage;
+      var col8Posts = [], closeRecPosts = [], snapPacks, snapRecs;
       myBase = w.fetch;
       w.fetch = function (u, o) {
         try {
           var s = String(u || ''), b = (o && o.body) ? String(o.body) : '';
           if (b) {
             var bd = JSON.parse(b), act = bd.action || '', pay = bd.data || {};
-            if (act === 'update_pack_status' && pay.FIELD === 'AI_NOTE') { aiPosts.push(pay); return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true }); } }); }
             if (act === 'update_pack_status') { col8Posts.push(pay); return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true }); } }); }
             if (act === 'close_issue') { closeRecPosts.push(pay); return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true }); } }); }
             return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true }); } });
           }
           var act2 = (s.match(/action=([a-z_]+)/) || [])[1] || '';
-          if (!act2) return myBase(u, o); /* v1.39 fix: ไม่ใช่ GAS action → ผ่านไป base (gat-process.json ฯลฯ) กันทับ state */
+          if (!act2) return myBase(u, o); /* ไม่ใช่ GAS action → ผ่าน base (gat-process.json ฯลฯ) */
           if (act2 === 'list_packs') return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true, data: snapPacks }); } });
           if (act2 === 'list_recs' || act2 === 'list_issues') return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true, data: snapRecs }); } });
           return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true, data: [] }); } });
         } catch (e) { return myBase(u, o); }
       };
       var st = gat.state();
-      var preRecs = st.recs, prePacks = st.packs, preNotifs = gat._notifs(); /* v1.39 — restore หลังจบ */
+      var preRecs = st.recs, prePacks = st.packs, preNotifs = gat._notifs();
       var nf = gat._notifs().filter(function (n) { return n.NOTIF_ID !== 'PLAN-2569-009'; });
-      nf.push({ NOTIF_ID: 'PLAN-2569-009', BU: 'สอยดาว', PERIOD: 'พ.ย. 69', TITLE: 'ตรวจการขายน้ำมันเครื่อง', items: ['x'], sub: [], BY: 'GAT(แดง)', SAVED_AT: '10 พ.ย.' });
+      nf.push({ NOTIF_ID: 'PLAN-2569-009', BU: 'สอยดาว', PERIOD: 'พ.ย. 69', TITLE: 'ตรวจการขายนำมันเครื่อง', items: ['x'], sub: [], BY: 'GAT(แดง)', SAVED_AT: '10 พ.ย.' });
       gat._notifs(nf);
       st.recs = [
-        { REC_ID: 'GAT-REC-9101', REC_NO: 101, SEVERITY: '🔴 ขัดกฎหมาย/จำเป็นจริง', TITLE: 'ตรวจการขายน้ำมันเครื่อง', STATUS: 'BU ตอบแล้ว', BU_DECISION: 'แก้ไข' },
+        { REC_ID: 'GAT-REC-9101', REC_NO: 101, SEVERITY: '🔴 ขัดกฎหมาย/จำเป็นจริง', TITLE: 'ตรวจการขายนำมันเครื่อง', STATUS: 'BU ตอบแล้ว', BU_DECISION: 'แก้ไข' },
         { REC_ID: 'GAT-REC-9102', REC_NO: 102, SEVERITY: '🟢 ข้อเสนอ', TITLE: 'เรื่องไม่มีแพ็ก', STATUS: 'รอ BU ดำเนินการ', BU_DECISION: '' }
       ];
       snapRecs = st.recs;
-      st.packs = [{ PACK_ID: 'PACK-9101', BU: 'สอยดาว', SCOPE: 'แผน PLAN-2569-009', PERIOD: 'พ.ย. 69', TITLE: 'ตรวจการขายน้ำมันเครื่อง — ส่วน 1/1', STATUS: 'ผ่านการตรวจ — รอปิดประเด็น (ขั้น 5)', NOTE: 'อ้างแผน: PLAN-2569-009 · ส่งตามประเด็น (1/1)', LINKS: 'https://docs.bu.com/oil1', AI_NOTE: 'ผลตรวจขั้น 3: ผ่าน 2 รายการ', ITEM: '1. ตรวจรายการขายน้ำมันเครื่อง (1.1 เช็คใบเสร็จ | 1.2 เช็คสต๊อก)' }];
+      /* AI_NOTE ขั้น 3 ต่อประเด็น (บล็อก ผลตรวจต่อประเด็น) — label ตามที่ inspItemRows สร้างจริง */
+      var NOTE3 = 'รายละเอียดการตรวจ (ขั้น 3) โดย แดง\n\n【ผลตรวจต่อประเด็น (จากตาราง)】\n[1.1 เช็คใบเสร็จ — หัวข้อที่ขอตรวจ (ย่อยของ 1 ตรวจรายการขายนำมันเครื่อง)] สถานะ: ตรวจสอบแล้ว = ผ่าน\n[1.2 เช็คสต๊อก — หัวข้อที่ขอตรวจ (ย่อยของ 1 ตรวจรายการขายนำมันเครื่อง)] สถานะ: ตรวจสอบแล้ว = ไม่ผ่าน — ขาดรายการ\n【ผลรวม】…';
+      st.packs = [{ PACK_ID: 'PACK-9101', BU: 'สอยดาว', SCOPE: 'แผน PLAN-2569-009', PERIOD: 'พ.ย. 69', TITLE: 'ตรวจการขายนำมันเครื่อง — ส่วน 1/1', STATUS: 'ผ่านการตรวจ — รอปิดประเด็น (ขั้น 5)', NOTE: 'อ้างแผน: PLAN-2569-009 · ส่งตามประเด็น (1/1)', LINKS: 'https://docs.bu.com/oil1', AI_NOTE: NOTE3, ITEM: '1. ตรวจรายการขายนำมันเครื่อง (1.1 เช็คใบเสร็จ | 1.2 เช็คสต๊อก)' }];
       snapPacks = st.packs;
-      try { localStorage.removeItem('gat_item_close_PACK-9101'); } catch (e1) {}
+      try { LSW.removeItem('gat_insp_items_PACK-9101'); LSW.removeItem('gat_item_close_PACK-9101'); } catch (e1) {}
       d.getElementById('closeBigBy').value = 'แดง (GAT)';
       d.getElementById('closeBigNote').value = 'ตรวจครบตามข้อเสนอแนะ';
-      // --- seed/dropdown asserts ---
+      var rmA = gat._itemCloseResultMap(snapPacks[0]);
+      ok40('itemCloseResultMap จาก AI_NOTE (ผ่าน label, ไม่ผ่าน label ยาว)', rmA['1.1'] === 'ผ่าน' && rmA['1.2'] === 'ไม่ผ่าน', JSON.stringify(rmA));
       gat._renderRecs();
       var cpEl = d.getElementById('closeRecPick');
       var opt101 = Array.from(cpEl.options).find(function (o) { return o.value === 'GAT-REC-9101'; });
-      ok39('① dropdown โชว์ "ชื่อเรื่อง (REC_ID)" นำ', !!opt101 && opt101.textContent.indexOf('ตรวจการขายน้ำมันเครื่อง (GAT-REC-9101)') === 0, opt101 && opt101.textContent);
+      ok40('① dropdown โชว์ "ชื่อเรื่อง (REC_ID)" นำ', !!opt101 && opt101.textContent.indexOf('ตรวจการขายนำมันเครื่อง (GAT-REC-9101)') === 0, opt101 && opt101.textContent);
       gat.showTab('close');
       var cbSel = d.getElementById('closeBigPackPick');
-      ok39('② dropdown โชว์ "ชื่อเรื่อง (PACK)"', Array.from(cbSel.options).some(function (o) { return o.textContent.indexOf('ตรวจการขายน้ำมันเครื่อง (PACK-9101)') === 0; }));
-      ok39('② แผนที่ปิดยังว่าง', Object.keys(gat._closeItemStateGet('PACK-9101')).length === 0);
+      ok40('① dropdown โชว์ "ชื่อเรื่อง (PACK)"', Array.from(cbSel.options).some(function (o) { return o.textContent.indexOf('ตรวจการขายนำมันเครื่อง (PACK-9101)') === 0; }));
       cbSel.value = 'PACK-9101'; cbSel.dispatchEvent(new w.Event('change'));
-      ok39('② ตารางหัวข้อ 2 แถว (โครง ITEM ขั้น 1)', d.getElementById('closeBigCheck').querySelectorAll('input.cl-item').length === 2, d.getElementById('closeBigCheck').textContent.slice(0, 140));
-      ok39('② นับเริ่ม 0/2', d.getElementById('closeBigCheck').textContent.indexOf('0/2') >= 0);
-      // --- ① กันหยุ่น (ยังไม่ติ๊กเลย) ---
+      var box1 = d.getElementById('closeBigCheck');
+      ok40('ตารางประเด็นย่อยไม่มี checkbox (อ่านอย่างเดียว)', box1.querySelectorAll('input.cl-item').length === 0, box1.querySelectorAll('input.cl-item').length);
+      ok40('โชว์ผลขั้น 3: ผ่าน + ไม่ผ่าน + นับ 2/2', box1.textContent.indexOf('ผ่าน') >= 0 && box1.textContent.indexOf('ไม่ผ่าน') >= 0 && box1.textContent.indexOf('2/2') >= 0, box1.textContent.slice(0, 200));
+      /* --- ① กันหยุ่น: ผลขั้น 3 ครบ (AI_NOTE) → ปิดหลักได้ --- */
       cpEl.value = 'GAT-REC-9101'; cpEl.dispatchEvent(new w.Event('change'));
-      ok39('① ป้ายค้าง 2 ข้อ', d.getElementById('closeRecGate').textContent.indexOf('ค้าง 2 ข้อ') >= 0, d.getElementById('closeRecGate').textContent.slice(0, 110));
+      var g1 = d.getElementById('closeRecGate').textContent;
+      ok40('① ป้ายเปิดเมื่อขั้น 3 ครบ', g1.indexOf('ปิดประเด็นหลัก (ชื่อเรื่อง) ได้') >= 0, g1.slice(0, 140));
+      /* --- เคสไม่ครบ: แพ็กใหม่ AI_NOTE ไม่มีบล็อกต่อประเด็น --- */
+      st.packs.push({ PACK_ID: 'PACK-9103', BU: 'สอยดาว', SCOPE: 'แผน PLAN-2569-009', PERIOD: 'พ.ย. 69', TITLE: 'ตรวจการขายนำมันเครื่อง — ส่วน 2', STATUS: 'รอ GAT ตรวจ (ขั้น 3)', NOTE: 'อ้างแผน: PLAN-2569-009', LINKS: 'https://docs.bu.com/oil2', AI_NOTE: 'รายละเอียดการตรวจ (ขั้น 3) โดย แดง', ITEM: '2. ตรวจรายการขายนำมันเครื่อง (2.1 เช็คราคา)' });
+      snapPacks = st.packs;
+      gat._renderRecs();
+      var o103 = gat._itemCloseOpenOfRec('GAT-REC-9101');
+      ok40('9103 ยังไม่มีผลขั้น 3 → open รวม 1 ข้อ (PACK-9103)', o103.length === 1 && String(o103[0]).indexOf('PACK-9103') >= 0, JSON.stringify(o103));
+      cpEl.dispatchEvent(new w.Event('change'));
+      ok40('① ป้ายบล็อกเมื่อค้าง 1 ข้อ', d.getElementById('closeRecGate').textContent.indexOf('ค้าง 1 ข้อ') >= 0, d.getElementById('closeRecGate').textContent.slice(0, 140));
       d.getElementById('btnCloseRec').click();
-      ok39('① ยังไม่ยิง close_issue (ประเด็นย่อยไม่ครบ)', closeRecPosts.length === 0, closeRecPosts.length);
-      // --- ② ติ๊ก 1.1 ---
-      var c1 = d.getElementById('closeBigCheck').querySelector('input[data-clk="PACK-9101|1.1"]');
-      if (!c1) { restoreF(); bail('ไม่พบ checkbox 1.1'); return; }
-      c1.checked = true; c1.dispatchEvent(new w.Event('change', { bubbles: true }));
+      ok40('① ยังไม่ยิง close_issue (ไม่ครบ)', closeRecPosts.length === 0, closeRecPosts.length);
+      /* --- ตารางตรวจขั้น 3 ในเครื่อง (gat_insp_items_*) เติมผล → ครบ --- */
+      LSW.setItem('gat_insp_items_PACK-9103', JSON.stringify({ '2.1': { chk: true, res: 'ผ่าน', note: '' } }));
+      gat._renderRecs(); cpEl.dispatchEvent(new w.Event('change'));
+      var rm3 = gat._itemCloseResultMap(st.packs.filter(function (x) { return x.PACK_ID === 'PACK-9103'; })[0]);
+      ok40('itemCloseResultMap เสริมจากตารางตรวจ (res ตาม key)', rm3['2.1'] === 'ผ่าน', JSON.stringify(rm3));
+      ok40('① ป้ายเปิดเมื่อครบ (จากตารางตรวจ)', d.getElementById('closeRecGate').textContent.indexOf('ปิดประเด็นหลัก (ชื่อเรื่อง) ได้') >= 0, d.getElementById('closeRecGate').textContent.slice(0, 140));
+      /* --- ปิดหลัก 9101 --- */
+      d.getElementById('btnCloseRec').click();
       setTimeout(function () {
         try {
-          var p1 = aiPosts.filter(function (p) { return p.PACK_ID === 'PACK-9101'; })[0];
-          ok39('② ติ๊ก 1.1 → โพสต์ AI_NOTE 1 ครั้ง', aiPosts.length === 1, aiPosts.length);
-          ok39('② โพสต์มี [ปิดข้อ 1.1] + คงเนื้อหา ผลตรวจขั้น 3', !!p1 && String(p1.NOTE || '').indexOf('[ปิดข้อ 1.1]') >= 0 && String(p1.NOTE || '').indexOf('ผลตรวจขั้น 3') >= 0, p1 && String(p1.NOTE).slice(0, 180));
-          ok39('② แผนที่จำ 1.1', !!(gat._closeItemStateGet('PACK-9101')['1.1'] || {}).done);
-          gat._renderCloseBig(); gat._renderRecs();
-          ok39('② เหลือให้ติ๊ก 1 หัวข้อ + นับ 1/2', d.getElementById('closeBigCheck').querySelectorAll('input.cl-item').length === 1 && d.getElementById('closeBigCheck').textContent.indexOf('1/2') >= 0, d.getElementById('closeBigCheck').textContent.slice(0, 140));
-          ok39('① ป้ายค้าง 1 ข้อ', d.getElementById('closeRecGate').textContent.indexOf('ค้าง 1 ข้อ') >= 0, d.getElementById('closeRecGate').textContent.slice(0, 110));
-          var c2 = d.getElementById('closeBigCheck').querySelector('input[data-clk="PACK-9101|1.2"]');
-          if (!c2) { restoreF(); bail('ไม่พบ checkbox 1.2'); return; }
-          c2.checked = true; c2.dispatchEvent(new w.Event('change', { bubbles: true }));
+          ok40('① ยิง close_issue {REC_ID: GAT-REC-9101} 1 ครั้ง', closeRecPosts.length === 1 && String((closeRecPosts[0] || {}).REC_ID) === 'GAT-REC-9101', JSON.stringify(closeRecPosts));
+          /* --- closeBig กันหยุ่น: ยิงตอนยังไม่ครบ (เคสยิงซ้ำก่อน res) → บล็อก; ครบแล้ว → col-8 --- */
+          cbSel.value = 'PACK-9103'; cbSel.dispatchEvent(new w.Event('change'));
+          LSW.setItem('gat_insp_items_PACK-9103', JSON.stringify({ '2.1': { chk: true } })); /* ตารางมี chk แต่ยังไม่มี res */
+          d.getElementById('btnCloseBig').click();
+          ok40('closeBig: ไม่มี res ของประเด็นใด → บล็อก (ไม่ยิง col-8)', col8Posts.length === 0, JSON.stringify(col8Posts));
+          LSW.setItem('gat_insp_items_PACK-9103', JSON.stringify({ '2.1': { chk: true, res: 'ไม่ผ่าน', note: 'ขาดรายการ' } }));
+          d.getElementById('btnCloseBig').click();
           setTimeout(function () {
             try {
-              ok39('② ติ๊ก 1.2 (ข้อสุดท้าย) → AI_NOTE รวม 2 โพสต์', aiPosts.length === 2, aiPosts.length);
-              var p2x = aiPosts[1] || {};
-              ok39('② โพสต์ล่าสุดรวม marker 1.1+1.2', String(p2x.NOTE || '').indexOf('[ปิดข้อ 1.1]') >= 0 && String(p2x.NOTE || '').indexOf('[ปิดข้อ 1.2]') >= 0);
-              ok39('② ครบ → ปิดแพ็กอัตโนมัติ (col-8 โพสต์เดียว)', col8Posts.length === 1, col8Posts.length);
-              var pc = col8Posts[0] || {};
-              ok39('② col-8 = "ปิดประเด็นย่อยแล้ว (ขั้น 5) — ชื่อเรื่อง" นำ', String(pc.STATUS || '').indexOf('ปิดประเด็นย่อยแล้ว (ขั้น 5) — ตรวจการขายน้ำมันเครื่อง') === 0, String(pc.STATUS || '').slice(0, 140));
-              ok39('② col-8 ไม่มี FIELD (เขาคอลัมน์ 8)', !pc.FIELD);
-              ok39('② แผนที่ครบ 2 ข้อ (1.2.done)', Object.keys(gat._closeItemStateGet('PACK-9101')).length === 2 && !!(gat._closeItemStateGet('PACK-9101')['1.2'] || {}).done);
-              // --- ① ปิดได้แล้ว ---
-              gat._renderRecs();
-              ok39('① ป้ายไม่บล็อกแล้ว', d.getElementById('closeRecGate').textContent.indexOf('ต้องปิดประเด็นย่อยให้ครบ') < 0, d.getElementById('closeRecGate').textContent.slice(0, 110));
+              ok40('closeBig: ครบ → col-8 "ปิดประเด็นย่อยแล้ว (ขั้น 5)" + ไม่มี FIELD', col8Posts.length === 1 && String((col8Posts[0] || {}).STATUS || '').indexOf('ปิดประเด็นย่อยแล้ว (ขั้น 5)') === 0 && !(col8Posts[0] || {}).FIELD, JSON.stringify(col8Posts));
+              /* --- เรื่องไม่มีแพ็ก → ปิดได้ --- */
+              cpEl.value = 'GAT-REC-9102'; cpEl.dispatchEvent(new w.Event('change'));
               d.getElementById('btnCloseRec').click();
               setTimeout(function () {
                 try {
-                  ok39('① ยิง close_issue {REC_ID: GAT-REC-9101} 1 ครั้ง', closeRecPosts.length === 1 && String((closeRecPosts[0] || {}).REC_ID) === 'GAT-REC-9101', JSON.stringify(closeRecPosts));
-                  // --- ① เรื่องที่ไม่มีแพ็กโยง → ปิดได้ ---
-                  cpEl.value = 'GAT-REC-9102'; cpEl.dispatchEvent(new w.Event('change'));
-                  d.getElementById('btnCloseRec').click();
-                  setTimeout(function () {
-                    try {
-                      ok39('① เรื่องไม่มีแพ็ก → close_issue ครบ 2', closeRecPosts.length === 2 && String((closeRecPosts[1] || {}).REC_ID) === 'GAT-REC-9102', JSON.stringify(closeRecPosts));
-                      // --- sync จากชีต (markers ใน AI_NOTE ของอีกเครื่อง) ---
-                      try {
-                        st.packs.push({ PACK_ID: 'PACK-9102', BU: 'สอยดาว', TITLE: 'เรื่องชีต', SCOPE: 'แผน PLAN-2569-009', NOTE: 'อ้างแผน: PLAN-2569-009', STATUS: 'ผ่านการตรวจ — รอปิดประเด็น (ขั้น 5)', LINKS: 'https://docs.bu.com/b1', AI_NOTE: '[ปิดข้อ 1] โดย คนชีต @ 10 พ.ย. — ผ่าน', ITEM: '' });
-                        st.recs.push({ REC_ID: 'GAT-REC-9200', REC_NO: 200, TITLE: 'เรื่องชีต', STATUS: 'รอ BU ดำเนินการ', BU_DECISION: '' });
-                      } catch (e2) { bail('seed ชีต-sync: ' + e2); }
-                      gat._closeItemSyncFromSheet();
-                      var m12 = gat._closeItemStateGet('PACK-9102');
-                      ok39('sync: [ปิดข้อ 1] โดย คนชีต → แผนที่', (m12['1'] || {}).done === true && (m12['1'] || {}).by === 'คนชีต', JSON.stringify(m12));
-                      ok39('packsOfRec: จับคู่ชื่อเรื่องได้ 1 แพ็ก', gat._packsOfRec({ REC_ID: 'GAT-REC-9200', TITLE: 'เรื่องชีต' }).length === 1, gat._packsOfRec({ REC_ID: 'GAT-REC-9200', TITLE: 'เรื่องชีต' }).length);
-                      ok39('itemCloseOpenOfRec: ปิดทางชีตแล้ว → ค้าง 0', gat._itemCloseOpenOfRec('GAT-REC-9200').length === 0, gat._itemCloseOpenOfRec('GAT-REC-9200').length);
-                      try { localStorage.removeItem('gat_item_close_PACK-9101'); } catch (e3) {}
-                      try { localStorage.removeItem('gat_item_close_PACK-9102'); } catch (e3) {}
-                      /* v1.39 — restore state เดิมกันพาดไปบล็อกเทสอื่น */
-                      st.recs = preRecs; st.packs = prePacks; gat._notifs(preNotifs);
-                      try { gat._renderRecs(); } catch (e3) {}
-                      restoreF();
-                      ok39('✅ ชุด v1.39 จบครบ', true);
-                    } catch (e4) { restoreF(); bail('ขั้นสุดท้าย: ' + e4); }
-                  }, 10);
-                } catch (e4) { restoreF(); bail('close_issue 9101: ' + e4); }
+                  ok40('① เรื่องไม่มีแพ็ก → close_issue ครบ 2', closeRecPosts.length === 2 && String((closeRecPosts[1] || {}).REC_ID) === 'GAT-REC-9102', JSON.stringify(closeRecPosts));
+                  /* --- packsOfRec ตัดแพ็กปิดแล้ว/รอเลือกตรวจ --- */
+                  try {
+                    st.packs.push({ PACK_ID: 'PACK-9110', BU: 'สอยดาว', TITLE: 'แพ็กปิดแล้ว', SCOPE: '', NOTE: '', STATUS: 'ปิดประเด็นย่อยแล้ว (ขั้น 5) — x', LINKS: '', AI_NOTE: '', ITEM: 'z. หัวข้อ' });
+                    st.packs.push({ PACK_ID: 'PACK-รอ00', BU: 'สอยดาว', TITLE: 'ตรวจการขายนำมันเครื่อง — ส่วนใหม่', SCOPE: 'แผน PLAN-2569-009', NOTE: 'อ้างแผน: PLAN-2569-009', STATUS: 'รอ GAT เลือกตรวจ', LINKS: '', AI_NOTE: '', ITEM: '' });
+                  } catch (e2) { bail('seed 9110/รอ00: ' + e2); }
+                  ok40('packsOfRec ตัดแพ็กสถานะปิดย่อยแล้ว', gat._packsOfRec({ REC_ID: 'GAT-REC-9111', TITLE: 'แพ็กปิดแล้ว' }).length === 0, gat._packsOfRec({ REC_ID: 'GAT-REC-9111', TITLE: 'แพ็กปิดแล้ว' }).length);
+                  ok40('packsOfRec ตัดแพ็กรอเลือกตรวจ (ยังไม่ขั้น 3)', gat._packsOfRec({ REC_ID: 'GAT-REC-9112', TITLE: 'ตรวจการขายนำมันเครื่อง' }).every(function (p) { return p.PACK_ID !== 'PACK-รอ00'; }), gat._packsOfRec({ REC_ID: 'GAT-REC-9112', TITLE: 'ตรวจการขายนำมันเครื่อง' }).length);
+                  try { LSW.removeItem('gat_insp_items_PACK-9103'); LSW.removeItem('gat_insp_items_PACK-9101'); } catch (e3) {}
+                  st.recs = preRecs; st.packs = prePacks; gat._notifs(preNotifs);
+                  try { gat._renderRecs(); } catch (e3) {}
+                  restoreF();
+                  ok40('✅ ชุด v1.40 จบครบ', true);
+                } catch (e4) { restoreF(); bail('ขั้นสุดท้าย: ' + e4); }
               }, 10);
-            } catch (e3) { restoreF(); bail('หลังติ๊ก 1.2: ' + e3); }
+            } catch (e4) { restoreF(); bail('closeBig: ' + e4); }
           }, 10);
-        } catch (e2) { restoreF(); bail('หลังติ๊ก 1.1: ' + e2); }
-      }, 12);
+        } catch (e4) { restoreF(); bail('close_issue 9101: ' + e4); }
+      }, 10);
     } catch (eTop) { restoreF(); bail('รวม: ' + eTop); }
   }
-  try { setTimeout(function () { try { runV139(); } catch (e) { try { restoreF(); } catch (e5) {} bail('run: ' + e); } }, 0); } catch (eSetup) { try { restoreF(); } catch (e5) {} bail('setup: ' + eSetup); }
+  try { setTimeout(function () { try { runV140(); } catch (e) { try { restoreF(); } catch (e5) {} bail('run: ' + e); } }, 0); } catch (eSetup) { try { restoreF(); } catch (e5) {} bail('setup: ' + eSetup); }
 })();
+
+setTimeout(function () { var r = globalThis.v140Res || { p: -1, f: -1 }; console.log("══ v1.40: " + r.p + " pass / " + r.f + " fail"); }, 600);
