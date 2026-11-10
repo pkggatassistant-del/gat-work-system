@@ -55,6 +55,17 @@ var GAT = (function () {
   function pingGAS() {
     return fetch(apiBase(), { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'ping', data: {} }) }).then(function (r) { return r.json(); }).catch(function () { return { ok: false } });
   }
+  /* v1.38.1 — ย้าย API ถาวร: GAS v1.10.1 deploy เป็น URL ใหม่ (10 พ.ย.) — เครื่องเก่าทุกเครื่อง (รวม BU) เปลี่ยนเอง ไม่ต้องแก้มือ */
+  var BCT_API_MIGRATE = { from: 'https://script.google.com/macros/s/AKfycbzuKrVSmPSphudtgIgmREMBiYYYETUNsTsyCzrUKgZ3C08Is1A-pf3Vsvadj7R8ArOv/exec', to: 'https://script.google.com/macros/s/AKfycbwkiyWP4UzOGNt6Ly-XV1Rztz7gaW9V6GuKZ_hSpWmUu9QMjUmDS0RUjbej784ewTxVig/exec' };
+  function migrateBctApi() {
+    try {
+      var cur = localStorage.getItem('gat_bct_api') || window.GAT_CONFIG.BCT_API || '';
+      if (cur && cur.indexOf(BCT_API_MIGRATE.from) >= 0) {
+        window.GAT_CONFIG.BCT_API = BCT_API_MIGRATE.to;
+        localStorage.setItem('gat_bct_api', BCT_API_MIGRATE.to);
+      }
+    } catch (e) {}
+  }
   function apiBase() { return window.GAT_CONFIG.BCT_API || ''; }
 
   /* ---------- util ---------- */
@@ -2135,6 +2146,7 @@ function loadProcessDocs() {
   /* ---------- events / boot ---------- */
   function boot() {
     loadRunState();
+    migrateBctApi(); /* v1.38.1 — ย้าย API จาก v1.7 → v1.10.1 อัตโนมัติก่อน ping */
     /* v1.27 — auth: ถ้ามี session → hide gate + role UI; ถ้า GAS = v1.8 และยังไม่ล็อกอิน → บังคับ */
     state.auth = loadAuth();
     id('lgGo').addEventListener('click', doLogin);
@@ -2249,7 +2261,7 @@ function loadProcessDocs() {
 
   document.addEventListener('DOMContentLoaded', boot);
 
-  var TAB_NAMES = { p02pick: '1. GAT ตั้งเรื่อง+ประเด็นที่จะตรวจ', packs: '2. BU ส่งหลักฐาน (แรก + ส่งเพิ่มเติม)', inspect: '3. GAT ตรวจหลักฐาน', sum4: '4. GAT สรุปผลการตรวจ', close: '5. ปิดประเด็น (หลัก+ย่อย)', aisend: '6. ส่งผลการตรวจให้ BU', d10: '7. รายงานวัดผล DTA (ทุกวันศุกร์ — OpenClaw เตรียม)', summary: 'สรุปผลงาน GAT (เก็บอ้างอิง)', dashboard: 'Dashboard ภาพรวม', registers: 'Registers', universe: 'Regulatory Universe', recs: 'ทะเบียนข้อเสนอแนะ', manual: 'คู่มือการใช้งาน', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
+  var TAB_NAMES = { p02pick: '1. GAT ตั้งเรื่อง+ประเด็นที่จะตรวจ', packs: '2. BU ส่งหลักฐาน (แรก + ส่งเพิ่มเติม)', inspect: '3. GAT ตรวจหลักฐาน', sum4: '4. GAT สรุปผลการตรวจ', close: '5. ปิดประเด็น (หลัก+ย่อย)', aisend: '6. ส่งผลการตรวจให้ BU', d10: '7. รายงานวัดผล DTA (ทุกวันศุกร์ — OpenClaw เตรียม)', summary: 'สรุปผลงาน GAT (เก็บอ้างอิง)', dashboard: 'Dashboard ภาพรวม', registers: 'Registers', universe: 'Regulatory Universe', recs: 'ทะเบียนข้อเสนอแนะ', bct: 'BCT Import/Export', manual: 'คู่มือการใช้งาน', report: 'รายงานผู้บริหาร', qms: 'QMS Document' };
 
   /* ---------- แกนกลาง 10 กระบวนการ (P-01..P-10) — RUN_STEPS = แหล่งเดียว: แท็บงานจริงแต่ละขั้นอ่านจากนี้ ---------- */
   var RUN_STEPS = [

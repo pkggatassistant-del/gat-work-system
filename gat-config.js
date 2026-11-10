@@ -12,10 +12,10 @@
 
 window.GAT_CONFIG = {
   REC_SCOPE: ['GAT-REC-0042','GAT-REC-0043','GAT-REC-0044','GAT-REC-0045','GAT-REC-0046','GAT-REC-0047','GAT-REC-0048','GAT-REC-0049','GAT-REC-0050','GAT-REC-0051'], // v1.10 โหมดทดสอบเรื่องเดียว (GA-LC) - เคลียร์ [] เพื่อโชว์ทุกใบ
-  VERSION: 'v1.38 (10 พ.ย. 69) — แท็บ 5 เปลี่ยนคำ: ปิดประเด็นใหญ่→ปิดประเด็นย่อย (เหนือปิดประเด็นหลัก ① อยู่ครบ) + dropdown ปิดย่อย โชว์ชื่อเรื่องนำ (packShowName + PACK) และกรองเฉพาะใบที่ปิดแล้ว/ลบออก — ไม่ว่างโดยไม่จำเป็น',
+  VERSION: 'v1.38.1 (10 พ.ย. 69) — BCT API = GAS v1.10.1 (URL ใหม่) + ย้ายเครื่องเก่าอัตโนมัติ (migrateBctApi) + เมนูซ้ายใหม่ "BCT Import/Export" (ฐานข้อมูล); แท็บ 5 เปลี่ยนคำ: ปิดประเด็นใหญ่→ปิดประเด็นย่อย (เหนือปิดประเด็นหลัก ① อยู่ครบ) + dropdown ปิดย่อย โชว์ชื่อเรื่องนำ (packShowName + PACK) และกรองเฉพาะใบที่ปิดแล้ว/ลบออก — ไม่ว่างโดยไม่จำเป็น',
 
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง - ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
-  BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbzuKrVSmPSphudtgIgmREMBiYYYETUNsTsyCzrUKgZ3C08Is1A-pf3Vsvadj7R8ArOv/exec'), // v1.27.1 default = GAS v1.7 (deploy ใหม่ 5 พ.ย. 69 — tabs_status 10/10 ผ่าน; เปลี่ยนเองได้ในแท็บ BCT Import/Export)
+  BCT_API: 'https://script.google.com/macros/s/AKfycbwkiyWP4UzOGNt6Ly-XV1Rztz7gaW9V6GuKZ_hSpWmUu9QMjUmDS0RUjbej784ewTxVig/exec', // v1.38.1 = GAS v1.10.1 (deploy ใหม่ 10 พ.ย. 69 — มีแท็บใบแจ้งประเด็น BU + NOTE ขั้น 3; เปลี่ยนเองได้ในแท็บ BCT Import/Export ที่เพิ่มเมนูซ้าย ฐานข้อมูล)
   SOURCES: {
     // อ้างไฟล์เทียบตําแหน่ง index.html (ทํางานได้ทั้งบน GitHub Pages และ local)
     SEED: 'gat-seed.json',            // ข้อมูลตั้งต้นจาก PKG_Compliance_plan_2026-30.xlsx
