@@ -708,7 +708,7 @@ function loadProcessDocs() {
     postToBCT('update_pack_status', { PACK_ID: pid, STATUS: statText, NOTE: note, FIELD: 'AI_NOTE', BY: by }, function (res) {
       if (res.ok) {
         inspStatus('✅ บันทึกผลการตรวจ ' + pid + ' ลงชีตแล้ว (AUDITLOG จดอัตโนมัติ) — ผลรวม: ' + sums + (sums === 'ผ่าน' ? ' → ไปขั้น 4 (สรุปผล)' : ' → BU ส่งหลักฐานเพิ่มเติมที่แท็บ 2'));
-        loadPacks(); showTab('sum4');
+        loadPacks();
       } else inspStatus('❌ ' + (res.error || 'บันทึกไม่สำเร็จ — ตรวจ GAS (ต้องมี update_pack_status)'));
     });
     try {
@@ -720,8 +720,8 @@ function loadProcessDocs() {
     var sel = document.getElementById('sumPackPick'); if (!sel) return;
     var cur = sel.value;
     var list = (state.packs || []).filter(function (x) { var s = String(x.STATUS || ''); return s.indexOf('ตรวจแล้ว') >= 0 || s.indexOf('ส่งหลักฐานเพิ่มเติม') >= 0 || s.indexOf('ไม่ผ่าน') >= 0 || s.indexOf('รอปิดประเด็น') >= 0; });
-    sel.innerHTML = '<option value="">— เลือก PACK ที่ตรวจแล้ว (ขั้น 3) —</option>' + list.map(function (x) {
-      return '<option value="' + escP(x.PACK_ID) + '">' + escP(x.PACK_ID + ' · ' + x.BU + ' · ' + packShowName(x) + ' · ' + String(x.STATUS || '')) + '</option>';
+    sel.innerHTML = '<option value="">— เลือกชื่อเรื่อง (ผลตรวจขั้น 3) —</option>' + list.map(function (x) {
+      return '<option value="' + escP(x.PACK_ID) + '">' + escP(packPlanTitle(x) + ' (' + x.PACK_ID + ')') + '</option>';
     }).join('');
     if (cur) sel.value = cur;
     var sendSel = document.getElementById('sendPackPick'); /* v1.29: แท็บ 6 ใช้รายการเดียวกัน (PACK ที่ตัดสินแล้ว) */

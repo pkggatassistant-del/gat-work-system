@@ -12,7 +12,7 @@
 
 window.GAT_CONFIG = {
   REC_SCOPE: ['GAT-REC-0042','GAT-REC-0043','GAT-REC-0044','GAT-REC-0045','GAT-REC-0046','GAT-REC-0047','GAT-REC-0048','GAT-REC-0049','GAT-REC-0050','GAT-REC-0051'], // v1.10 โหมดทดสอบเรื่องเดียว (GA-LC) - เคลียร์ [] เพื่อโชว์ทุกใบ
-  VERSION: 'v1.37 (10 พ.ย. 69) — ขั้น 4 ตามสั่ง: เลือกชื่อเรื่อง (PACK ผ่านขั้น 3) → ระบบดึงผลการตรวจขั้น 3 มาโชว์เป็นแบบฟอร์ม + สร้าง "ข้อความผลการตรวจส่ง BU" ให้กด 📋 คัดลอก (วาง TG ส่ง BU ได้เลย) — ครบ หัวเรื่อง/รายละเอียด/ผลต่อประเด็น/ผลรวม/ผู้ตรวจ',
+  VERSION: 'v1.37.1 (10 พ.ย. 69) — ขั้น 4 ตามสั่ง "เปลี่ยนตรงนี้ให้เป็นชื่อเรื่อง": dropdown แบบฟอร์มผลการตรวจ = ชื่อเรื่อง (PACK) เช่น "ขอตรวจสอบการขายน้ำมันเครื่องเก่า (PACK-0005)" ไม่โชว์สถานะ/ส่วน x/n; บันทึกผลขั้น 3 แล้วคงอยู่แท็บ 3 (ไม่เด้งไปแท็บ 4 เอง)',
 
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง - ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
   BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbzuKrVSmPSphudtgIgmREMBiYYYETUNsTsyCzrUKgZ3C08Is1A-pf3Vsvadj7R8ArOv/exec'), // v1.27.1 default = GAS v1.7 (deploy ใหม่ 5 พ.ย. 69 — tabs_status 10/10 ผ่าน; เปลี่ยนเองได้ในแท็บ BCT Import/Export)
