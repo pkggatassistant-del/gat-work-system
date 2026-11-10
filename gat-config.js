@@ -12,7 +12,7 @@
 
 window.GAT_CONFIG = {
   REC_SCOPE: ['GAT-REC-0042','GAT-REC-0043','GAT-REC-0044','GAT-REC-0045','GAT-REC-0046','GAT-REC-0047','GAT-REC-0048','GAT-REC-0049','GAT-REC-0050','GAT-REC-0051'], // v1.10 โหมดทดสอบเรื่องเดียว (GA-LC) - เคลียร์ [] เพื่อโชว์ทุกใบ
-  VERSION: 'v1.34.1 (10 พ.ย. 69) — แท็บ 3/4/5/6: dropdown เลือก PACK + meta โชว์ "ชื่อเรื่อง" จากแผนต้นทาง (PLAN-2569-xxx) นำเสมอ — ไม่ใช้ข้อความประเด็นของ BU ที่ติดมากับ TITLE อีกต่อไป',
+  VERSION: 'v1.34.2 (10 พ.ย. 69) — label ตามโมเดลของหนึ่ง: ประเด็นหลัก = ชื่อเรื่อง · ประเด็นย่อย = หัวข้อที่ขอตรวจสอบ (แท็บ 2 กล่องติ๊ก + แท็บ 3 ตารางตรวจ)',
 
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง - ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
   BCT_API: (localStorage.getItem('gat_bct_api') || 'https://script.google.com/macros/s/AKfycbzuKrVSmPSphudtgIgmREMBiYYYETUNsTsyCzrUKgZ3C08Is1A-pf3Vsvadj7R8ArOv/exec'), // v1.27.1 default = GAS v1.7 (deploy ใหม่ 5 พ.ย. 69 — tabs_status 10/10 ผ่าน; เปลี่ยนเองได้ในแท็บ BCT Import/Export)

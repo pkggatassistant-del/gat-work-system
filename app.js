@@ -576,7 +576,7 @@ function loadProcessDocs() {
           var sno = sm ? sm[1] : no + '.' + (k + 1);
           var stitle = sm ? (sm[2] || sb) : sb;
           var ev2 = evBlocks.filter(function (e) { return e.no === sno; })[0] || {};
-          rows.push({ key: sno, label: sno + ' ' + stitle + ' — ย่อยของ ' + no + ' ' + mainTitle, evLabel: ev2.link || '—', checked: false, result: '' });
+          rows.push({ key: sno, label: sno + ' ' + stitle + ' — หัวข้อที่ขอตรวจ (ย่อยของ ' + no + ' ' + mainTitle + ')', evLabel: ev2.link || '—', checked: false, result: '' });
         });
       }
     });
@@ -600,7 +600,7 @@ function loadProcessDocs() {
       return;
     }
     var h = '<div style="border:1px solid #cdd8e6;border-radius:10px;padding:10px;background:#fff;max-height:460px;overflow:auto">' +
-      '<div style="color:#1a2b45;margin-bottom:6px"><b>ประเด็นที่ BU ส่ง ' + escP(pk.PACK_ID) + ':</b> <span style="color:#7d93b2;font-size:12.5px">ตั้งสถานะ/ผลทุกรายการ → กด ⤵️ ย่อลงช่องผล (หรือพิมพ์เองด้านล่าง)</span></div>';
+      '<div style="color:#1a2b45;margin-bottom:6px"><b>ประเด็นหลัก (ชื่อเรื่อง) + หัวข้อที่ขอตรวจสอบ — PACK ' + escP(pk.PACK_ID) + ':</b> <span style="color:#7d93b2;font-size:12.5px">ตั้งสถานะ/ผลทุกรายการ → กด ⤵️ ย่อลงช่องผล (หรือพิมพ์เองด้านล่าง)</span></div>';
     h += rows.map(function (r, ix) {
       var s0 = stMap[r.key] || {};
       var chk = (s0.chk !== undefined) ? s0.chk : false;
@@ -1041,11 +1041,11 @@ function loadProcessDocs() {
           var sc = sel[sid2] ? ' checked' : '';
           return '<label style="display:block;padding:4px 10px 4px 30px;cursor:pointer"><input type="checkbox" data-subid="' + escP(sid2) + '"' + sc + ' style="margin-right:8px"> ' + escP(st2) + '</label>';
         }).join('');
-        subsHtml = '<div style="margin:4px 0 6px 22px;padding:8px 8px 8px 12px;background:#f3f5f9;border-radius:8px;font-size:13px"><b style="font-size:12px;color:#3d5271">ประเด็นย่อยทั้งหมด:</b>' + subRows + '</div>';
+        subsHtml = '<div style="margin:4px 0 6px 22px;padding:8px 8px 8px 12px;background:#f3f5f9;border-radius:8px;font-size:13px"><b style="font-size:12px;color:#3d5271">หัวข้อที่ขอตรวจสอบ (ประเด็นย่อย):</b>' + subRows + '</div>';
       }
       return '<div style="border-bottom:1px dashed #e3e9f2;padding:6px 0;color:#1a2b45"><label style="display:block;padding:4px 10px;border-radius:8px;cursor:pointer;color:#1a2b45"><input type="checkbox" data-itemid="' + escP(id2) + '"' + c + ' style="margin-right:8px"> <b>' + (i + 1) + '.</b> ' + escP(it) + '</label>' + subsHtml + '</div>';
     }).join('');
-    box.innerHTML = '<div style="background:#fff;border:1px solid #cdd8e6;border-radius:10px;padding:10px;max-height:420px;overflow:auto"><div style="margin-bottom:6px;color:#1a2b45"><b>ประเด็นหลักที่ BU ต้องส่งข้อมูล (ตาม ' + escP(n.NOTIF_ID) + ' — งวด ' + escP(n.PERIOD || '—') + '):</b> <span style="color:#7d93b2;font-size:12.5px">ติ๊กประเด็นหลัก → ประเด็นย่อยเปิดให้เลือกส่ง</span></div>' + rows + '</div>';
+    box.innerHTML = '<div style="background:#fff;border:1px solid #cdd8e6;border-radius:10px;padding:10px;max-height:420px;overflow:auto"><div style="margin-bottom:6px;color:#1a2b45"><b>ประเด็นหลัก (ชื่อเรื่อง) ที่ BU ต้องส่งข้อมูล — <b>' + escP(n.TITLE || n.NOTIF_ID) + '</b> (' + escP(n.NOTIF_ID) + '):</b> <span style="color:#7d93b2;font-size:12.5px">ติ๊กประเด็นหลัก → หัวข้อที่ขอตรวจสอบเปิดให้เลือกส่ง</span></div>' + rows + '</div>';
     box.querySelectorAll('input[data-itemid]').forEach(function (cb) {
       cb.addEventListener('change', function () {
         var st0 = packSelItems();
