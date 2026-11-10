@@ -12,7 +12,7 @@
 
 window.GAT_CONFIG = {
   REC_SCOPE: ['GAT-REC-0042','GAT-REC-0043','GAT-REC-0044','GAT-REC-0045','GAT-REC-0046','GAT-REC-0047','GAT-REC-0048','GAT-REC-0049','GAT-REC-0050','GAT-REC-0051'], // v1.10 โหมดทดสอบเรื่องเดียว (GA-LC) - เคลียร์ [] เพื่อโชว์ทุกใบ
-  VERSION: 'v1.38.1 (10 พ.ย. 69) — BCT API = GAS v1.10.1 (URL ใหม่) + ย้ายเครื่องเก่าอัตโนมัติ (migrateBctApi) + เมนูซ้ายใหม่ "BCT Import/Export" (ฐานข้อมูล); แท็บ 5 เปลี่ยนคำ: ปิดประเด็นใหญ่→ปิดประเด็นย่อย (เหนือปิดประเด็นหลัก ① อยู่ครบ) + dropdown ปิดย่อย โชว์ชื่อเรื่องนำ (packShowName + PACK) และกรองเฉพาะใบที่ปิดแล้ว/ลบออก — ไม่ว่างโดยไม่จำเป็น',
+  VERSION: 'v1.38.2 (10 พ.ย. 69) — แท็บ 5: dropdown ปิดประเด็นหลัก/ย่อย + การนับใบเปิด-ปิด = ไม่กรอง REC_SCOPE อีกต่อไป (โหมด scope ใช้กับตารางโชว์เท่านั้น — ใบจริงทุกใบเลือกได้ แม้เลขเกิน 0051); เดิม v1.38.1: BCT API = GAS v1.10.1 (URL ใหม่) + migrateBctApi ย้ายเครื่องเก่าอัตโนมัติ + เมนู "BCT Import/Export"; แท็บ 5 เปลี่ยนคำ ใหญ่→ย่อย (ตามสัท) + dropdown โชว์ชื่อเรื่องนำ',
 
   // ปิดท้ายด้วย '/' เมื่อติดตั้งจริง - ตัวอย่าง: https://script.google.com/macros/s/AKfy.../exec
   BCT_API: 'https://script.google.com/macros/s/AKfycbwkiyWP4UzOGNt6Ly-XV1Rztz7gaW9V6GuKZ_hSpWmUu9QMjUmDS0RUjbej784ewTxVig/exec', // v1.38.1 = GAS v1.10.1 (deploy ใหม่ 10 พ.ย. 69 — มีแท็บใบแจ้งประเด็น BU + NOTE ขั้น 3; เปลี่ยนเองได้ในแท็บ BCT Import/Export ที่เพิ่มเมนูซ้าย ฐานข้อมูล)

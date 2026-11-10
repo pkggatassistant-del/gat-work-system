@@ -852,10 +852,12 @@ function loadProcessDocs() {
     if (cur) sel.value = cur;
     var box = document.getElementById('closeBigCheck');
     if (!box) return;
-    var pk = (state.packs || []).filter(function (x) { return x.PACK_ID === sel.value; })[0];
+    var pid = sel.value;
+    var pk = (state.packs || []).filter(function (x) { return x.PACK_ID === pid; })[0];
     if (!pk) { box.innerHTML = ''; return; }
-    var openRecs = scopedRecs().filter(function (r) { return String(r.STATUS || '').indexOf('ปิด') < 0; });
-    var closedRecs = scopedRecs().filter(function (r) { return String(r.STATUS || '').indexOf('ปิด') >= 0; });
+    // v1.38.2 — นับใบเปิด/ปิดจาก state.recs ตรง ๆ (ไม่กรอง REC_SCOPE — ใบนอก scope ก็ต้องนับ ไม่เช่นนั้น ปิดย่อยไม่ผ่าน)
+    var openRecs = (state.recs || []).filter(function (r) { return String(r.STATUS || '').indexOf('ปิด') < 0; });
+    var closedRecs = (state.recs || []).filter(function (r) { return String(r.STATUS || '').indexOf('ปิด') >= 0; });
     box.innerHTML = openRecs.length
       ? '<span style="color:#c0392b">⚠️ ยังมีใบประเด็นเปิดอยู่ ' + openRecs.length + ' ใบ (ปิดหลักให้ครบที่การ์ด ① ก่อน) — ปิดย่อยได้เมื่อ ' + (closedRecs.length + openRecs.length) + ' ใบจบหมด</span>'
       : '✅ ใบประเด็นปิดครบทั้งหมด ' + closedRecs.length + ' ใบ — ปิดย่อยได้ (หลังปิด: วงจรของเรื่องนี้จบ → สถานะ ปิดประเด็นย่อยแล้ว (ขั้น 5))';
@@ -1995,7 +1997,8 @@ function loadProcessDocs() {
     var cp = id('closeRecPick');
     if (cp) {
       var curc = cp.value;
-      cp.innerHTML = '<option value="">— เลือกใบที่ตรวจจบแล้ว (ปิดย่อย) —</option>' + scopedRecs().filter(function (x) {
+      // v1.38.2 — ไม่กรอง REC_SCOPE แล้ว (scope ใช้กับตารางโชว์เท่านั้น) — ใบจริงทั้งหมดต้องเลือกได้
+      cp.innerHTML = '<option value="">— เลือกใบที่ตรวจจบแล้ว (ปิดย่อย) —</option>' + (state.recs || []).filter(function (x) {
         var st = String(x.STATUS || '');
         return st.indexOf('ปิด') < 0 && st.indexOf('ทดสอบ') < 0;
       }).map(function (x) {
