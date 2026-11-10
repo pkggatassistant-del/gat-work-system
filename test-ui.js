@@ -134,7 +134,7 @@ setTimeout(() => {
   var inspSel = d.getElementById('inspPackPick');
   ok('v1.29: แท็บ 3 dropdown มี PACK ที่ BU ส่ง', Array.from(inspSel.options).some(function (o) { return o.value === 'PACK-9992'; }));
   inspSel.value = 'PACK-9992'; inspSel.dispatchEvent(new w.Event('change'));
-  ok('v1.29: แท็บ 3 โชว์ลิงก์หลักฐาน BU คลิกได้', d.getElementById('inspPackMeta').querySelectorAll('a').length >= 1);
+  ok('v1.29: แท็บ 3 โชว์ลิงก์หลักฐาน BU คลิกได้ (ต่อแถวในตารางตรวจ)', d.getElementById('inspItemsBox').querySelectorAll('a[target="_blank"]').length >= 1 || d.getElementById('inspPackMeta').querySelectorAll('a').length >= 1);
   ok('v1.29: แท็บ 3 มีฟอร์มรายละเอียด+ผลการตรวจ+ผลรวม', !!d.getElementById('inspDetail') && !!d.getElementById('inspResult') && !!d.getElementById('inspSums'));
   var updFired = 0; var baseF = w.fetch;
   w.fetch = function (u, o) { var b = o && o.body ? String(o.body) : ''; if (b.indexOf('update_pack_status') >= 0) { updFired++; return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true }); } }); } return baseF(u, o); };

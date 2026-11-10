@@ -526,7 +526,7 @@ function loadProcessDocs() {
     var meta = document.getElementById('inspPackMeta');
     if (meta) {
       var pk = (state.packs || []).filter(function (x) { return x.PACK_ID === sel.value; })[0];
-      meta.innerHTML = pk ? ('หัวเรื่อง: <b>' + escP(packShowName(pk)) + '</b>' + (pk.TITLE && packPlanTitle(pk) !== pk.TITLE ? ' <span style="opacity:.7">(ข้อความส่ง BU: ' + escP(String(pk.TITLE || '').slice(0, 40)) + ')</span>' : '') + ' · ขอบเขต: ' + escP(pk.SCOPE || '') + ' · รอบ: ' + escP(pk.PERIOD || '') + '<br>หลักฐานที่ BU แนบ:<br>' + (String(pk.LINKS || '').split('\n').filter(Boolean).map(function (l) { return '・ <a href="' + escP(l.trim()) + '" target="_blank" rel="noopener" class="mono" style="word-break:break-all">' + escP(l.trim()) + '</a>'; }).join('<br>') || '—') + (pk.NOTE ? '<br>หมายเหตุ BU: ' + escP(String(pk.NOTE).slice(0, 220)) : '')) : '';
+      meta.innerHTML = pk ? ('หัวเรื่อง: <b>' + escP(packShowName(pk)) + '</b>' + (pk.TITLE && packPlanTitle(pk) !== pk.TITLE ? ' <span style="opacity:.7">(ข้อความส่ง BU: ' + escP(String(pk.TITLE || '').slice(0, 40)) + ')</span>' : '') + ' · ขอบเขต: ' + escP(pk.SCOPE || '') + ' · รอบ: ' + escP(pk.PERIOD || '') + (pk.NOTE ? '<br>หมายเหตุ BU: ' + escP(String(pk.NOTE).slice(0, 220)) : '')) : '';
     }
 
     renderInspItems();
@@ -553,6 +553,15 @@ function loadProcessDocs() {
         var um = String(e.link || '').match(/https?:\/\/[^\s]+/);
         rows.push({ key: e.no, label: e.no + '. ' + (clean || e.title), evLabel: um ? um[0] : (e.link || '—'), checked: false, result: '' });
       });
+      return rows;
+    }
+    /* v1.36 — LINKS ไม่มีบล็อก [ประเด็น n: …] (BU ส่งก่อน v1.33) → แถวเดียว "หลักฐานที่ BU แนบ" ให้ยังตรวจเป็นแถวได้ */
+    if (!item) {
+      var rawLinks = String(pk.LINKS || '').split('\n').filter(Boolean).map(function (x) { return x.trim(); }).filter(Boolean);
+      if (rawLinks.length) {
+        var um0 = rawLinks[0].match(/https?:\/\/[^\s]+/);
+        rows.push({ key: '1', label: 'หลักฐานที่ BU แนบ (' + rawLinks.length + ' ลิงก์)', evLabel: um0 ? um0[0] : rawLinks[0], checked: false, result: '' });
+      }
       return rows;
     }
     /* split ระดับบรรทัด: " | " ที่อยู่ "นอก" วงเล็บเท่านั้น */
