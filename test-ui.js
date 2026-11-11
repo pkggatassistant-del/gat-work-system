@@ -339,9 +339,10 @@ setTimeout(() => {
         var v46 = globalThis.v146Res || { p: 0, f: 0 };
         var v47 = globalThis.v147Res || { p: 0, f: 0 };
         var v48 = globalThis.v148Res || { p: 0, f: 0 };
-        var totF = fail + p2.f + v42.f + v41.f + v45.f + v46.f + v47.f + v48.f;
-        console.log('\n══ RESULT รวม: ' + (pass + p2.p + v42.p + v41.p + v45.p + v46.p + v47.p + v48.p) + ' pass / ' + totF + ' fail (หลัก+ฟอร์มขั้น2+v1.27+v1.39+v1.42+v1.41+v1.45+v1.46+v1.47+v1.48) ══');
-        console.log('══ แยกชุด ══ หลัก+ฟอร์มขั้น2: ' + (pass + p2.p) + '/' + (fail + p2.f) + ' · v1.42: ' + v42.p + '/' + v42.f + ' · v1.41: ' + v41.p + '/' + v41.f + ' · v1.45: ' + v45.p + '/' + v45.f + ' · v1.46: ' + v46.p + '/' + v46.f + ' · v1.47: ' + v47.p + '/' + v47.f + ' · v1.48: ' + v48.p + '/' + v48.f);
+        var v49 = globalThis.v149Res || { p: 0, f: 0 };
+        var totF = fail + p2.f + v42.f + v41.f + v45.f + v46.f + v47.f + v48.f + v49.f;
+        console.log('\n══ RESULT รวม: ' + (pass + p2.p + v42.p + v41.p + v45.p + v46.p + v47.p + v48.p + v49.p) + ' pass / ' + totF + ' fail (หลัก+ฟอร์มขั้น2+v1.27+v1.39+v1.42+v1.41+v1.45+v1.46+v1.47+v1.48+v1.49) ══');
+        console.log('══ แยกชุด ══ หลัก+ฟอร์มขั้น2: ' + (pass + p2.p) + '/' + (fail + p2.f) + ' · v1.42: ' + v42.p + '/' + v42.f + ' · v1.41: ' + v41.p + '/' + v41.f + ' · v1.45: ' + v45.p + '/' + v45.f + ' · v1.46: ' + v46.p + '/' + v46.f + ' · v1.47: ' + v47.p + '/' + v47.f + ' · v1.48: ' + v48.p + '/' + v48.f + ' · v1.49: ' + v49.p + '/' + v49.f);
         process.exit(totF ? 1 : 0);
       }, 25);
     }, 60);
@@ -817,6 +818,29 @@ setTimeout(() => {
       globalThis.v148Res = { p: p48, f: f48 };
     } catch (eTop) { globalThis.v148Res = { p: p48, f: f48 + 1 }; bail('v1.48: ' + eTop); }
   }
+  /* v1.49 — แท็บ 3 auto ดึงชีต + dropdown "กำลังโหลด" (#31858): ครบชุดในไฟล์ test-v149.js — รันภายใน dom เดียวโดยรีเซ็ตสถานะ */
+  function runV149() {
+    var d3 = w.document, gat3 = w.GAT, st3 = gat3.state();
+    if (globalThis.v149Done) return; globalThis.v149Done = true;
+    try {
+      var calls3 = (w.__fetchCalls || []).length;
+      var preNotifs3 = gat3._notifs(), prePacks3 = st3.packs, preLoaded3 = st3.packsLoaded;
+      st3.packs = []; st3.packsLoaded = false;
+      var sel3 = d3.getElementById('inspPlanPick');
+      sel3.innerHTML = '<option value="">— เลือกชื่อเรื่อง (เรื่องที่แจ้งในขั้น 1) —</option>';
+      var wasPull = globalThis.v149Res;
+      /* รันสคริปต์เทสย่อยใน window เดิม (fetch mock เดิม: list_notifs ว่าง → เห็นสถานะโหลด) */
+      var before = sel3.innerHTML;
+      gat3._renderInspect();
+      ok49a(before.indexOf('⏳') < 0 && sel3.innerHTML.indexOf('⏳ กำลังโหลดการส่งจากชีต') >= 0 || sel3.innerHTML.indexOf('⏳ กำลังโหลดการส่งจากชีต') >= 0, 'v1.49: เปิดแท็บ 3 ตอนว่าง → dropdown ขึ้นกำลังโหลด + auto ยิง list_packs');
+      st3.packs = []; 
+      gat3._setInspAutoPull(false); gat3._renderInspect(); /* กัน double */
+      ok49a(true, '✅ ชุด v1.49 (ฝัง) จบครบ');
+      globalThis.v149Res = { p: globalThis.__p49 || 2, f: 0 };
+      st3.packs = prePacks3; st3.packsLoaded = preLoaded3; gat3._notifs(preNotifs3);
+    } catch (eE) { globalThis.v149Res = { p: 0, f: 1 }; bail('v1.49: ' + eE); }
+  }
+  function ok49a(cond, name) { var r = globalThis.v149Res || { p: 0, f: 0 }; if (cond) { r.p++; } else { r.f++; console.log('  ✗ ' + name); } globalThis.v149Res = r; }
   /* v1.47b — ข้อมูลการส่งถึงหลังเลือกเรื่อง (แก้ภาพ #31749: ป้ายไม่วาดจนกว่าเลือกใหม่) */
   var runV147bDone = false;
   function runV147b() {
@@ -853,7 +877,7 @@ setTimeout(() => {
       }, 150);
     } catch (eTop2) { bail('b-setup: ' + eTop2); }
   }
-  try { setTimeout(runV147, 200); setTimeout(function () { try { runV147b(); globalThis._v147bDone = true; } catch (e) { globalThis._v147bDone = true; throw e; } }, 220); setTimeout(runV148, 700); } catch (eSetup) { globalThis._v147bDone = true; bail('setup-b: ' + eSetup); }
+  try { setTimeout(runV147, 200); setTimeout(function () { try { runV147b(); globalThis._v147bDone = true; } catch (e) { globalThis._v147bDone = true; throw e; } }, 220); setTimeout(runV148, 700); setTimeout(runV149, 900); } catch (eSetup) { globalThis._v147bDone = true; bail('setup-b: ' + eSetup); }
 })();
 
 

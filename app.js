@@ -540,10 +540,19 @@ function loadProcessDocs() {
   }
   /* ============ v1.29 — วงจร 7 ขั้น: ขั้น 3 ตรวจหลักฐาน · ขั้น 4 สรุปผล · ขั้น 5 ปิด · ขั้น 6 ส่งผล · ส่งเพิ่มเติมที่แท็บ 2 ============ */
   function inspStatus(t) { var el = document.getElementById('inspStatus'); if (el) el.textContent = t; }
+  var _inspAutoPull = false; /* v1.49 — กันวน: เปิดแท็บ 3 แล้ว packs ว่าง → ดึงชีตเองหนึ่งครั้ง */
   function renderInspect() {
     /* v1.45 — ลอยแบบ #31603: เลือก ① ชื่อเรื่อง → ระบบเลือกการส่ง (PACK) ล่าสุดของเรื่องนั้นให้อัตโนมัติ (ตรวจจบตัวหน้า ขยับไปการส่งถัดไป) แล้วขึ้นข้อมูลที่ BU ส่งตรวจทันที — ไม่มี dropdown ② อีกต่อไป */
     var planSel = document.getElementById('inspPlanPick'); if (!planSel) return;
     var packs = state.packs || [];
+    /* v1.49 — ตามคำสัญญาในการ์ด "เลือกชื่อเรื่อง → ระบบขึ้นข้อมูลทันที" (#31858): เปิดแท็บ 3 แล้วการส่งยังว่าง → ระบบดึงชีตเองทันที (ไม่ต้องกดรีเฟรช) + dropdown ขึ้นสถานะกำลังโหลด — เรียกครั้งเดียวต่อการเปิดหน้า กันวน */
+    if (!packs.length && !state.packsLoaded && !_inspAutoPull && window.GAT_CONFIG.BCT_API) {
+      _inspAutoPull = true;
+      planSel.innerHTML = '<option value="">⏳ กำลังโหลดการส่งจากชีต…</option>';
+      try { loadPacks(); } catch (eLp149) {}
+      try { gasGet('list_notifs').then(function (rn) { if (rn && rn.ok && Array.isArray(rn.data) && rn.data.length) { try { var local149 = loadNotifs(); rn.data.forEach(function (r149) { if (r149 && r149.NOTIF_ID && !local149.some(function (x) { return x.NOTIF_ID === r149.NOTIF_ID; })) { local149.push({ NOTIF_ID: r149.NOTIF_ID, TITLE: r149.TITLE || '', BU: r149.BU || '', PERIOD: r149.PERIOD || '', items: String(r149.ITEMS || '').split(' ⏎ ').filter(Boolean), sub: [], BY: r149.BY || 'GAT', SAVED_AT: r149.SAVED_AT || '' }); } }); saveNotifs(local149); } catch (eM149) {} } renderInspect(); }).catch(function () { try { renderInspect(); } catch (eC149) {} }); } catch (eN149) {}
+      return;
+    }
     /* ด่านหน้า: ถ้า state ยังไม่โหลดชีต (เช่น BU ทดสอบ) — รายการเรื่องจาก localStorage ก่อน */
     var planOpts = loadNotifs().filter(function (n) {
       return packs.some(function (p) { return planIdOfPack(p) === n.NOTIF_ID; });
@@ -559,7 +568,7 @@ function loadProcessDocs() {
       var nAll = packs.filter(function (p) { return planIdOfPack(p) === n.NOTIF_ID; }).length;
       var name0 = (n.TITLE && n.TITLE !== n.NOTIF_ID) ? (n.TITLE + ' (' + n.NOTIF_ID + ')') : n.NOTIF_ID;
       return '<option value="' + escP(n.NOTIF_ID) + '">' + escP(name0 + ' · ' + (n.BU || '') + ' · ' + nAll + ' การส่ง') + '</option>';
-    }).join('') + (planOpts.length ? '' : '<option value="" disabled>(ยังไม่มีเรื่องที่มีการส่ง)</option>');
+    }).join('') + (planOpts.length ? '' : '<option value="" disabled>' + (state.packsLoaded ? '(ยังไม่มีเรื่องที่มีการส่ง)' : '⏳ กำลังโหลดการส่งจากชีต…') + '</option>');
     planSel.value = curPlan;
     if (planSel.value !== curPlan) { state.inspPlan = ''; }
     /* เลือกแพ็คอัตโนมัติของเรื่องนั้น: ตัวแรกที่ "ยังไม่ได้ตรวจ" ถ้าไม่มี = ตัวแรกของเรื่อง (เพื่อกดดูเต็มๆ ผ่าน รอสรุป) */
@@ -2749,5 +2758,5 @@ if (document.readyState !== 'loading') __gatBootOnce();
 
   return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, initD10: initD10, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess,
  _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _notifs: function (l) { if (l) saveNotifs(l); return loadNotifs(); }, _appTgText: appTgText, _copyNotifTg: copyNotifTg, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks, _renderRecs: renderRecs, _renderPickTable: renderPickTable, _removePickPacks: removePickPacks, _renderSentTable: renderSentTable,
-    _renderInspect: renderInspect, _saveAuditResult: saveAuditResult, _inspDoneStamp: inspDoneStamp, _inspItemRows: inspItemRows, _packPlanTitle: packPlanTitle, _packShowName: packShowName, _inspItemsSummarize: inspItemsSummarize, _inspStateGet: inspStateGet, _inspStateSave: inspStateSave, _renderInspItems: renderInspItems, _renderResult4: renderResult4, _sumDecide: sumDecide, _sumTgText4: sumTgText4, _copySumTg: copySumTg, _renderExtraTable: renderExtraTable, _sendExtraEvidence: sendExtraEvidence, _sendResultToBU: sendResultToBU, _renderCloseBig: renderCloseBig, _closeBig: closeBig, _closeOneItem: function () {}, _itemCloseResultMap: itemCloseResultMap, _packCloseIf: packCloseIf, _packsOfRec: packsOfRec, _itemCloseOpenOfRec: itemCloseOpenOfRec, _closeItemStateGet: closeItemStateGet, _closeItemStateSave: closeItemStateSave, _closeItemSyncFromSheet: closeItemSyncFromSheet, _closeItemNoteInfo: closeItemNoteInfo, _recCloseGateChange: recClosePickChange, _fillInspectPack: fillInspectPack, _loadManual: loadManual, _importBCT: importBCT }
+    _renderInspect: renderInspect, _setInspAutoPull: function (v) { _inspAutoPull = v === undefined ? false : !!v; }, _saveAuditResult: saveAuditResult, _inspDoneStamp: inspDoneStamp, _inspItemRows: inspItemRows, _packPlanTitle: packPlanTitle, _packShowName: packShowName, _inspItemsSummarize: inspItemsSummarize, _inspStateGet: inspStateGet, _inspStateSave: inspStateSave, _renderInspItems: renderInspItems, _renderResult4: renderResult4, _sumDecide: sumDecide, _sumTgText4: sumTgText4, _copySumTg: copySumTg, _renderExtraTable: renderExtraTable, _sendExtraEvidence: sendExtraEvidence, _sendResultToBU: sendResultToBU, _renderCloseBig: renderCloseBig, _closeBig: closeBig, _closeOneItem: function () {}, _itemCloseResultMap: itemCloseResultMap, _packCloseIf: packCloseIf, _packsOfRec: packsOfRec, _itemCloseOpenOfRec: itemCloseOpenOfRec, _closeItemStateGet: closeItemStateGet, _closeItemStateSave: closeItemStateSave, _closeItemSyncFromSheet: closeItemSyncFromSheet, _closeItemNoteInfo: closeItemNoteInfo, _recCloseGateChange: recClosePickChange, _fillInspectPack: fillInspectPack, _loadManual: loadManual, _importBCT: importBCT }
 })();
