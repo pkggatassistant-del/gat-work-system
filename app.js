@@ -1354,6 +1354,21 @@ function loadProcessDocs() {
     if (!n) { box.innerHTML = '<i style="color:#7d93b2">เลือกเรื่องที่ GAT แจ้งด้านบน → ระบบจะแสดงประเด็นที่ต้องส่งข้อมูล</i>'; return; }
     var sel = packSelItems();
     var subs = notifSubs(n);
+    /* v1.47 — ส่งปุ่ม: อ่านการส่งอดีตของเรื่องนี้จากชีต — หัวข้อไหนส่งแล้ว ติ๊ก → ขึ้น “รายละเอียดในการส่ง” + ลิงก์หลักฐานกดเปิดได้ (อ่านจาก LINKS รูป [ประเด็น N: …]) */
+    var sentPacks = (state.packs || []).filter(function (p) {
+      return planIdOfPack(p) === n.NOTIF_ID;
+    });
+    var sentIdx = {};
+    sentPacks.forEach(function (pk) {
+      var segs = String(pk.LINKS || '').split(/\[\s*ประเด็น\s*/);
+      segs.slice(1).forEach(function (seg) {
+        var mm = seg.match(/^([0-9]+)(?:\.([0-9]+))?/); if (!mm) return;
+        var key = mm[2] === undefined ? (Number(mm[1]) - 1) : (Number(mm[1]) - 1) + '::' + (Number(mm[2]) - 1);
+        if (sentIdx[key] === undefined) sentIdx[key] = [];
+        sentIdx[key].push(pk);
+      });
+    });
+    var hasSent = Object.keys(sentIdx).length > 0;
     var rows = (n.items || []).map(function (it, i) {
       var id2 = n.NOTIF_ID + '::' + i;
       var c = sel[id2] ? ' checked' : '';
@@ -1362,13 +1377,18 @@ function loadProcessDocs() {
         var subRows = subs[i].map(function (st2, j) {
           var sid2 = id2 + '::' + j;
           var sc = sel[sid2] ? ' checked' : '';
-          return '<label style="display:block;padding:4px 10px 4px 30px;cursor:pointer"><input type="checkbox" data-subid="' + escP(sid2) + '"' + sc + ' style="margin-right:8px"> ' + escP(st2) + '</label>';
+          var sentBadge2 = sentIdx[i + '::' + j] ? ' <span style="background:#e7f5ec;color:#0e8345;font-size:11px;font-weight:700;border-radius:8px;padding:1px 8px">ส่งแล้ว</span>' : '';
+          var det2 = (c && sentIdx[i + '::' + j]) ? renderSentDetail(i + '::' + j, sentIdx[i + '::' + j], n, subs, true) : '';
+          return '<label style="display:block;padding:4px 10px 4px 30px;cursor:pointer"><input type="checkbox" data-subid="' + escP(sid2) + '"' + sc + ' style="margin-right:8px"> ' + escP(st2) + sentBadge2 + '</label>' + det2;
         }).join('');
         subsHtml = '<div style="margin:4px 0 6px 22px;padding:8px 8px 8px 12px;background:#f3f5f9;border-radius:8px;font-size:13px"><b style="font-size:12px;color:#3d5271">หัวข้อที่ขอตรวจสอบ (ประเด็นย่อย):</b>' + subRows + '</div>';
       }
-      return '<div style="border-bottom:1px dashed #e3e9f2;padding:6px 0;color:#1a2b45"><label style="display:block;padding:4px 10px;border-radius:8px;cursor:pointer;color:#1a2b45"><input type="checkbox" data-itemid="' + escP(id2) + '"' + c + ' style="margin-right:8px"> <b>' + (i + 1) + '.</b> ' + escP(it) + '</label>' + subsHtml + '</div>';
+      var sentBadge = sentIdx[i] ? ' <span style="background:#e7f5ec;color:#0e8345;font-size:11px;font-weight:700;border-radius:8px;padding:1px 8px">ส่งแล้ว</span>' : (hasSent ? '' : '');
+      var detMain = (c && sentIdx[i]) ? renderSentDetail(String(i), sentIdx[i], n, subs, false) : '';
+      return '<div style="border-bottom:1px dashed #e3e9f2;padding:6px 0;color:#1a2b45"><label style="display:block;padding:4px 10px;border-radius:8px;cursor:pointer;color:#1a2b45"><input type="checkbox" data-itemid="' + escP(id2) + '"' + c + ' style="margin-right:8px"> <b>' + (i + 1) + '.</b> ' + escP(it) + sentBadge + '</label>' + detMain + subsHtml + '</div>';
     }).join('');
-    box.innerHTML = '<div style="background:#fff;border:1px solid #cdd8e6;border-radius:10px;padding:10px;max-height:420px;overflow:auto"><div style="margin-bottom:6px;color:#1a2b45"><b>ประเด็นหลัก (ชื่อเรื่อง) ที่ BU ต้องส่งข้อมูล — <b>' + escP(n.TITLE || n.NOTIF_ID) + '</b> (' + escP(n.NOTIF_ID) + '):</b> <span style="color:#7d93b2;font-size:12.5px">ติ๊กประเด็นหลัก → หัวข้อที่ขอตรวจสอบเปิดให้เลือกส่ง</span></div>' + rows + '</div>';
+    var sentHead = hasSent ? '<div style="margin-bottom:6px;color:#0e8345;font-size:12.5px"><b>ส่งไปแล้ว ' + sentPacks.length + ' ครั้ง</b> — ติ๊กประเด็นที่ส่งแล้ว (หรือกดดูที่ป้าย “ส่งแล้ว”) จะขึ้นรายละเอียดการส่ง + ลิงก์หลักฐานให้กดเปิดได้</div>' : '';
+    box.innerHTML = '<div style="background:#fff;border:1px solid #cdd8e6;border-radius:10px;padding:10px;max-height:420px;overflow:auto"><div style="margin-bottom:6px;color:#1a2b45"><b>ประเด็นหลัก (ชื่อเรื่อง) ที่ BU ต้องส่งข้อมูล — <b>' + escP(n.TITLE || n.NOTIF_ID) + '</b> (' + escP(n.NOTIF_ID) + '):</b> <span style="color:#7d93b2;font-size:12.5px">ติ๊กประเด็นหลัก → หัวข้อที่ขอตรวจสอบเปิดให้เลือกส่ง</span></div>' + sentHead + rows + '</div>';
     box.querySelectorAll('input[data-itemid]').forEach(function (cb) {
       cb.addEventListener('change', function () {
         var st0 = packSelItems();
@@ -1390,13 +1410,36 @@ function loadProcessDocs() {
     });
     box.querySelectorAll('input[data-subid]').forEach(function (cb) {
       cb.addEventListener('change', function () {
-        var st1 = packSelItems();
-        if (cb.checked) st1[cb.getAttribute('data-subid')] = 1; else delete st1[cb.getAttribute('data-subid')];
-        packSelItemsSave(st1);
+        var st3 = packSelItems();
+        if (cb.checked) st3[cb.getAttribute('data-subid')] = 1; else delete st3[cb.getAttribute('data-subid')];
+        packSelItemsSave(st3);
         renderPackEvid(); updatePackCounts();
       });
     });
     updatePackCounts();
+  }
+  /* v1.47 — รายละเอียดการส่งต่อประเด็น (จากแพ็กในชีต): ลิงก์หลักฐานต่อแพ็ก — กรองเฉพาะหลักฐานของประเด็นนั้น (แยกบล็อก [ประเด็น N: ชื่อ] ใน LINKS) */
+  function renderSentDetail(key, packsArr, n, subs, isSub) {
+    if (!packsArr || !packsArr.length) return '';
+    var parts = String(key).split('::');
+    var pi = parts[0], si = parts[1];
+    var out = '<div style="margin:2px 0 6px ' + (isSub ? '30px' : '22px') + ';background:#f8fbf8;border:1px solid #d7ecd9;border-radius:8px;padding:8px 10px">';
+    out += '<b style="font-size:12px;color:#0e8345">รายละเอียดในการส่ง:</b>';
+    packsArr.forEach(function (pk) {
+      out += '<div style="margin-top:4px;font-size:12.5px">📦 <b>' + escP(pk.PACK_ID) + '</b>' + (pk.CREATED_AT ? ' · ส่ง ' + escP(String(pk.CREATED_AT).slice(0, 10)) : '') + ' · ผู้ส่ง: ' + escP(pk.CREATED_BY || '—') + (pk.STATUS ? ' · ' + escP(String(pk.STATUS).slice(0, 60)) : '') + '</div>';
+      var linkTxt = String(pk.LINKS || '');
+      var re = /\[\s*ประเด็น\s*([0-9]+)(?:\.([0-9]+))?:[^\]]*\]\s*([^\[]*)/g;
+      var m3, links = [];
+      while ((m3 = re.exec(linkTxt)) !== null) {
+        var same = (m3[2] === undefined) ? (Number(m3[1]) - 1 === Number(pi)) : (Number(m3[1]) - 1 === Number(pi) && Number(m3[2]) - 1 === Number(si));
+        if (!same) continue;
+        (m3[3] || '').match(/https?:\/\/[^\s]+/g || []).forEach(function (u) { links.push(u); });
+      }
+      if (links.length) {
+        out += '<div style="margin-left:16px">📎 ' + links.map(function (u, k) { return '<a href="' + escP(u) + '" target="_blank" rel="noopener">หลักฐาน ' + (k + 1) + '</a>'; }).join(' · ') + '</div>';
+      }
+    });
+    return out + '</div>';
   }
   function renderPackEvid() {
     var box = document.getElementById('packEvidBox'); if (!box) return;
