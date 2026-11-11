@@ -1183,17 +1183,17 @@ function loadProcessDocs() {
     } catch (e) { return []; }
   }
   function saveNotifs(list) { try { localStorage.setItem('gat_notifs', JSON.stringify(list)); } catch (e) {} }
+  /* v1.44 (#31603 สั่ง 11 พ.ย.) — แท็บ 1 ติ๊กที่ **ชื่อเรื่อง** (ระดับเรื่อง) ไม่ติ๊กประเด็นย่อย — เรื่องที่ติ๊ก = ส่งทั้งเรื่อง (ประเด็นแสดงเป็นสารบบอ่านอย่างเดียว); ไม่มี checkbox .not-pick ต่อประเด็นแล้ว */
   function renderNotifList() {
     var box = document.getElementById('notList'); if (!box) return;
     var list = loadNotifs();
     box.innerHTML = !list.length ? '<div class="empty">ยังไม่มีเรื่องที่แจ้ง — GAT กรอกด้านบน</div>' :
       list.map(function (n) {
-        var rows = (n.items || []).map(function (it, i) {
-          var chkId = 'nChk-' + n.NOTIF_ID + '-' + i;
-          var on = state.planPick && state.planPick[n.NOTIF_ID + '#' + i];
-          return '<tr><td style="width:60px"><input type="checkbox" class="not-pick" id="' + chkId + '" data-idx="' + n.NOTIF_ID + '#' + i + '"' + (on ? ' checked' : '') + ' style="width:auto;margin:0 6px 0 0"> <b>เรื่องที่ ' + (i + 1) + '</b></td><td>' + escP(it) + '</td></tr>';
+        var itemLines = (n.items || []).map(function (it, i) {
+          return '<tr><td style="width:34px;color:#7d93b2">' + (i + 1) + '.</td><td>' + escP(it) + '</td></tr>';
         }).join('');
-        return '<div class="card" style="border-left:4px solid #0e8345;margin-bottom:8px"><b>' + escP(n.NOTIF_ID) + '</b> · ' + escP(n.BU) + ' · ' + escP(n.PERIOD || '') + ' <span style="font-size:12px;color:#8a97a8">บันทึกเมื่อ ' + escP(n.SAVED_AT) + ' โดย ' + escP(n.BY || 'GAT') + '</span>' + (n.HEAD ? '<div style="font-size:13px;margin:4px 0">' + escP(n.HEAD) + '</div>' : '') + '<table class="tbl">' + rows + '</table></div>';
+        var on = state.planPick && state.planPick[n.NOTIF_ID + '#0'];
+        return '<div class="card" style="border-left:4px solid ' + (on ? '#e2a100' : '#0e8345') + ';margin-bottom:8px"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 8px;background:' + (on ? '#fff8e8' : 'transparent') + ';border-radius:8px"><input type="checkbox" class="not-pick" data-plan="' + escP(n.NOTIF_ID) + '"' + (on ? ' checked' : '') + ' style="width:auto;margin:0"><b style="color:#1a2b45">ชื่อเรื่อง:</b> <b>' + escP(n.TITLE || n.NOTIF_ID) + '</b> <span style="color:#7d93b2;font-size:12.5px">(' + escP(n.NOTIF_ID) + ' · ' + escP(n.BU) + ' · ' + escP(n.PERIOD || '') + ' — บันทึก ' + escP(n.SAVED_AT) + ')</span></label>' + (n.HEAD ? '<div style="font-size:13px;margin:4px 8px">' + escP(n.HEAD) + '</div>' : '') + '<div style="margin:2px 8px 6px 40px;font-size:12.5px;color:#3d5271"><b>ประเด็นที่จะตรวจ (แนบไปทั้งเรื่อง — อ่านอย่างเดียว):</b><table class="tbl" style="margin-top:4px">' + itemLines + '</table></div></div>';
       }).join('');
   }
   function fillNotifPickers() {
@@ -1506,15 +1506,15 @@ function loadProcessDocs() {
     var sel3 = document.getElementById('extraPackPick');
     if (sel3) fillInspectPack();
   }
-  /* v1.29 — แท็บ 1: จบขั้น 1 → ไปแท็บ 2 (BU ส่งหลักฐาน) — รอบเดิม: ติ๊กเรื่องเพื่อล็อกขอบเขต */
+  /* v1.29 — แท็บ 1: จบขั้น 1 → ไปแท็บ 2 (BU ส่งหลักฐาน) — v1.44: ติ๊กที่ชื่อเรื่อง (data-plan, ระดับเรื่อง — ไม่ใช่รายประเด็น) */
   function gotoAiFromPlan() {
     var st = document.getElementById('notStatus');
-    var chk = Array.from(document.querySelectorAll('.not-pick')).filter(function (c) { return c.checked; }).map(function (c) { return c.getAttribute('data-idx'); });
-    if (!chk.length) { if (st) st.textContent = '⚠️ ติ๊ก "เรื่องที่ 1/2/3…" ที่จะให้ BU ส่งหลักฐานก่อน'; return; }
+    var chk = Array.from(document.querySelectorAll('.not-pick')).filter(function (c) { return c.checked; }).map(function (c) { return c.getAttribute('data-plan'); }).filter(Boolean);
+    if (!chk.length) { if (st) st.textContent = '⚠️ ติ๊กชื่อเรื่องที่จะให้ BU ส่งหลักฐานก่อน (ประเด็นแนบไปทั้งเรื่อง)'; return; }
     state.planPick = {};
-    chk.forEach(function (k) { try { state.planPick[k] = true; } catch (e) {} });
+    chk.forEach(function (k) { try { state.planPick[k + '#0'] = true; } catch (e) {} });
     try { localStorage.setItem('gat_plan_pick', JSON.stringify(state.planPick)); } catch (e) {}
-    if (st) st.textContent = '✅ จบขั้น 1 — ' + chk.length + ' เรื่อง → ขั้น 2 รอ BU ส่งหลักฐาน (แท็บ 2)';
+    if (st) st.textContent = '✅ จบขั้น 1 — ' + chk.length + ' เรื่อง (ติ๊กชื่อเรื่อง) → ขั้น 2 รอ BU ส่งหลักฐาน (แท็บ 2)';
     showTab('packs');
   }
   /* v1.29 — btnGotoAi (แท็บ 1 ครึ่งหลัง): จบขั้น 1 → แท็บ 2 */

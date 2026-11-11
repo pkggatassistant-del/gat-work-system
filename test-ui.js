@@ -97,7 +97,7 @@ setTimeout(() => {
   }
   ok('v1.14: บันทึกแผน รันเลข PLAN-2569-', (d.getElementById('notStatus').textContent || '').indexOf('PLAN-2569-') >= 0);
   ok('v1.14: BU dropdown เห็นแผนที่แจ้ง', d.getElementById('packNotif').options.length >= 2);
-  ok('v1.14: รายการ "เรื่องที่จะตรวจ" แสดง 2 เรื่อง', d.getElementById('notList').textContent.indexOf('เรื่องที่ 2') >= 0);
+  ok('v1.14: รายการ "เรื่องที่จะตรวจ" แสดง 2 เรื่อง (v1.44: ชื่อเรื่องนำ)', d.getElementById('notList').querySelectorAll('.not-pick').length === 2, 'got ' + d.getElementById('notList').querySelectorAll('.not-pick').length);
 
   // --- v1.15/16: notBu = ช่องกรอกได้ (ตามหนึ่งสั่ง) · packBu = dropdown จาก seed + PAO ---
   var elN = d.getElementById('notBu');
@@ -191,21 +191,25 @@ setTimeout(() => {
     }, 20);
   }, 20);
 
-  // --- v1.20: แท็บ 1 GAT ติ๊กเรื่องที่จะตรวจ → ส่งเข้าขั้น 3 (ไม่รอ PACK) ---
+  // --- v1.20: แท็บ 1 GAT ติ๊กเรื่องที่จะตรวจ → ส่งเข้าขั้น 3 (ไม่รอ PACK) — v1.44: ติ๊กที่ชื่อเรื่อง (data-plan) ---
   try { localStorage.removeItem('gat_plan_pick'); } catch (e) {}
-  d.getElementById('notTitle').value = 'ตรวจใบลา+ชำระ';
+  d.getElementById('notTitle').value = 'ตรวจใบลา+ชำระเงิน';
   d.getElementById('notEvent').value = 'ตรวจงวด ต.ค.';
-  d.getElementById('notItems').value = 'ตรวจใบลา — เอกสาร: สมุดลา\nตรวจหลักฐานชำระ ต.ค. — เอกสาร: ชีตเงินสดย่อย';
+  d.getElementById('notItems').value = 'ตรวจใบลา — เอกสาร: สมุดลา\nตรวจหลักฐานชำระเงิน ต.ค. — เอกสาร: ชีตเงินสดย่อย';
   d.getElementById('notOwner').value = 'ผจก. PAO';
   // notBu เป็น input — เติมค่า
   d.getElementById('notBu').value = 'PAO';
   d.getElementById('btnNotifyPlan').click();
-  ok('v1.20: แผนแจ้งมี checkbox ต่อเรื่อง (จาก v1.14 รวม >=2)', d.querySelectorAll('.not-pick').length >= 2, 'got ' + d.querySelectorAll('.not-pick').length);
-  var chk2 = Array.from(d.querySelectorAll('.not-pick')).find(function (c) { return (c.getAttribute('data-idx') || '').endsWith('#1'); });
-  if (chk2) chk2.checked = true;
+  ok('v1.20/44: checkbox เฉพาะระดับชื่อเรื่อง (1 เรื่อง = 1 ติ๊ก — ไม่ติ๊กประเด็น)', d.querySelectorAll('.not-pick').length >= 3 && d.querySelectorAll('.not-pick').length === d.querySelectorAll('#notList .card').length, 'chks=' + d.querySelectorAll('.not-pick').length + ' cards=' + d.querySelectorAll('#notList .card').length);
+  ok('v1.44: checkbox ชื่อเรื่องมี data-plan (ไม่ใช่ data-idx ต่อประเด็น)', (d.querySelector('.not-pick').getAttribute('data-plan') || '').indexOf('PLAN-') === 0 && d.querySelector('.not-pick').getAttribute('data-idx') === null, d.querySelector('.not-pick').getAttribute('data-plan'));
+  ok('v1.44: ประเด็นแสดงอ่านอย่างเดียว (ไม่มี checkbox ในตารางประเด็น)', d.querySelectorAll('#notList input[type=checkbox]').length === d.querySelectorAll('#notList .not-pick').length, 'all=' + d.querySelectorAll('#notList input[type=checkbox]').length);
+  var firstPlanChk = d.querySelector('.not-pick');
+  if (firstPlanChk) firstPlanChk.checked = true;
   d.getElementById('btnGotoAipFromPlan').click();
   ok('v1.20/29: ปุ่มจบขั้น 1 เปิดแท็บ 2 (packs)', d.getElementById('pane-packs').classList.contains('on'));
   ok('v1.20/29: หลังจบขั้น 1 dropdown ขั้น 2 (packNotif) ยังเห็นแผน', d.getElementById('packNotif').options.length >= 2);
+  var pickSaved = JSON.parse((w.localStorage.getItem('gat_plan_pick') || '{}'));
+  ok('v1.44: ติ๊กชื่อเรื่องบันทึก planPick ระดับเรื่อง (PLAN-xxx#0)', Object.keys(pickSaved).length === 1 && Object.keys(pickSaved)[0].indexOf('#0') > 0, JSON.stringify(Object.keys(pickSaved)));
 
   // --- v1.22: การ์ด Checklist เลขตรงลำดับใหม่: แท็บ 1 (p02pick) = ขั้น 1 GAT / แท็บ 2 (packs) = ขั้น 2 BU ---
   gat.showTab('p02pick');
@@ -604,7 +608,7 @@ setTimeout(() => {
           if (det) {
             ok141('หัวกล่องระบุ "ประวัติเวอร์ชัน"', det.querySelector('summary').textContent.indexOf('ประวัติเวอร์ชัน') >= 0, det.querySelector('summary').textContent);
             var body = det.textContent;
-            ok141('กล่องแสดงเวอร์ชันปัจจุบัน (v1.41)', body.indexOf('v1.41') >= 0, body.slice(0, 120));
+            ok141('กล่องแสดงเวอร์ชันปัจจุบัน', body.indexOf(w.GAT_CONFIG.VERSION.split(' (')[0]) >= 0, body.slice(0, 120));
             ok141('กล่องประวัติรวบประวัติเก่า (v1.40..v1.38.1) ครบ', ['v1.40', 'v1.39', 'v1.38.2', 'v1.38.1'].every(function (v) { return body.indexOf(v) >= 0; }), body.slice(0, 260));
           }
           ok141('แถบซ้าย #ver สั้น < 60 ตัวอักษร', d.getElementById('ver').textContent.length < 60, d.getElementById('ver').textContent.length);

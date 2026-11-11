@@ -369,7 +369,7 @@ ol.manual li{margin-bottom:8px}
     <!-- ============ ขั้น 1 ครึ่งแรก: GAT แจ้งเรื่องที่จะตรวจ (รายประเด็น) ============ -->
     <div class="card">
       <div class="card-hd"><b>🧭 ขั้น 1 — GAT ตั้งเรื่องที่จะตรวจ (กรอก 4 ช่อง: ชื่อเรื่อง · เหตุการณ์ · ประเด็นที่จะตรวจ · ผู้รับผิดชอบ)</b></div>
-      <p class="desc">กรอกให้ครบทั้ง 4 ช่อง → กดบันทึก (รันเลขแผน) — <b>ประเด็นที่จะตรวจ ใส่ได้หลายบรรทัด (1 บรรทัด = 1 ประเด็น)</b> · บันทึกแล้ว BU เห็นและส่งหลักฐานตาม (แท็บ 2)</p>
+      <p class="desc">กรอกให้ครบทั้ง 4 ช่อง → กดบันทึก (รันเลขแผน) — <b>ประเด็นที่จะตรวจ ใส่ได้หลายบรรทัด (1 บรรทัด = 1 ประเด็น)</b> · บันทึกแล้ว BU เห็นและส่งหลักฐานตาม (แท็บ 2) · <b>v1.44:</b> รายการด้านล่าง = <b>ติ๊กที่ชื่อเรื่อง</b> (ประเด็นแนบไปทั้งเรื่อง อ่านอย่างเดียว) → จบขั้น 1 ส่งเข้าขั้น 2</p>
       <div class="fmline"><span class="fmnum">1</span><input id="notTitle" placeholder="① ชื่อเรื่อง เช่น ตรวจน้ำมันเครื่องเก่า สอยดาว (บังคับ)" style="flex:1;min-width:280px"></div>
       <div class="fmline"><span class="fmnum">2</span><input id="notEvent" placeholder="② เหตุการณ์ เช่น พบรถดีเลอร์ขายน้ำมันสอยดาวเกินสิทธิ์ (บังคับ)" style="flex:1;min-width:280px"></div>
       <div class="fmline" style="align-items:flex-start"><span class="fmnum">3</span><textarea id="notItems" placeholder="③ ประเด็นที่จะตรวจ (1 บรรทัด = 1 ประเด็นหลัก)&#10;ขึ้นต้น - ในบรรทัดใหม่ = ประเด็นย่อยของประเด็นหลักก่อนหน้า เช่น:&#10;ตรวจรายการขายน้ำมันเครื่องนอกบัญชี&#10;- ตรวจสิทธิ์โครงการขาย&#10;- ตรวจการอนุมัติราคา&#10;ตรวจใบเสร็จรายรับ-รายจ่าย" style="flex:1;min-width:280px;min-height:100px;font-family:inherit"></textarea></div>
@@ -385,7 +385,7 @@ ol.manual li{margin-bottom:8px}
         <button class="button-lite" id="btnNotifTg">📋 คัดลอกข้อความส่ง BU (TG)</button>
       </div>
       <div id="notStatus" class="status" style="margin-top:8px"></div>
-      <div id="notPickBox"></div>
+      <!-- v1.44: ไม่มี notPickBox (ติ๊กประเด็น) แล้ว — ติ๊กที่ชื่อเรื่องใน notList -->
       <div class="filters">
         <button id="btnGotoAipFromPlan" class="gold">✅ จบขั้น 1 — ส่งเข้าขั้น 2 (รอ BU ส่งหลักฐาน)</button>
       </div>
