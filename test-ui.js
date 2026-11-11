@@ -8,8 +8,10 @@ const w = dom.window;
 const SEED = JSON.parse(fs.readFileSync('gat-seed.json', 'utf8'));
 const PROC = JSON.parse(fs.readFileSync('gat-process.json', 'utf8'));
 
+w.__fetchCalls = [];
 w.fetch = (u) => {
   const s = String(u);
+  try { w.__fetchCalls.push(s); } catch (e) {}
   if (s.indexOf('gat-process.json') >= 0) return Promise.resolve({ ok: true, json: () => Promise.resolve(PROC) });
   if (s.indexOf('GAT-MANUAL.md') >= 0) return Promise.resolve({ ok: true, text: () => Promise.resolve(fs.readFileSync('GAT-MANUAL.md', 'utf8')) });
   if (s.indexOf('gat-rec-migration') >= 0) return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
@@ -630,6 +632,8 @@ setTimeout(() => {
       ok46('ฟอร์มกรอกผลพร้อม (inspDetail/inspResult/inspSums)', !!d.getElementById('inspDetail') && !!d.getElementById('inspResult') && !!d.getElementById('inspSums'));
       /* ไม่แตะ localStorage gat_notifs เด็ดขาด (synthesize display-only — อย่างอื่นจากชี้กลับเข้า local เดิม) */
       ok46('ไม่เขียนใบแจ้งสังเคราะห์ลง localStorage หลังเลือก/บันทึก', JSON.parse(LSW.getItem('gat_notifs') || '[]').length === 0, LSW.getItem('gat_notifs'));
+      /* v1.46b — เปิดหน้า (boot) → ดึงการส่งจากชีตเองทันที (เดิมต้องกดปุ่ม — เปิดแท็บ 3 แล้ว dropdown ว่างถ้าไม่กด) */
+      ok46('boot ดึงการส่งจากชีตเอง (fetch list_packs ยิงตอน boot ≥ 1 ครั้ง)', (w.__fetchCalls || []).some(function (u) { return String(u).indexOf('action=list_packs') >= 0; }), JSON.stringify((globalThis.__fetchCalls || []).slice(0, 4)));
       st.packs = prePacks; gat._notifs(preNotifs); st.inspPlan = prePlan;
       ok46('✅ ชุด v1.46 จบครบ', true);
     } catch (eTop) { bail('รวม: ' + eTop); }

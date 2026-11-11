@@ -2428,6 +2428,8 @@ function loadProcessDocs() {
       else if (!state.auth) hideLoginGate(); /* v1.6/v1.7 — grace: ใช้แบบเดิม */
       if (state.auth) applyRoleUI();
     });
+    /* v1.46 — เปิดหน้า → ดึงการส่ง (PACK) จากชีตเองทันที (เดิมต้องกดปุ่ม ทำให้เปิดแท็บ 3 แล้ว dropdown ว่าง ถ้าไม่ได้กด) */
+    try { loadPacks(); } catch (eBootLp) {}
     id('btnImport').addEventListener('click', importBCT);
     id('btnSeed').addEventListener('click', function () { status('โหลด seed…'); loadSeed().then(function () { status('✅ seed (xlsx) โหลดแล้ว ' + state.registers.length + ' รายการ'); }); });
     id('buFilter').addEventListener('change', function () { state.filter.bu = this.value; state.page = 1; renderAll(); });
