@@ -309,16 +309,17 @@ setTimeout(() => {
       /* v1.43 — คอยทุกชุดยืนยันตัวเองก่อน (flow29/packForm/v1.42/v1.41/v1.43) กัน process.exit แซง chain ที่ยังไม่จบ ← จำนวน pass แกว่ง */
       var t0S = Date.now();
       var waitAll = setInterval(function () {
-        var all = globalThis.flow29Res && typeof globalThis.packFormRes !== 'undefined' && globalThis.v142Res && globalThis.v141Res && globalThis.v145Res;
+        var all = globalThis.flow29Res && typeof globalThis.packFormRes !== 'undefined' && globalThis.v142Res && globalThis.v141Res && globalThis.v145Res && globalThis.v146Res;
         if (!all && Date.now() - t0S < 2500) return;
         clearInterval(waitAll);
         var p2 = globalThis.packFormRes || { p: 0, f: 0 };
         var v42 = globalThis.v142Res || { p: 0, f: 0 };
         var v41 = globalThis.v141Res || { p: 0, f: 0 };
         var v45 = globalThis.v145Res || { p: 0, f: 0 };
-        var totF = fail + p2.f + v42.f + v41.f + v45.f;
-        console.log('\n══ RESULT รวม: ' + (pass + p2.p + v42.p + v41.p + v45.p) + ' pass / ' + totF + ' fail (หลัก+ฟอร์มขั้น2+v1.27+v1.39+v1.42+v1.41+v1.45) ══');
-        console.log('══ แยกชุด ══ หลัก+ฟอร์มขั้น2: ' + (pass + p2.p) + '/' + (fail + p2.f) + ' · v1.42: ' + v42.p + '/' + v42.f + ' · v1.41: ' + v41.p + '/' + v41.f + ' · v1.45: ' + v45.p + '/' + v45.f);
+        var v46 = globalThis.v146Res || { p: 0, f: 0 };
+        var totF = fail + p2.f + v42.f + v41.f + v45.f + v46.f;
+        console.log('\n══ RESULT รวม: ' + (pass + p2.p + v42.p + v41.p + v45.p + v46.p) + ' pass / ' + totF + ' fail (หลัก+ฟอร์มขั้น2+v1.27+v1.39+v1.42+v1.41+v1.45+v1.46) ══');
+        console.log('══ แยกชุด ══ หลัก+ฟอร์มขั้น2: ' + (pass + p2.p) + '/' + (fail + p2.f) + ' · v1.42: ' + v42.p + '/' + v42.f + ' · v1.41: ' + v41.p + '/' + v41.f + ' · v1.45: ' + v45.p + '/' + v45.f + ' · v1.46: ' + v46.p + '/' + v46.f);
         process.exit(totF ? 1 : 0);
       }, 25);
     }, 60);
@@ -599,6 +600,41 @@ setTimeout(() => {
     } catch (eTop) { bail('รวม: ' + eTop); }
   }
   try { setTimeout(runV145, 40); } catch (eSetup) { bail('setup: ' + eSetup); }
+})();
+
+// ===== v1.46 — แท็บ 3 กันข้อมูลหายข้ามเครื่อง (#31651): การส่งอ้างแผนในชีต แต่ไม่มีใบแจ้งในเครื่อง (localStorage ว่าง) → dropdown ① ยังมีชื่อเรื่องจากการส่งในชีตให้เลือก + auto-pick ได้เหมือนเดิม =====
+(function () {
+  var res146 = { p: 0, f: 0 };
+  globalThis.v146Res = res146;
+  var ok46 = function (name, cond, note) { if (cond) res146.p++; else { res146.f++; console.error('❌ v1.46: ' + name + (note !== undefined && note !== '' && note !== null ? ' :: ' + note : '')); } };
+  var bail = function (m) { res146.f++; console.error('❌ v1.46: FATAL ' + m); };
+  function runV146() {
+    var d = w.document, gat = w.GAT, LSW = w.localStorage;
+    try {
+      var st = gat.state();
+      var prePacks = st.packs, preNotifs = gat._notifs(), prePlan = st.inspPlan || '';
+      /* จำลองเครื่องใหม่: หนึ่งเดียวใน localStorage (ไม่มีใบแจ้งเลย) + ชีตมีการส่งอ้างแผน PLAN-2569-003 */
+      st.packs = [{ PACK_ID: 'PACK-0005', BU: 'PMS', SCOPE: 'แผน PLAN-2569-003', TITLE: 'รายละเอียดในการตรวจสอบ', STATUS: 'รอ GAT เลือกตรวจ', NOTE: 'อ้างแผน: PLAN-2569-003 — ส่งตามประเด็น (17/17)', LINKS: '[ประเด็น 1: หัวข้อทดสอบ]\nhttps://docs.bu.com/ev1' }];
+      gat._notifs([]);
+      st.inspPlan = '';
+      gat.showTab('inspect');
+      gat._renderInspect();
+      var ps = d.getElementById('inspPlanPick');
+      var opts = Array.from(ps.options).map(function (o) { return o.value; });
+      ok46('เครื่องใหม่ไม่มีใบแจ้ง → ① ยังมีชื่อเรื่องจากการส่งในชีต (PLAN-2569-003)', opts.indexOf('PLAN-2569-003') >= 0, JSON.stringify(opts));
+      ok46('เรื่องสังเคราะห์แสดงชื่อจากการส่ง (ไม่ขึ้นว่า “ไม่มีชื่อเรื่อง” ซ้ำซ้อน)', (function () { var o = Array.from(ps.options).filter(function (x) { return x.value === 'PLAN-2569-003'; })[0]; return o && String(o.textContent).indexOf('1 การส่ง') >= 0; })());
+      ok46('ไม่ติด “(ยังไม่มีเรื่องที่มีการส่ง)” อีกต่อไป', String(ps.innerHTML).indexOf('ยังไม่มีเรื่องที่มีการส่ง') < 0);
+      ps.value = 'PLAN-2569-003'; ps.dispatchEvent(new w.Event('change'));
+      ok46('เลือกเรื่องสังเคราะห์ → auto-pick การส่ง (PACK-0005)', gat.state().insp === 'PACK-0005', gat.state().insp);
+      ok46('ข้อมูลขั้น 2 ขึ้นทันที (ลิงก์ประเด็น 1 คลิกได้)', d.getElementById('inspItemsBox').querySelector('a[target="_blank"][href="https://docs.bu.com/ev1"]') !== null);
+      ok46('ฟอร์มกรอกผลพร้อม (inspDetail/inspResult/inspSums)', !!d.getElementById('inspDetail') && !!d.getElementById('inspResult') && !!d.getElementById('inspSums'));
+      /* ไม่แตะ localStorage gat_notifs เด็ดขาด (synthesize display-only — อย่างอื่นจากชี้กลับเข้า local เดิม) */
+      ok46('ไม่เขียนใบแจ้งสังเคราะห์ลง localStorage หลังเลือก/บันทึก', JSON.parse(LSW.getItem('gat_notifs') || '[]').length === 0, LSW.getItem('gat_notifs'));
+      st.packs = prePacks; gat._notifs(preNotifs); st.inspPlan = prePlan;
+      ok46('✅ ชุด v1.46 จบครบ', true);
+    } catch (eTop) { bail('รวม: ' + eTop); }
+  }
+  try { setTimeout(runV146, 50); } catch (eSetup) { bail('setup: ' + eSetup); }
 })();
 
 // ===== v1.41 — ย้ายทำเนียบเวอร์ชันออกจากแถบซ้าย: nav-foot เหลือเวอร์ชันสั้น + ประวัติยาวพับได้ที่แท็บคู่มือ =====

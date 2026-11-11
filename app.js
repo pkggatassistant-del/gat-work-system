@@ -548,10 +548,17 @@ function loadProcessDocs() {
     var planOpts = loadNotifs().filter(function (n) {
       return packs.some(function (p) { return planIdOfPack(p) === n.NOTIF_ID; });
     });
+    /* v1.46 — เรื่องที่มีการส่ง (PACK) ในชีต แต่ไม่มีใบแจ้งในเครื่องนี้ (ย้ายเครื่อง/ล้างเบราว์เซอร์/ใบแจ้งยังไม่ได้ดันลงชีต) → สังเคราะห์เรื่องจากการส่งในชีตเอง — ไม่ต้องกรอกใหม่ (display-only ไม่เขียน localStorage) */
+    packs.forEach(function (p) {
+      var pid = planIdOfPack(p);
+      if (!pid || planOpts.some(function (n) { return n.NOTIF_ID === pid; })) return;
+      planOpts.push({ NOTIF_ID: pid, TITLE: packPlanTitle(p), BU: p.BU || '' });
+    });
     var curPlan = planSel.value || state.inspPlan || '';
     planSel.innerHTML = '<option value="">— เลือกชื่อเรื่อง (เรื่องที่แจ้งในขั้น 1) —</option>' + planOpts.map(function (n) {
       var nAll = packs.filter(function (p) { return planIdOfPack(p) === n.NOTIF_ID; }).length;
-      return '<option value="' + escP(n.NOTIF_ID) + '">' + escP((n.TITLE || '(ไม่มีชื่อเรื่อง)') + ' (' + n.NOTIF_ID + ') · ' + (n.BU || '') + ' · ' + nAll + ' การส่ง') + '</option>';
+      var name0 = (n.TITLE && n.TITLE !== n.NOTIF_ID) ? (n.TITLE + ' (' + n.NOTIF_ID + ')') : n.NOTIF_ID;
+      return '<option value="' + escP(n.NOTIF_ID) + '">' + escP(name0 + ' · ' + (n.BU || '') + ' · ' + nAll + ' การส่ง') + '</option>';
     }).join('') + (planOpts.length ? '' : '<option value="" disabled>(ยังไม่มีเรื่องที่มีการส่ง)</option>');
     planSel.value = curPlan;
     if (planSel.value !== curPlan) { state.inspPlan = ''; }
