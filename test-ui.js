@@ -128,13 +128,16 @@ setTimeout(() => {
   // --- v1.18: ลิงก์หลักฐานฉบับ GAT (แชร์สิทธิ์ openclaw) → ชุดคำสั่ง AI ใช้แทนลิงก์ BU ---
   st6.packs = [{ PACK_ID: 'PACK-9992', BU: 'PKG', SCOPE: 'สวัสดิการ', PERIOD: 'ต.ค. 69', TITLE: 'ทดสอบลิงก์', LINKS: 'https://drive.bu-private/x', NOTE: '' }];
   gat._fillPackSelectors(); gat._renderPickTable();
-  // --- v1.29: ขั้น 3 ตรวจหลักฐาน → ขั้น 4 สรุปผล → ส่งเพิ่มเติมแท็บ 2 → ขั้น 6 ส่งผล → ขั้น 5 ปิดใหญ่ ---
-  st6.packs = [{ PACK_ID: 'PACK-9992', BU: 'PKG', SCOPE: 'สวัสดิการ', PERIOD: 'ต.ค. 69', TITLE: 'ทดสอบลิงก์', LINKS: 'https://docs.bu.com/ev1', NOTE: '', STATUS: 'รอ GAT เลือกตรวจ', AI_NOTE: '' }];
-  gat._fillPackSelectors(); gat._renderInspect();
-  var inspSel = d.getElementById('inspPackPick');
-  ok('v1.29: แท็บ 3 dropdown มี PACK ที่ BU ส่ง', Array.from(inspSel.options).some(function (o) { return o.value === 'PACK-9992'; }));
-  inspSel.value = 'PACK-9992'; inspSel.dispatchEvent(new w.Event('change'));
-  ok('v1.29: แท็บ 3 โชว์ลิงก์หลักฐาน BU คลิกได้ (ต่อแถวในตารางตรวจ)', d.getElementById('inspItemsBox').querySelectorAll('a[target="_blank"]').length >= 1 || d.getElementById('inspPackMeta').querySelectorAll('a').length >= 1);
+  // --- v1.29: ขั้น 3 ตรวจหลักฐาน → ขั้น 4 สรุปผล → ส่งเพิ่มเติมแท็บ 2 → ขั้น 6 ส่งผล → ขั้น 5 ปิดใหญ่ (ปรับ v1.45: เลือกชื่อเรื่อง ระบบเลือกการส่งให้) ---
+  st6.packs = [{ PACK_ID: 'PACK-9992', BU: 'PKG', SCOPE: 'สวัสดิการ', PERIOD: 'ต.ค. 69', TITLE: 'ทดสอบลิงก์', LINKS: '[ประเด็น 1: หัวข้อทดสอบ]\nhttps://docs.bu.com/ev1', NOTE: 'อ้างแผน: PLAN-2569-001', STATUS: 'รอ GAT เลือกตรวจ', AI_NOTE: '' }];
+  gat._fillPackSelectors(); gat.showTab('inspect'); gat._renderInspect();
+  var inspPlan = d.getElementById('inspPlanPick');
+  ok('v1.29: แท็บ 3 มี ① dropdown ชื่อเรื่อง', !!inspPlan);
+  ok('v1.29: แท็บ 3 ไม่มี dropdown เลือกการส่งแล้ว (v1.45 — ระบบเลือกให้)', !d.getElementById('inspPackPick'));
+  ok('v1.29: ① มีชื่อเรื่อง PLAN-2569-001', !!inspPlan && Array.from(inspPlan.options).some(function (o) { return o.value === 'PLAN-2569-001'; }));
+  if (inspPlan) { inspPlan.value = 'PLAN-2569-001'; inspPlan.dispatchEvent(new w.Event('change')); }
+  ok('v1.29: เลือกชื่อเรื่อง → ระบบเลือกการส่งให้อัตโนมัติ (PACK-9992)', gat.state().insp === 'PACK-9992', gat.state().insp);
+  ok('v1.29: ข้อมูลที่ BU ส่งตรวจขึ้นทันที (ลิงก์หลักฐานคลิกได้)', d.getElementById('inspItemsBox').querySelectorAll('a[target="_blank"]').length >= 1);
   ok('v1.29: แท็บ 3 มีฟอร์มรายละเอียด+ผลการตรวจ+ผลรวม', !!d.getElementById('inspDetail') && !!d.getElementById('inspResult') && !!d.getElementById('inspSums'));
   var updFired = 0; var baseF = w.fetch;
   w.fetch = function (u, o) { var b = o && o.body ? String(o.body) : ''; if (b.indexOf('update_pack_status') >= 0) { updFired++; return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true }); } }); } return baseF(u, o); };
@@ -306,16 +309,16 @@ setTimeout(() => {
       /* v1.43 — คอยทุกชุดยืนยันตัวเองก่อน (flow29/packForm/v1.42/v1.41/v1.43) กัน process.exit แซง chain ที่ยังไม่จบ ← จำนวน pass แกว่ง */
       var t0S = Date.now();
       var waitAll = setInterval(function () {
-        var all = globalThis.flow29Res && typeof globalThis.packFormRes !== 'undefined' && globalThis.v142Res && globalThis.v141Res && globalThis.v143Res;
+        var all = globalThis.flow29Res && typeof globalThis.packFormRes !== 'undefined' && globalThis.v142Res && globalThis.v141Res && globalThis.v145Res;
         if (!all && Date.now() - t0S < 2500) return;
         clearInterval(waitAll);
         var p2 = globalThis.packFormRes || { p: 0, f: 0 };
         var v42 = globalThis.v142Res || { p: 0, f: 0 };
         var v41 = globalThis.v141Res || { p: 0, f: 0 };
-        var v43 = globalThis.v143Res || { p: 0, f: 0 };
-        var totF = fail + p2.f + v42.f + v41.f + v43.f;
-        console.log('\n══ RESULT รวม: ' + (pass + p2.p + v42.p + v41.p + v43.p) + ' pass / ' + totF + ' fail (หลัก+ฟอร์มขั้น2+v1.27+v1.39+v1.42+v1.41+v1.43) ══');
-        console.log('══ แยกชุด ══ หลัก+ฟอร์มขั้น2: ' + (pass + p2.p) + '/' + (fail + p2.f) + ' · v1.42: ' + v42.p + '/' + v42.f + ' · v1.41: ' + v41.p + '/' + v41.f + ' · v1.43: ' + v43.p + '/' + v43.f);
+        var v45 = globalThis.v145Res || { p: 0, f: 0 };
+        var totF = fail + p2.f + v42.f + v41.f + v45.f;
+        console.log('\n══ RESULT รวม: ' + (pass + p2.p + v42.p + v41.p + v45.p) + ' pass / ' + totF + ' fail (หลัก+ฟอร์มขั้น2+v1.27+v1.39+v1.42+v1.41+v1.45) ══');
+        console.log('══ แยกชุด ══ หลัก+ฟอร์มขั้น2: ' + (pass + p2.p) + '/' + (fail + p2.f) + ' · v1.42: ' + v42.p + '/' + v42.f + ' · v1.41: ' + v41.p + '/' + v41.f + ' · v1.45: ' + v45.p + '/' + v45.f);
         process.exit(totF ? 1 : 0);
       }, 25);
     }, 60);
@@ -536,13 +539,13 @@ setTimeout(() => {
 })();
 
 
-// ===== v1.43 — แท็บ 3: ① เลือกชื่อเรื่อง (แผนขั้น 1) → ② รายการส่งกรองตามเรื่อง (#31550) =====
+// ===== v1.45 — แท็บ 3 ใหม่ทั้งหมด (#31603/#31618): เลือก ① ชื่อเรื่อง → ระบบเลือกการส่ง (PACK) ให้เอง → ขึ้นข้อมูลที่ BU ส่งตรวจทันที =====
 (function () {
-  var res143 = { p: 0, f: 0 };
-  globalThis.v143Res = res143;
-  var ok43 = function (name, cond, note) { if (cond) res143.p++; else { res143.f++; console.error('❌ v1.43: ' + name + (note !== undefined && note !== '' && note !== null ? ' :: ' + note : '')); } };
-  var bail = function (m) { res143.f++; console.error('❌ v1.43: FATAL ' + m); };
-  function runV143() {
+  var res145 = { p: 0, f: 0 };
+  globalThis.v145Res = res145;
+  var ok45 = function (name, cond, note) { if (cond) res145.p++; else { res145.f++; console.error('❌ v1.45: ' + name + (note !== undefined && note !== '' && note !== null ? ' :: ' + note : '')); } };
+  var bail = function (m) { res145.f++; console.error('❌ v1.45: FATAL ' + m); };
+  function runV145() {
     var d = w.document, gat = w.GAT, LSW = w.localStorage;
     try {
       var st = gat.state();
@@ -551,38 +554,51 @@ setTimeout(() => {
       nf.push({ NOTIF_ID: 'PLAN-2569-030', BU: 'ตึกไอซี', TITLE: 'เรื่องทดสอบ 1', items: ['x'], sub: [] });
       nf.push({ NOTIF_ID: 'PLAN-2569-031', BU: 'ตึกไอซี', TITLE: 'เรื่องทดสอบ 2', items: ['y'], sub: [] });
       gat._notifs(nf);
-      var pkIns = { PACK_ID: 'PACK-7401', BU: 'ตึกไอซี', SCOPE: 'แผน PLAN-2569-030', TITLE: 'เรื่องทดสอบ 1 — ส่วน 1/1', STATUS: 'รอ GAT เลือกตรวจ', NOTE: 'อ้างแผน: PLAN-2569-030' };
-      var pkIns2 = { PACK_ID: 'PACK-7402', BU: 'ตึกไอซี', SCOPE: 'แผน PLAN-2569-030', TITLE: 'เรื่องทดสอบ 1 — ส่วน 2/2', STATUS: 'รอ GAT เลือกตรวจ', NOTE: 'อ้างแผน: PLAN-2569-030' };
-      var pkIns3 = { PACK_ID: 'PACK-7403', BU: 'ตึกไอซี', SCOPE: 'แผน PLAN-2569-031', TITLE: 'เรื่องทดสอบ 2 — ส่วน 1/1', STATUS: 'รอ GAT เลือกตรวจ', NOTE: 'อ้างแผน: PLAN-2569-031' };
-      var pkDone = { PACK_ID: 'PACK-7499', BU: 'ตึกไอซี', SCOPE: 'แผน PLAN-2569-030', TITLE: 'เรื่องทดสอบ 1 — ส่วนตรวจแล้ว', STATUS: 'ตรวจแล้ว — ผ่าน รอสรุปผลขั้น 4 (ขั้น 3)', NOTE: 'อ้างแผน: PLAN-2569-030' };
+      var pkIns = { PACK_ID: 'PACK-7401', BU: 'ตึกไอซี', SCOPE: 'แผน PLAN-2569-030', TITLE: 'เรื่องทดสอบ 1 — ส่วน 1/1', STATUS: 'รอ GAT เลือกตรวจ', NOTE: 'อ้างแผน: PLAN-2569-030', LINKS: '[ประเด็น 1: หัวข้อหนึ่ง]\nhttps://docs.bu.com/e1' };
+      var pkIns2 = { PACK_ID: 'PACK-7402', BU: 'ตึกไอซี', SCOPE: 'แผน PLAN-2569-030', TITLE: 'เรื่องทดสอบ 1 — ส่วน 2/2', STATUS: 'รอ GAT เลือกตรวจ', NOTE: 'อ้างแผน: PLAN-2569-030', LINKS: '[ประเด็น 1: หัวข้อสอง]\nhttps://docs.bu.com/e2' };
+      var pkIns3 = { PACK_ID: 'PACK-7403', BU: 'ตึกไอซี', SCOPE: 'แผน PLAN-2569-031', TITLE: 'เรื่องทดสอบ 2 — ส่วน 1/1', STATUS: 'รอ GAT เลือกตรวจ', NOTE: 'อ้างแผน: PLAN-2569-031', LINKS: '[ประเด็น 1: หัวข้อสาม]\nhttps://docs.bu.com/e3' };
+      var pkDone = { PACK_ID: 'PACK-7499', BU: 'ตึกไอซี', SCOPE: 'แผน PLAN-2569-030', TITLE: 'เรื่องทดสอบ 1 — ส่วนตรวจแล้ว', STATUS: 'ตรวจแล้ว — ผ่าน รอสรุปผลขั้น 4 (ขั้น 3)', NOTE: 'อ้างแผน: PLAN-2569-030', LINKS: '[ประเด็น 1: หัวข้อเก่า]\nhttps://docs.bu.com/e9' };
       st.packs = [pkIns, pkIns2, pkIns3, pkDone];
       gat.showTab('inspect');
       gat._renderInspect();
       var ps = d.getElementById('inspPlanPick');
-      ok43('มี dropdown ① ชื่อเรื่อง (inspPlanPick)', !!ps);
+      ok45('มี dropdown ① ชื่อเรื่อง (inspPlanPick)', !!ps);
+      ok45('ไม่มี dropdown ② เลือกการส่งอีกต่อไป (ถอด inspPackPick)', !d.getElementById('inspPackPick'));
+      ok45('มีปุ่มรีเฟรชรายการ (btnInspReload — bind loadPacks)', !!d.getElementById('btnInspReload'));
       var opts = Array.from(ps.options).map(function (o) { return o.value; });
-      ok43('① มีชื่อเรื่อง PLAN-2569-030/031 (เรื่องที่มีการส่ง)', opts.indexOf('PLAN-2569-030') >= 0 && opts.indexOf('PLAN-2569-031') >= 0, JSON.stringify(opts));
+      ok45('① มีชื่อเรื่อง PLAN-2569-030/031 (เรื่องที่มีการส่ง)', opts.indexOf('PLAN-2569-030') >= 0 && opts.indexOf('PLAN-2569-031') >= 0, JSON.stringify(opts));
       var first = Array.from(ps.options).filter(function (o) { return o.value; })[0] || {};
-      ok43('รายการแรกบอกชื่อเรื่อง+จำนวนการส่ง', String(first.textContent || '').indexOf('เรื่องทดสอบ 1') === 0 && String(first.textContent || '').indexOf('3 การส่ง') >= 0, first.textContent);
+      ok45('รายการแรกบอกชื่อเรื่อง+จำนวนการส่ง', String(first.textContent || '').indexOf('เรื่องทดสอบ 1') === 0 && String(first.textContent || '').indexOf('3 การส่ง') >= 0, first.textContent);
       ps.value = 'PLAN-2569-030'; ps.dispatchEvent(new w.Event('change'));
-      var ipp = d.getElementById('inspPackPick');
-      var vals = Array.from(ipp.options).map(function (o) { return o.value; });
-      ok43('② เลือกเรื่องแล้ว: กรองเฉพาะแพ็กในเรื่อง (7401/7402 ไม่มี 7403)', vals.indexOf('PACK-7401') >= 0 && vals.indexOf('PACK-7402') >= 0 && vals.indexOf('PACK-7403') < 0, JSON.stringify(vals));
-      ok43('state.inspPlan ถูกจำ (PLAN-2569-030)', gat.state().inspPlan === 'PLAN-2569-030');
-      ipp.value = 'PACK-7401';
+      ok45('เลือกเรื่อง → ระบบเลือกการส่งให้อัตโนมัติ (state.insp = PACK-7401 — เลี่ยมตัวตรวจแล้ว)', gat.state().insp === 'PACK-7401', gat.state().insp);
+      ok45('เลือกเรื่อง → ข้อมูลที่ BU ส่งตรวจขึ้นทันที (ลิงก์ประเด็น 1 คลิกได้ e1)', d.getElementById('inspItemsBox').querySelector('a[target="_blank"][href="https://docs.bu.com/e1"]') !== null);
+      ok45('เลือกเรื่อง → ฟอร์มรายละเอียด+ผลการตรวจ+ผลรวมพร้อมเติม', !!d.getElementById('inspDetail') && !!d.getElementById('inspResult') && !!d.getElementById('inspSums'));
+      /* จำลองจบการตรวจ PACK-7401 (สถานะเปลี่ยนเป็นตรวจแล้ว) → ระบบขยับไปการส่งถัดไปของเรื่อง */
+      pkIns.STATUS = 'ตรวจแล้ว — ผ่าน รอสรุปผลขั้น 4 (ขั้น 3)';
+      gat._renderInspect();
+      ok45('จบการส่งหนึ่ง → ขยับไปการส่งถัดไปของเรื่อง (PACK-7402)', gat.state().insp === 'PACK-7402', gat.state().insp);
+      ok45('ข้อมูลที่ BU ส่งตรวจสลับตามการส่งใหม่ (ลิงก์ e2)', d.getElementById('inspItemsBox').querySelector('a[target="_blank"][href="https://docs.bu.com/e2"]') !== null);
       ps.value = 'PLAN-2569-031'; ps.dispatchEvent(new w.Event('change'));
-      var vals2 = Array.from(d.getElementById('inspPackPick').options).map(function (o) { return o.value; });
-      ok43('สลับเรื่อง → ② มีเฉพาะ 7403 (ไม่มี 7401/7402)', vals2.indexOf('PACK-7403') >= 0 && vals2.indexOf('PACK-7401') < 0, JSON.stringify(vals2));
-      ok43('สลับเรื่อง → เคลียร์แพ็กที่เลือกค้าง (กลับ placeholder)', d.getElementById('inspPackPick').value === '');
+      ok45('สลับเรื่อง → ระบบเลือกการส่งของเรื่องใหม่ (PACK-7403)', gat.state().insp === 'PACK-7403', gat.state().insp);
+      var allDone = (function () {
+        pkIns3.STATUS = 'ตรวจแล้ว — ผ่าน รอสรุปผลขั้น 4 (ขั้น 3)';
+        ps.value = 'PLAN-2569-031'; ps.dispatchEvent(new w.Event('change'));
+        var donePick = gat.state().insp === 'PACK-7403'; /* ตรวจครบเรื่อง → เลือกตัวล่าสุดไว้ให้ดูซ้ำ (ผลรวมอยู่ขั้น 4) */
+        pkIns.STATUS = 'รอ GAT เลือกตรวจ';
+        ps.value = 'PLAN-2569-030'; ps.dispatchEvent(new w.Event('change'));
+        var reopen = gat.state().insp === 'PACK-7401'; /* เปิดใหม่ → ตัวแรกที่ยังไม่ตรวจ */
+        pkIns.STATUS = 'ตรวจแล้ว — ผ่าน รอสรุปผลขั้น 4 (ขั้น 3)';
+        ps.value = 'PLAN-2569-030'; ps.dispatchEvent(new w.Event('change'));
+        var advance = gat.state().insp === 'PACK-7402'; /* จบตัวหน้า → ขยับถัดไป */
+        return donePick && reopen && advance;
+      })();
+      ok45('ตรวจครบเรื่อง → ไว้ตัวล่าสุดให้ดูซ้ำ; เปิดใหม่/จบตัวหน้า → ระบบขยับเลือกเอง (7402)', allDone);
       ps.value = ''; ps.dispatchEvent(new w.Event('change'));
-      var vals3 = Array.from(d.getElementById('inspPackPick').options).map(function (o) { return o.value; });
-      ok43('เว้น ① = เห็นทุกเรื่อง (7401..7403 ครบ)', vals3.indexOf('PACK-7401') >= 0 && vals3.indexOf('PACK-7402') >= 0 && vals3.indexOf('PACK-7403') >= 0, JSON.stringify(vals3));
-      ok43('แพ็กตรวจแล้ว (7499) ยังถูกกันไม่ให้เข้าตรวจซ้ำ', vals3.indexOf('PACK-7499') < 0, JSON.stringify(vals3));
       st.packs = prePacks; gat._notifs(preNotifs); st.inspPlan = prePlan;
-      ok43('✅ ชุด v1.43 จบครบ', true);
+      ok45('✅ ชุด v1.45 จบครบ', true);
     } catch (eTop) { bail('รวม: ' + eTop); }
   }
-  try { setTimeout(runV143, 40); } catch (eSetup) { bail('setup: ' + eSetup); }
+  try { setTimeout(runV145, 40); } catch (eSetup) { bail('setup: ' + eSetup); }
 })();
 
 // ===== v1.41 — ย้ายทำเนียบเวอร์ชันออกจากแถบซ้าย: nav-foot เหลือเวอร์ชันสั้น + ประวัติยาวพับได้ที่แท็บคู่มือ =====
