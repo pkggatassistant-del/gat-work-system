@@ -21,7 +21,8 @@ var GAT = (function () {
     filter: { bu: '', type: '', q: '' },
     page: 1,
     /* v1.27 — สิทธิ์ผู้ใช้ (จาก GAS v1.8): {TOKEN,USER,ROLE,BU,GRACE} เก็บ localStorage gat_auth */
-    auth: null
+    auth: null,
+    inspPlan: ''  /* v1.43 — แท็บ 3: ชื่อเรื่อง (แผน) ที่เลือกใน ① */
   };
 
   /* ================= v1.27 — Auth (รองรับ GAS v1.8; grace mode สำหรับ v1.6/v1.7) ================= */
@@ -541,18 +542,47 @@ function loadProcessDocs() {
   function inspStatus(t) { var el = document.getElementById('inspStatus'); if (el) el.textContent = t; }
   function renderInspect() {
     var sel = document.getElementById('inspPackPick'); if (!sel) return;
+    /* v1.43 — dropdown ชื่อเรื่อง (แผนขั้น 1) นำ ② เลือกการส่ง: เลือกเรื่อง → การส่งกรองเฉพาะในเรื่อง (เว้น = ทุกเรื่อง) */
+    var planSel = document.getElementById('inspPlanPick');
+    if (planSel) {
+      var curPlan = planSel.value || state.inspPlan || '';
+      var planOpts = loadNotifs().filter(function (n) {
+        return (state.packs || []).some(function (p) { return planIdOfPack(p) === n.NOTIF_ID; });
+      });
+      planSel.innerHTML = '<option value="">— เลือกชื่อเรื่อง (เรื่องที่แจ้งในขั้น 1) —</option>' + planOpts.map(function (n) {
+        var nAll = (state.packs || []).filter(function (p) { return planIdOfPack(p) === n.NOTIF_ID; }).length;
+        return '<option value="' + escP(n.NOTIF_ID) + '">' + escP((n.TITLE || '(ไม่มีชื่อเรื่อง)') + ' (' + n.NOTIF_ID + ') · ' + (n.BU || '') + ' · ' + nAll + ' การส่ง') + '</option>';
+      }).join('') + (planOpts.length ? '' : '<option value="" disabled>(ยังไม่มีเรื่องที่มีการส่ง)</option>');
+      planSel.value = curPlan;
+      if (planSel.value !== curPlan) { state.inspPlan = ''; }
+    }
     var cur = sel.value;
     var list = (state.packs || []).filter(function (x) { var s = String(x.STATUS || ''); return s.indexOf('ตรวจแล้ว') < 0 && s.indexOf('ส่งผลให้ BU') < 0 && s.indexOf('ปิด') < 0 && s.indexOf('ลบออก') < 0; });
-    sel.innerHTML = '<option value="">— เลือก PACK ที่ BU ส่ง —</option>' + list.map(function (x) {
+    if (state.inspPlan) list = list.filter(function (x) { return planIdOfPack(x) === state.inspPlan; });
+    sel.innerHTML = '<option value="">— เลือกการส่ง (PACK' + (state.inspPlan ? ' ในเรื่องนี้' : ' ทั้งหมด') + ') —</option>' + list.map(function (x) {
       return '<option value="' + escP(x.PACK_ID) + '">' + escP(x.PACK_ID + ' · ' + x.BU + ' · ' + packShowName(x) + ' · ' + String(x.STATUS || 'รอ GAT เลือกตรวจ')) + '</option>';
     }).join('');
-    if (cur) sel.value = cur;
+    if (cur && Array.from(sel.options).some(function (o) { return o.value === cur; })) sel.value = cur; else if (cur) { sel.value = ''; state.insp = ''; }
+    try { renderInspItems(); } catch (e) {}
     var tb = document.getElementById('inspBody');
     if (tb) {
       var doneRows = (state.packs || []).filter(function (x) { return String(x.STATUS || '').indexOf('ตรวจแล้ว') >= 0; }).map(function (x) {
         return '<tr><td class="mono">' + escP(x.PACK_ID) + '</td><td>' + escP(x.BU || '') + '</td><td style="font-size:13px">' + escP(String(x.TITLE || '').slice(0, 60)) + '</td><td style="font-size:12.5px">' + escP(String(x.STATUS || '')) + '</td></tr>';
       }).join('') || '<tr><td colspan="4" class="empty">ยังไม่มี PACK ที่ตรวจแล้ว</td></tr>';
       tb.innerHTML = doneRows;
+      /* v1.43 — แถบเวลาอัปเดตล่าสุด ใช้เวลาจริงของเครื่องผู้ใช้ (เดิม “วันนี้” ค้างไว้ผิดหน้าเมื่อข้ามวัน) */
+      var stamp = document.getElementById('inspDoneStamp');
+      if (stamp) {
+        var nDone = doneRows.indexOf('class="empty"') < 0 ? (state.packs || []).filter(function (x) { return String(x.STATUS || '').indexOf('ตรวจแล้ว') >= 0; }).length : 0;
+        if (nDone) {
+          var dt = new Date();
+          var dow = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'][dt.getDay()];
+          var pad = function (n0) { return (n0 < 10 ? '0' : '') + n0; };
+          var thM = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'][dt.getMonth()];
+          stamp.innerHTML = '🕒 อัปเดตล่าสุด: <b>วัน' + dow + 'ที่ ' + dt.getDate() + ' ' + thM + ' ' + (dt.getFullYear() + 543) + ' · ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes()) + '</b> น. (เวลาเครื่องของคุณ) · ตรวจแล้ว ' + nDone + ' รายการ';
+          stamp.style.display = '';
+        } else stamp.style.display = 'none';
+      }
     }
     var meta = document.getElementById('inspPackMeta');
     if (meta) {
@@ -561,6 +591,13 @@ function loadProcessDocs() {
     }
 
     renderInspItems();
+  }
+  /* v1.43 — แท็บ 3: ① ชื่อเรื่อง (แผนขั้น 1) นำ ② การส่ง (PACK) — สลับเรื่อง รายการส่งกรองตามเรื่อง (เว้น = ทุกเรื่อง) */
+  function inspPlanPickChange() {
+    var ps = document.getElementById('inspPlanPick');
+    state.inspPlan = ps ? ps.value : '';
+    state.insp = ''; /* สลับเรื่อง → เคลียร์การส่งที่เลือกไว้ */
+    renderInspect();
   }
   /* v1.34 — ตารางตรวจต่อประเด็น (หลัก+ย่อย ตามที่ BU ส่งขั้น 2): สถานะตรวจ + ผลตรวจ ต่อรายการ */
   function inspPackNotif(pk) {
@@ -2452,6 +2489,7 @@ function loadProcessDocs() {
     try { state.planPick = JSON.parse(localStorage.getItem('gat_plan_pick') || '{}'); } catch (e) { state.planPick = {}; }
     /* ขั้น 3 — ตรวจหลักฐาน */
     var ip = id('inspPackPick'); if (ip) ip.addEventListener('change', renderInspect);
+    var ipp = id('inspPlanPick'); if (ipp) ipp.addEventListener('change', inspPlanPickChange); /* v1.43 — ① ชื่อเรื่อง → ② การส่งกรองตาม */
     var bit = id('btnInspItemsToText'); if (bit) bit.addEventListener('click', function () {
       var t = inspItemsSummarize();
       var ta = document.getElementById('inspResult');

@@ -181,17 +181,9 @@ setTimeout(() => {
         d.getElementById('btnSendResult').click();
         setTimeout(function () {
           ok('v1.29: ส่งผลให้ BU ยิง update_pack_status', send6 >= 1, send6);
-          /* ขั้น 5 — ปิดย่อย: มีใบเปิด → block (แยก timeout กัน race โหลดชีตทับ recs) */
+          /* ขั้น 5 — v1.42: การ์ด ② ถูกถอด → เทสเดิมควบเปลี่ยน: ปุ่ม/หรองเลือก ② ต้องไม่มีใน DOM (สถานะปิดย่อยพาดมาจากขั้น 3 แล้ว) */
           setTimeout(function () {
-            var stA = gat.state(); stA.recs = [{ REC_ID: 'GAT-REC-9001', TITLE: 'เปิดค้าง', STATUS: 'รอ BU ดำเนินการ' }]; stA.packs = [{ PACK_ID: 'PACK-9992', BU: 'PKG', TITLE: 'x', STATUS: 'ผ่านการตรวจ — รอปิดประเด็น (ขั้น 5)', AI_NOTE: '' }];
-            gat._renderRecs(); gat._renderCloseBig();
-            var cbSel = d.getElementById('closeBigPackPick'); cbSel.value = 'PACK-9992'; cbSel.dispatchEvent(new w.Event('change'));
-            var bcFired = 0;
-            w.fetch = function (u, o) { var b = o && o.body ? String(o.body) : ''; if (b.indexOf('update_pack_status') >= 0) { bcFired++; return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true }); } }); } return baseF(u, o); };
-            d.getElementById('btnCloseBig').click();
-            /* v1.39 — PACK-9992 ไม่มีโครงหัวข้อ → โมเดลใหม่ ②: กดปุ่มปิดรวมตรง (ไม่ติดประตู "ใบเปิดครบ" อีกต่อไป) */
-            ok('v1.29/39: ปิดรวมแพ็กไม่มีโครงข้อ ไม่ถูกบล็อกด้วยใบเปิด (โมเดลใหม่ ②)', bcFired >= 1, bcFired);
-            w.fetch = baseF;
+            ok('v1.29/42: การ์ด ② ปิดประเด็นย่อยถูกถอด — ไม่มี closeBigPackPick/btnCloseBig', !d.getElementById('closeBigPackPick') && !d.getElementById('btnCloseBig'));
             globalThis.flow29Res = true;
           }, 90);
         }, 20);
@@ -305,12 +297,23 @@ setTimeout(() => {
       ok27('ปุ่มออกจากระบบมี (.btn-keep)', !!d.querySelector('#whoBar .btn-keep, .top-live .btn-keep'));
       /* ping ครั้งแรก (boot) หรือ import หลังล็อกอิน ต้องยิง token ไปแล้วอย่างน้อย 1 */
       ok27('TOKEN ถูกแนบไปกับคำสั่งแล้ว (นับจาก mock)', tokenFired >= 1, tokenFired);
-      /* สรุปรวมจริงท้ายบล็อกล็อกอิน: หลัก + ฟอร์มขั้น 2 */
+      /* สารภาพรวมจริงท้ายบล็อกล็อกอิน: หลัก + ฟอร์มขั้น 2 */
       globalThis._g127done = true;
-      var p2 = (typeof packFormRes !== 'undefined' && packFormRes) ? packFormRes : { p: 0, f: 0 };
-      var v3 = globalThis.v139Res || { p: 0, f: 0 };
-      console.log('\n══ RESULT รวม: ' + (pass + p2.p + v3.p) + ' pass / ' + (fail + p2.f + v3.f) + ' fail (หลัก+ฟอร์มขั้น2+v1.27+v1.39) ══');
-      process.exit((fail + p2.f + v3.f) ? 1 : 0);
+      /* v1.43 — คอยทุกชุดยืนยันตัวเองก่อน (flow29/packForm/v1.42/v1.41/v1.43) กัน process.exit แซง chain ที่ยังไม่จบ ← จำนวน pass แกว่ง */
+      var t0S = Date.now();
+      var waitAll = setInterval(function () {
+        var all = globalThis.flow29Res && typeof globalThis.packFormRes !== 'undefined' && globalThis.v142Res && globalThis.v141Res && globalThis.v143Res;
+        if (!all && Date.now() - t0S < 2500) return;
+        clearInterval(waitAll);
+        var p2 = globalThis.packFormRes || { p: 0, f: 0 };
+        var v42 = globalThis.v142Res || { p: 0, f: 0 };
+        var v41 = globalThis.v141Res || { p: 0, f: 0 };
+        var v43 = globalThis.v143Res || { p: 0, f: 0 };
+        var totF = fail + p2.f + v42.f + v41.f + v43.f;
+        console.log('\n══ RESULT รวม: ' + (pass + p2.p + v42.p + v41.p + v43.p) + ' pass / ' + totF + ' fail (หลัก+ฟอร์มขั้น2+v1.27+v1.39+v1.42+v1.41+v1.43) ══');
+        console.log('══ แยกชุด ══ หลัก+ฟอร์มขั้น2: ' + (pass + p2.p) + '/' + (fail + p2.f) + ' · v1.42: ' + v42.p + '/' + v42.f + ' · v1.41: ' + v41.p + '/' + v41.f + ' · v1.43: ' + v43.p + '/' + v43.f);
+        process.exit(totF ? 1 : 0);
+      }, 25);
     }, 60);
   }, 60);
 })();
@@ -528,6 +531,55 @@ setTimeout(() => {
   try { setTimeout(function () { try { runV142(); } catch (e) { try { restoreF(); } catch (e5) {} bail('run: ' + e); } }, 0); } catch (eSetup) { try { restoreF(); } catch (e5) {} bail('setup: ' + eSetup); }
 })();
 
+
+// ===== v1.43 — แท็บ 3: ① เลือกชื่อเรื่อง (แผนขั้น 1) → ② รายการส่งกรองตามเรื่อง (#31550) =====
+(function () {
+  var res143 = { p: 0, f: 0 };
+  globalThis.v143Res = res143;
+  var ok43 = function (name, cond, note) { if (cond) res143.p++; else { res143.f++; console.error('❌ v1.43: ' + name + (note !== undefined && note !== '' && note !== null ? ' :: ' + note : '')); } };
+  var bail = function (m) { res143.f++; console.error('❌ v1.43: FATAL ' + m); };
+  function runV143() {
+    var d = w.document, gat = w.GAT, LSW = w.localStorage;
+    try {
+      var st = gat.state();
+      var prePacks = st.packs, preNotifs = gat._notifs(), prePlan = st.inspPlan || '';
+      var nf = gat._notifs().filter(function (n) { return n.NOTIF_ID !== 'PLAN-2569-030' && n.NOTIF_ID !== 'PLAN-2569-031'; });
+      nf.push({ NOTIF_ID: 'PLAN-2569-030', BU: 'ตึกไอซี', TITLE: 'เรื่องทดสอบ 1', items: ['x'], sub: [] });
+      nf.push({ NOTIF_ID: 'PLAN-2569-031', BU: 'ตึกไอซี', TITLE: 'เรื่องทดสอบ 2', items: ['y'], sub: [] });
+      gat._notifs(nf);
+      var pkIns = { PACK_ID: 'PACK-7401', BU: 'ตึกไอซี', SCOPE: 'แผน PLAN-2569-030', TITLE: 'เรื่องทดสอบ 1 — ส่วน 1/1', STATUS: 'รอ GAT เลือกตรวจ', NOTE: 'อ้างแผน: PLAN-2569-030' };
+      var pkIns2 = { PACK_ID: 'PACK-7402', BU: 'ตึกไอซี', SCOPE: 'แผน PLAN-2569-030', TITLE: 'เรื่องทดสอบ 1 — ส่วน 2/2', STATUS: 'รอ GAT เลือกตรวจ', NOTE: 'อ้างแผน: PLAN-2569-030' };
+      var pkIns3 = { PACK_ID: 'PACK-7403', BU: 'ตึกไอซี', SCOPE: 'แผน PLAN-2569-031', TITLE: 'เรื่องทดสอบ 2 — ส่วน 1/1', STATUS: 'รอ GAT เลือกตรวจ', NOTE: 'อ้างแผน: PLAN-2569-031' };
+      var pkDone = { PACK_ID: 'PACK-7499', BU: 'ตึกไอซี', SCOPE: 'แผน PLAN-2569-030', TITLE: 'เรื่องทดสอบ 1 — ส่วนตรวจแล้ว', STATUS: 'ตรวจแล้ว — ผ่าน รอสรุปผลขั้น 4 (ขั้น 3)', NOTE: 'อ้างแผน: PLAN-2569-030' };
+      st.packs = [pkIns, pkIns2, pkIns3, pkDone];
+      gat.showTab('inspect');
+      gat._renderInspect();
+      var ps = d.getElementById('inspPlanPick');
+      ok43('มี dropdown ① ชื่อเรื่อง (inspPlanPick)', !!ps);
+      var opts = Array.from(ps.options).map(function (o) { return o.value; });
+      ok43('① มีชื่อเรื่อง PLAN-2569-030/031 (เรื่องที่มีการส่ง)', opts.indexOf('PLAN-2569-030') >= 0 && opts.indexOf('PLAN-2569-031') >= 0, JSON.stringify(opts));
+      var first = Array.from(ps.options).filter(function (o) { return o.value; })[0] || {};
+      ok43('รายการแรกบอกชื่อเรื่อง+จำนวนการส่ง', String(first.textContent || '').indexOf('เรื่องทดสอบ 1') === 0 && String(first.textContent || '').indexOf('3 การส่ง') >= 0, first.textContent);
+      ps.value = 'PLAN-2569-030'; ps.dispatchEvent(new w.Event('change'));
+      var ipp = d.getElementById('inspPackPick');
+      var vals = Array.from(ipp.options).map(function (o) { return o.value; });
+      ok43('② เลือกเรื่องแล้ว: กรองเฉพาะแพ็กในเรื่อง (7401/7402 ไม่มี 7403)', vals.indexOf('PACK-7401') >= 0 && vals.indexOf('PACK-7402') >= 0 && vals.indexOf('PACK-7403') < 0, JSON.stringify(vals));
+      ok43('state.inspPlan ถูกจำ (PLAN-2569-030)', gat.state().inspPlan === 'PLAN-2569-030');
+      ipp.value = 'PACK-7401';
+      ps.value = 'PLAN-2569-031'; ps.dispatchEvent(new w.Event('change'));
+      var vals2 = Array.from(d.getElementById('inspPackPick').options).map(function (o) { return o.value; });
+      ok43('สลับเรื่อง → ② มีเฉพาะ 7403 (ไม่มี 7401/7402)', vals2.indexOf('PACK-7403') >= 0 && vals2.indexOf('PACK-7401') < 0, JSON.stringify(vals2));
+      ok43('สลับเรื่อง → เคลียร์แพ็กที่เลือกค้าง (กลับ placeholder)', d.getElementById('inspPackPick').value === '');
+      ps.value = ''; ps.dispatchEvent(new w.Event('change'));
+      var vals3 = Array.from(d.getElementById('inspPackPick').options).map(function (o) { return o.value; });
+      ok43('เว้น ① = เห็นทุกเรื่อง (7401..7403 ครบ)', vals3.indexOf('PACK-7401') >= 0 && vals3.indexOf('PACK-7402') >= 0 && vals3.indexOf('PACK-7403') >= 0, JSON.stringify(vals3));
+      ok43('แพ็กตรวจแล้ว (7499) ยังถูกกันไม่ให้เข้าตรวจซ้ำ', vals3.indexOf('PACK-7499') < 0, JSON.stringify(vals3));
+      st.packs = prePacks; gat._notifs(preNotifs); st.inspPlan = prePlan;
+      ok43('✅ ชุด v1.43 จบครบ', true);
+    } catch (eTop) { bail('รวม: ' + eTop); }
+  }
+  try { setTimeout(runV143, 40); } catch (eSetup) { bail('setup: ' + eSetup); }
+})();
 
 // ===== v1.41 — ย้ายทำเนียบเวอร์ชันออกจากแถบซ้าย: nav-foot เหลือเวอร์ชันสั้น + ประวัติยาวพับได้ที่แท็บคู่มือ =====
 (function () {

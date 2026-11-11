@@ -415,13 +415,15 @@ ol.manual li{margin-bottom:8px}
   <!-- ============ ขั้น 3: GAT ตรวจหลักฐาน (v1.29 — ตามผัง draw.io 9 พ.ย. 69) ============ -->
   <section class="tabpane" id="pane-inspect">
     <div class="card">
-      <div class="card-hd"><b>🔍 ขั้น 3 — ทีม GAT ตรวจหลักฐานที่ BU ส่งมา (รายละเอียดการตรวจ + ผลการตรวจขั้นนี่)</b></div>
-      <p class="desc">เลือกการส่ง (PACK) จากตาราง → เติม <b>รายละเอียดการตรวจ</b> (วิธี/ตัวชิ้น) + <b>ผลการตรวจรายประเด็น</b> + สรุปผลรวม (ผ่าน/ไม่ผ่าน) → กดบันทึกลงชีต — ผลจะไปรวมที่ <b>ขั้น 4 (สรุปผลการตรวจ)</b> · ถ้า <span style="color:#c0392b">ไม่ผ่าน</span> = สถานะกลับ <b>ขั้น 2</b> ให้ BU ส่งหลักฐานเพิ่มเติม แล้ววนมาตรวจใหม่ · ผลตรวจฝั่งเขียนบนแพ็คของชีต (มี VAULT + AuditLog อัตโนมัติ)</p>
+      <div class="card-hd"><b>🔍 ขั้น 3 — ทีม GAT ตรวจหลักฐานที่ BU ส่งมา (เลือกชื่อเรื่อง → เลือกการส่ง → รายละเอียด + ผลการตรวจ — v1.43)</b></div>
+      <p class="desc">เลือก<b>ชื่อเรื่อง</b> (เรื่องที่แจ้งขั้น 1) → เลือก<b>การส่ง (PACK)</b> ในเรื่อง → เติม <b>รายละเอียดการตรวจ</b> + <b>ผลการตรวจรายประเด็น</b> + สรุปผลรวม (ผ่าน/ไม่ผ่าน) → กดบันทึกลงชีต — ผลจะไปรวมที่ <b>ขั้น 4 (สรุปผลการตรวจ)</b> · ถ้า <span style="color:#c0392b">ไม่ผ่าน</span> = สถานะกลับ <b>ขั้น 2</b> ให้ BU ส่งหลักฐานเพิ่มเติม แล้ววนมาตรวจใหม่ · ผลตรวจฝั่งเขียนบนแพ็คของชีต (มี VAULT + AuditLog อัตโนมัติ)</p>
     </div>
     <div class="card">
-      <div class="card-hd"><b>🎯 เลือกการส่ง (PACK) ที่จะตรวจ</b></div>
-      <div class="filters"><select id="inspPackPick" style="flex:1;min-width:300px"><option value="">— เลือก PACK ที่ BU ส่ง —</option></select>
+      <div class="card-hd"><b>🎯 ขั้น ① เลือกชื่อเรื่อง (เรื่องที่แจ้งในขั้น 1) → ② เลือกการส่ง (PACK) ที่จะตรวจ (v1.43)</b></div>
+      <div class="filters"><select id="inspPlanPick" style="flex:1.4;min-width:340px"><option value="">— เลือกชื่อเรื่อง (เรื่องที่แจ้งในขั้น 1) —</option></select>
+      <select id="inspPackPick" style="flex:1;min-width:280px"><option value="">— เลือกการส่ง (PACK ในเรื่องนี้) —</option></select>
       <button class="button-lite" id="btnInspRefresh">🔄 รีเฟรชรายการ</button></div>
+      <p class="desc" style="margin-top:4px">เลือก<b>ชื่อเรื่อง</b>ก่อน → เลือก<b>การส่ง (PACK)</b> ในเรื่องนั้น (สลับเรื่อง รายการการส่งกรองตาม) — เว้นชื่อเรื่อง = เห็นทุกเรื่อง</p>
       <div id="inspPackMeta" class="desc" style="margin-top:6px"></div>
     </div>
     <div class="card">
@@ -451,6 +453,7 @@ ol.manual li{margin-bottom:8px}
     </div>
     <div class="card">
       <div class="card-hd"><b>📋 แสดงผลการตรวจที่บันทึกแล้ว (จากชีต)</b></div>
+      <p class="desc" id="inspDoneStamp" style="display:none;font-size:12.5px;opacity:.85"></p>
       <div style="overflow-x:auto"><table class="table"><thead><tr><th>เลข Pack</th><th>BU</th><th>หัวเรื่อง</th><th>สถานะ (ขั้น 3)</th></tr></thead><tbody id="inspBody"><tr><td colspan="4" class="empty">ยังไม่มีข้อมูล — กด รีเฟรชรายการ</td></tr></tbody></table></div>
     </div>
   </section>
@@ -546,7 +549,6 @@ ol.manual li{margin-bottom:8px}
       </div>
     </div>
     <!-- v1.42 — การ์ด ② ปิดประเด็นย่อย ยกเลิกตามสั่ง 11 พ.ย. 69 (สถานะประเด็นย่อยโชว์ในตารางใต้การ์ด ① — แก้ผลที่แท็บ 3) -->
-    </div>
     <div class="card">
       <div class="card-hd">
         <h3>🧾 ทะเบียนข้อเสนอแนะ (สำเนา)</h3>
