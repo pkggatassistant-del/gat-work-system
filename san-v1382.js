@@ -28,8 +28,9 @@ setTimeout(() => {
   ]);
   gat._renderRecs(); gat.showTab('close');
   const opts = Array.from(d.getElementById('closeRecPick').options).map(o => o.value);
-  ok('v1.38.2: ใบนอก scope (0052) อยู่ใน dropdown ปิดหลัก', opts.indexOf('GAT-REC-0052') >= 0);
-  ok('v1.38.2: ใบใน scope (0042) ยังอยู่', opts.indexOf('GAT-REC-0042') >= 0);
+  /* v1.42 — dropdown ปิดหลัก = ระดับชื่อเรื่อง (แผน) ไม่อิง REC อีกต่อไป */
+  ok('v1.42: dropdown ปิดหลักไม่อิง REC (ไม่มี GAT-REC- ในตัวเลือก)', opts.every(function (v) { return String(v).indexOf('GAT-REC-') < 0; }));
+  ok('v1.42: dropdown ปิดหลักไม่มีแผนจบ (placeholder + แถวแจ้งไม่มีเรื่องจบ)', opts.length === 2);
   ok('v1.38.2: ใบปิดแล้ว (0099) ถูกกรองทิ้ง', opts.indexOf('GAT-REC-0099') < 0);
   // ตารางโชว์ยังกรอง scope (ได้แค่ใบใน scope = 0042 + ใบ seed ใด ๆ ที่อยู่ scope)
   const tbl = d.getElementById('recBody').textContent;
