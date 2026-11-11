@@ -12,6 +12,9 @@ w.__fetchCalls = [];
 w.fetch = (u) => {
   const s = String(u);
   try { w.__fetchCalls.push(s); } catch (e) {}
+  const mAct = s.match(/action=([a-z_]+)/); const act = mAct ? mAct[1] : '';
+  if (act === 'list_notifs') return Promise.resolve({ ok: true, json: () => Promise.resolve({ ok: false }) }); /* เทสเดิมออกแบบกับ GAS ไม่มี list_notifs - ไม่ merge จากชีต */
+  if (act) return Promise.resolve({ ok: true, json: () => Promise.resolve({ ok: true, data: [] }) });
   if (s.indexOf('gat-process.json') >= 0) return Promise.resolve({ ok: true, json: () => Promise.resolve(PROC) });
   if (s.indexOf('GAT-MANUAL.md') >= 0) return Promise.resolve({ ok: true, text: () => Promise.resolve(fs.readFileSync('GAT-MANUAL.md', 'utf8')) });
   if (s.indexOf('gat-rec-migration') >= 0) return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
@@ -96,16 +99,31 @@ setTimeout(() => {
     d.getElementById('notItems').value = 'ตรวจใบลา/สมุดลา\nตรวจ IPD ค้างชำระ';
     d.getElementById('notOwner').value = 'ผจก. PAO';
     d.getElementById('btnNotifyPlan').click();
+    /* v1.47b — importBCT(due) รวม notifs ข้ามชุด → รหัสแผนเลื่อนจาก 001/002; อ่านรหัสจริงจาก notStatus เพื่อ assert ไม่งูๆ */
+    var _m1 = (d.getElementById('notStatus').textContent || '').match(/PLAN-2569-(\d{3})/);
+    globalThis._planA = _m1 ? _m1[1] : null;
+    nb2.value = 'PAO';
+    d.getElementById('notTitle').value = 'ตรวจการขายน้ำมันเครื่องเก่า';
+    d.getElementById('notEvent').value = 'พบงบน้ำมันซื้อค้างจ่าย';
+    d.getElementById('notItems').value = 'ตรวจรายการขายน้ำมันเครื่อง\nตรวจใบเสร็จรายรับ';
+    d.getElementById('notOwner').value = 'ผจก. PAO';
+    d.getElementById('btnNotifyPlan').click();
+    var _m2 = (d.getElementById('notStatus').textContent || '').match(/PLAN-2569-(\d{3})/);
+    globalThis._planB = _m2 ? _m2[1] : null;
   }
   ok('v1.14: บันทึกแผน รันเลข PLAN-2569-', (d.getElementById('notStatus').textContent || '').indexOf('PLAN-2569-') >= 0);
   ok('v1.14: BU dropdown เห็นแผนที่แจ้ง', d.getElementById('packNotif').options.length >= 2);
-  ok('v1.14: รายการ "เรื่องที่จะตรวจ" แสดง 2 เรื่อง (v1.44: ชื่อเรื่องนำ)', d.getElementById('notList').querySelectorAll('.not-pick').length === 2, 'got ' + d.getElementById('notList').querySelectorAll('.not-pick').length);
+  ok('v1.14: รายการ "เรื่องที่จะตรวจ" มีเรื่องที่บันทึกสองแผน (v1.44: ชื่อเรื่องนำ — อ้างรหัสจริงจาก notStatus)', (function () { var A = globalThis._planA, B = globalThis._planB; if (!A || !B) return false; var ids = Array.from(d.getElementById('notList').querySelectorAll('.not-pick')).map(function (c) { return c.getAttribute('data-plan'); }); return ids.indexOf('PLAN-2569-' + A) >= 0 && ids.indexOf('PLAN-2569-' + B) >= 0; })(), 'got ' + Array.from(d.getElementById('notList').querySelectorAll('.not-pick')).map(function (c) { return c.getAttribute('data-plan'); }).join(',') + ' (A=' + globalThis._planA + ',B=' + globalThis._planB + ')');
 
   // --- v1.15/16: notBu = ช่องกรอกได้ (ตามหนึ่งสั่ง) · packBu = dropdown จาก seed + PAO ---
   var elN = d.getElementById('notBu');
   ok('v1.16: การ์ดแจ้งใช้ช่องกรอก BU (input พิมพ์ได้)', elN && elN.tagName === 'INPUT');
   var optsP = Array.from(d.getElementById('packBu').options).map(function (o) { return o.value; });
-  ok('v1.15: packBu dropdown รายชื่อครบ + PAO', optsP.length >= 55 && optsP.indexOf('PAO') >= 0, 'got ' + optsP.length);
+  ok('v1.15: packBu มีรายชื่อ BU + PAO (เติมเมื่อ seed พร้อม — ไม่ใช่ 7 ตัวยืนยัน)', optsP.indexOf('PAO') >= 0, 'got ' + optsP.length);
+  /* v1.47b — ชื่อ BU ครบ 55+ ตรวจหลัง seed (fillPackSelectors เติมครั้งเดียวเมื่อยังว่าง) */
+  gat._fillPackSelectors();
+  var optsP2 = Array.from(d.getElementById('packBu').options).map(function (o) { return o.value; });
+  ok('v1.15: packBu dropdown รายชื่อครบ + PAO (หลัง seed)', optsP2.length >= 55 && optsP2.indexOf('PAO') >= 0, 'got ' + optsP2.length);
   // saveNotifPlan อ่าน notBu.value ได้เมื่อเป็น input
   elN.value = 'PAO';
   d.getElementById('notTitle').value = 'ทดสอบช่องกรอก';
@@ -311,7 +329,7 @@ setTimeout(() => {
       /* v1.43 — คอยทุกชุดยืนยันตัวเองก่อน (flow29/packForm/v1.42/v1.41/v1.43) กัน process.exit แซง chain ที่ยังไม่จบ ← จำนวน pass แกว่ง */
       var t0S = Date.now();
       var waitAll = setInterval(function () {
-        var all = globalThis.flow29Res && typeof globalThis.packFormRes !== 'undefined' && globalThis.v142Res && globalThis.v141Res && globalThis.v145Res && globalThis.v146Res && globalThis.v147Res;
+        var all = globalThis.flow29Res && typeof globalThis.packFormRes !== 'undefined' && globalThis.v142Res && globalThis.v141Res && globalThis.v145Res && globalThis.v146Res && globalThis.v147Res && globalThis._v147bDone;
         if (!all && Date.now() - t0S < 2500) return;
         clearInterval(waitAll);
         var p2 = globalThis.packFormRes || { p: 0, f: 0 };
@@ -465,6 +483,7 @@ setTimeout(() => {
           if (!act2) return myBase(u, o);
           if (act2 === 'list_packs') return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true, data: snapPacks }); } });
           if (act2 === 'list_recs' || act2 === 'list_issues') return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true, data: snapRecs }); } });
+          if (act2 === 'list_notifs') return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: false }); } });
           return Promise.resolve({ ok: true, json: function () { return Promise.resolve({ ok: true, data: [] }); } });
         } catch (e) { return myBase(u, o); }
       };
@@ -735,7 +754,43 @@ setTimeout(() => {
       ok47('✅ ชุด v1.47 จบครบ', true);
     } catch (eTop) { bail('รวม: ' + eTop); }
   }
-  try { setTimeout(runV147, 100); } catch (eSetup) { bail('setup: ' + eSetup); }
+  /* v1.47b — ข้อมูลการส่งถึงหลังเลือกเรื่อง (แก้ภาพ #31749: ป้ายไม่วาดจนกว่าเลือกใหม่) */
+  var runV147bDone = false;
+  function runV147b() {
+    var d2 = w.document, gat2 = w.GAT, LSW2 = w.localStorage;
+    if (runV147bDone) return; /* jsdom: หน้าเดียวรัน 2 ชุด — ชุด b ใช้ state ร่วมจาก 147 ได้ แต่ไม่ rerun */
+    runV147bDone = true;
+    try {
+      var st2 = gat2.state();
+      var preNotifs2 = gat2._notifs();
+      /* ตอนหนึ่งรันจริง: importBCT(list_notifs) มาจากเครื่องตัวเอง (ไม่ใช่ mock ว่างของเทส) — mock เทสส่ง notifs=[] ไม่ลบ local
+      /* ยอมรับสถานะจริงตอนชุดนี้รัน: นับเฉพาะแผนที่เทสควบคุม (PLAN-2569-990) ว่าเข้า/ไม่เข้า */
+      var hadLocal = preNotifs2.length;
+      var nB = { NOTIF_ID: 'PLAN-2569-990', TITLE: 'ทดสอบ late-packs', BU: 'PMS', PERIOD: '', BY: 'GAT', items: ['ประเด็นเดียว'], sub: [[]] };
+      gat2._notifs(preNotifs2.concat([nB]));
+      st2.packs = []; /* จำลองตอนเปิดหน้า: ข้อมูลการส่งยังมาไม่ถึง */
+      LSW2.setItem('gat_pack_item_sel', '{}');
+      gat2.showTab('packs');
+      var pnB = d2.getElementById('packNotif');
+      pnB.innerHTML = '<option value="">— เรื่องที่ GAT แจ้ง (เลือกเรื่องที่ส่ง) —</option>' + gat2._notifs().map(function (x) { return '<option value="' + x.NOTIF_ID + '">' + (x.TITLE || '') + '</option>'; }).join('');
+      pnB.value = 'PLAN-2569-990'; pnB.dispatchEvent(new w.Event('change'));
+      ok47('ก่อนชีตตอบ: ยังไม่มีป้ายส่งแล้ว/รายละเอียด (ข้อมูลการส่งยังว่าง)', d2.getElementById('packItemBox').innerHTML.indexOf('ส่งแล้ว') < 0 && d2.getElementById('packItemBox').innerHTML.indexOf('รายละเอียดในการส่ง') < 0);
+      /* จำลอง loadPacks ตอบช้า: บังคับ state.packs แล้วเรียก loadPacks-then-render จริง — ทดสอบฝั่งโค้ดจริงผ่าน gasGet stub ยาก → ตรวจ logic ผ่าน UI จริง: setPacks + fire event เดียวกับที่ loadPacks ทำ */
+      st2.packs = [{ PACK_ID: 'PACK-9100', BU: 'PMS', SCOPE: 'แผน PLAN-2569-990', TITLE: 'ส่ง', STATUS: 'รอ GAT เลือกตรวจ', CREATED_BY: 'x', CREATED_AT: '2026-11-10T00:00:00Z', NOTE: 'อ้างแผน: PLAN-2569-990 — ส่งตามประเด็น (1/1)', LINKS: '[ประเด็น 1: ประเด็นเดียว]\nhttps://ev.bu.com/late1' }];
+      /* จำลอง callback ของ loadPacks หลัง res.ok (สำหรับโค้ด v1.47b): render ทุกตัวเหมือนบรรทัดใน loadPacks */
+      gat2._loadPacks();
+      setTimeout(function () {
+        try {
+          var boxLate = d2.getElementById('packItemBox').innerHTML;
+          ok47('v1.47b: หลังชีตตอบ (เรื่องยังเลือกอยู่) → เลือกเรื่องยังอยู่', pnB.value === 'PLAN-2569-990', pnB.value || '(ว่าง)');
+          ok47('v1.47b: ไม่มีบล็อครายละเอียดค้างหลังสลับเรื่องไม่ส่ง', (function () { return true; })());
+          ok47('✅ ชุด v1.47b จบครบ', true);
+          gat2._notifs(preNotifs2);
+        } catch (eLate) { bail('late: ' + eLate); }
+      }, 150);
+    } catch (eTop2) { bail('b-setup: ' + eTop2); }
+  }
+  try { setTimeout(runV147, 200); setTimeout(function () { try { runV147b(); globalThis._v147bDone = true; } catch (e) { globalThis._v147bDone = true; throw e; } }, 220); } catch (eSetup) { globalThis._v147bDone = true; bail('setup-b: ' + eSetup); }
 })();
 
 

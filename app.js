@@ -1165,7 +1165,7 @@ function loadProcessDocs() {
     var keepOk = st && String(st.textContent).indexOf('รันเลขสำเร็จ') >= 0; /* v1.26 — อย่าทับสถานะสำเร็จที่เพิ่งส่ง */
     if (st && !keepOk) st.textContent = 'กำลังดึงสถานะจากชีต…';
     gasGet('list_packs').then(function (res) {
-      if (res.ok) { state.packs = res.data || []; try { closeItemSyncFromSheet(); } catch (e) {} /* v1.39 — ดึงสถานะปิดรายหัวข้อจากชีต (สลับเครื่องได้) */ var nP = state.packs.length; renderPacks(); renderPickTable(); fillPackSelectors(); renderSentTable(); renderInspect(); renderResult4(); renderExtraTable(); renderCloseBig(); var ps = document.getElementById('pickStatus'); if (ps) ps.textContent = '✅ โหลด ' + nP + ' การส่ง'; if (st && !keepOk) st.textContent = '✅ โหลด ' + nP + ' รายการจากชีตจริง'; }
+      if (res.ok) { state.packs = res.data || []; try { closeItemSyncFromSheet(); } catch (e) {} /* v1.39 — ดึงสถานะปิดรายหัวข้อจากชีต (สลับเครื่องได้) */ var nP = state.packs.length; renderPacks(); renderPickTable(); fillPackSelectors(); renderSentTable(); renderInspect(); renderResult4(); renderExtraTable(); renderCloseBig(); var ps = document.getElementById('pickStatus'); if (ps) ps.textContent = '✅ โหลด ' + nP + ' การส่ง'; if (st && !keepOk) st.textContent = '✅ โหลด ' + nP + ' รายการจากชีตจริง'; /* v1.47b — ข้อมูลการส่งถึงหลังเลือกเรื่องไปแล้ว → วาดป้าย/รายละเอียดการส่งให้เองทันที (ก่อนหน้าต้องเลือกใหม่ถึงเห็น) */ var pnLive = document.getElementById('packNotif'); if (pnLive && pnLive.value) { try { renderPackItemPicker(); renderPackEvid(); updatePackCounts(); } catch (ePkLive) {} } }
       else if (st && !keepOk) st.textContent = '❌ GAS ยังไม่รองรับ list_packs — ต้อง deploy โค้ด v1.5 (ส่งให้พี่หนึ่งแล้ว)';
     }).catch(function (e) { if (st && !keepOk) st.textContent = '❌ ' + e; });
   }
@@ -1550,7 +1550,9 @@ function loadProcessDocs() {
 
   function fillPackSelectors() {
     var bus = (state.seed && state.seed.companies || []).map(function (c) { return c.BU || c.name || c; }).filter(Boolean);
-    bus = (bus.length ? bus : ['AAMG', 'PMSG', 'CPDG', 'LDC', 'TNR']).concat(['PAO']);
+    /* v1.47c — ถ้า seed ยังไม่มา: ไม่เติม fallback → รอเรียกอีกครั้งหลัง seed พร้อม (เดิมเติม 5 ตัวยึดช่องไว้ ทำให้ seed มาทีหลังไม่ได้เติมรายชื่อจริง) */
+    if (!bus.length) return;
+    bus = bus.concat(['PAO']);
     var sel = document.getElementById('packBu');
     if (sel && sel.options.length <= 1) {
       bus.forEach(function (b) {
@@ -2472,7 +2474,9 @@ function loadProcessDocs() {
       if (state.auth) applyRoleUI();
     });
     /* v1.46 — เปิดหน้า → ดึงการส่ง (PACK) จากชีตเองทันที (เดิมต้องกดปุ่ม ทำให้เปิดแท็บ 3 แล้ว dropdown ว่าง ถ้าไม่ได้กด) */
+    /* v1.47b — เปิดหน้า → importBCT ด้วย 1 รอบ (list_registers/entries/recs/packs/notifs ครบชุด) — ใบแจ้งจากชีต (แผนที่แจ้งขั้น 1) จะได้เข้า dropdown/render แท็บทุกแผงเองโดยไม่ต้องกดปุ่ม */
     try { loadPacks(); } catch (eBootLp) {}
+    try { importBCT(true); } catch (eBootImp) {}
     id('btnImport').addEventListener('click', importBCT);
     id('btnSeed').addEventListener('click', function () { status('โหลด seed…'); loadSeed().then(function () { status('✅ seed (xlsx) โหลดแล้ว ' + state.registers.length + ' รายการ'); }); });
     id('buFilter').addEventListener('change', function () { state.filter.bu = this.value; state.page = 1; renderAll(); });
