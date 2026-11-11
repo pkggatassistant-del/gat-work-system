@@ -415,11 +415,11 @@ ol.manual li{margin-bottom:8px}
   <!-- ============ ขั้น 3: GAT ตรวจหลักฐาน (v1.29 — ตามผัง draw.io 9 พ.ย. 69) ============ -->
   <section class="tabpane" id="pane-inspect">
     <div class="card">
-      <div class="card-hd"><b>🔍 ขั้น 3 — ทีม GAT ตรวจหลักฐานที่ BU ส่งมา (เลือกชื่อเรื่อง → ระบบขึ้นข้อมูลที่ BU ส่งตรวจทันที — v1.45)</b></div>
+      <div class="card-hd"><b>🔍 ขั้น 3 — ทีม GAT ตรวจหลักฐานที่ BU ส่งมา (เลือกชื่อเรื่อง → ระบบขึ้นข้อมูลที่ BU ส่งตรวจทันที — <span id="verInsp3"></span>)</b></div>
       <p class="desc">เลือก<b>ชื่อเรื่อง</b> (เรื่องที่แจ้งขั้น 1) แล้วระบบขึ้น<b>ข้อมูลที่ BU ส่งตรวจ</b>ให้ทันที (การส่งล่าสุดของเรื่อง เลือกให้อัตโนมัติ) → GAT ตรวจ<b>ทีละประเด็น</b> + เติม <b>รายละเอียดการตรวจ</b> + สรุปผลรวม (ผ่าน/ไม่ผ่าน) → กดบันทึกลงชีต — ผลจะไปรวมที่ <b>ขั้น 4 (สรุปผลการตรวจ)</b> · ถ้า <span style="color:#c0392b">ไม่ผ่าน</span> = สถานะกลับ <b>ขั้น 2</b> ให้ BU ส่งหลักฐานเพิ่มเติม แล้ววนมาตรวจใหม่ · ผลตรวจฝั่งเขียนบนแพ็คของชีต (มี VAULT + AuditLog อัตโนมัติ)</p>
     </div>
     <div class="card">
-      <div class="card-hd"><b>🎯 ① เลือกชื่อเรื่อง (เรื่องที่แจ้งในขั้น 1) — เลือกแล้วขึ้นข้อมูลที่ BU ส่งทันที (v1.45)</b></div>
+      <div class="card-hd"><b>🎯 ① เลือกชื่อเรื่อง (เรื่องที่แจ้งในขั้น 1) — เลือกแล้วขึ้นข้อมูลที่ BU ส่งทันที (<span id="verInsp1"></span>)</b></div>
       <div class="filters"><select id="inspPlanPick" style="flex:1.4;min-width:340px"><option value="">— เลือกชื่อเรื่อง (เรื่องที่แจ้งในขั้น 1) —</option></select>
       <button class="button-lite" id="btnInspReload">🔄 รีเฟรชรายการ</button></div>
       <p class="desc" style="margin-top:4px">เลือก<b>ชื่อเรื่อง</b>ช่องเดียว — ระบบเลือก<b>การส่ง (PACK) ล่าสุดของเรื่องนั้น</b>ให้อัตโนมัติ แล้วขึ้นข้อมูลที่ BU ส่งตรวจด้านล่างทันที (ไม่ต้องเลือก PACK เอง — ตรวจจบการส่งหนึ่ง ระบบจะขยับไปการส่งถัดไปของเรื่อง)</p>
@@ -619,7 +619,7 @@ ol.manual li{margin-bottom:8px}
 <script src="app.js?v=1.46"></script>
 <script>
 /* v1.41: แถบซ้ายโชว์เวอร์ชันสั้น (ตัดที่ตัวคั่น " — " แรก) — ประวัติยาวอยู่ที่แท็บคู่มือ */
-(function(){var v=window.GAT_CONFIG.VERSION;document.getElementById('ver').textContent=v.split(' — ')[0];})();
+(function(){var v=window.GAT_CONFIG.VERSION;var vs=v.split(' — ')[0];document.getElementById('ver').textContent=vs;/* v1.46 — ป้ายเวอร์ชันบนการ์ดดึงจาก GAT_CONFIG.VERSION เสมอ (กันป้ายแข็งค้างเก่าที่ตัวหน้า) */var a=document.getElementById('verInsp3');if(a)a.textContent=vs;var b=document.getElementById('verInsp1');if(b)b.textContent=vs;})();
 function GAT_STATUS_MSG(m){document.getElementById('statusBar').innerHTML='<span class="ok">'+m+'</span>';}
 setInterval(function(){var d=new Date();document.getElementById('clock').textContent=d.toLocaleTimeString('th-TH',{hour12:false});},1000);
 </script>
