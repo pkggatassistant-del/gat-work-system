@@ -2258,7 +2258,15 @@ function loadProcessDocs() {
   function loadManual() {
     var box = id('manBody'); if (!box) return;
     fetch('GAT-MANUAL.md?v=' + Date.now()).then(function (r) { return r.text(); }).then(function (md) {
-      box.innerHTML = '<div class="card"><div class="md-body">' + mdLite(md) + '</div></div>';
+      /* v1.41 — ทำเนียบเวอร์ชัน (VERSION ยาวจาก gat-config.js) ย้ายมาไว้ท้ายคู่มือ พับได้ — เดิมพิมพ์ในแถบซ้ายทำให้รก */
+      var parts = String(window.GAT_CONFIG.VERSION).split('; เดิม');
+      var head = parts[0] || '';
+      var hist = parts.slice(1); /* เวอร์ชันเก่า ๆ ต่อกันด้วย "; เดิม" */
+      var vlog = '<details class="card" style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;color:#13294b">🕘 ประวัติเวอร์ชัน (ประกาศระบบล่าสุด — กดเพื่อพับ/ขยาย)</summary><div class="md-body" style="margin-top:8px">'
+        + '<div style="margin-bottom:8px"><b style="color:#0e8345">● ปัจจุบัน:</b> ' + esc(head) + '</div>'
+        + (hist.length ? hist.map(function (h, i) { return '<div style="margin:6px 0 6px 14px;color:#44597a;font-size:13px"><b>เดิม ' + (hist.length - i) + ':</b> ' + esc(h.trim()) + '</div>'; }).join('') : '')
+        + '</div></details>';
+      box.innerHTML = '<div class="card"><div class="md-body">' + mdLite(md) + '</div></div>' + vlog;
     }).catch(function () { box.innerHTML = '<div class="empty">โหลดคู่มือไม่สำเร็จ — ดูไฟล์ GAT-MANUAL.md ใน repo</div>'; });
   }
 
@@ -2525,5 +2533,5 @@ if (document.readyState !== 'loading') __gatBootOnce();
 
   return { showTab: showTab, exportForBCT: exportForBCT, buildReport: buildReport, initD10: initD10, state: function () { return state; }, _draft: draftIssue, renderSummary: renderSummary, loadProcess: loadProcess,
  _renderPacks: renderPacks, _fillPackSelectors: fillPackSelectors, _notifs: function (l) { if (l) saveNotifs(l); return loadNotifs(); }, _appTgText: appTgText, _copyNotifTg: copyNotifTg, _aiParse: aiParse, _aiEmit: aiEmit, _loadPacks: loadPacks, _renderRecs: renderRecs, _renderPickTable: renderPickTable, _removePickPacks: removePickPacks, _renderSentTable: renderSentTable,
-    _renderInspect: renderInspect, _saveAuditResult: saveAuditResult, _inspItemRows: inspItemRows, _packPlanTitle: packPlanTitle, _packShowName: packShowName, _inspItemsSummarize: inspItemsSummarize, _inspStateGet: inspStateGet, _inspStateSave: inspStateSave, _renderInspItems: renderInspItems, _renderResult4: renderResult4, _sumDecide: sumDecide, _sumTgText4: sumTgText4, _copySumTg: copySumTg, _renderExtraTable: renderExtraTable, _sendExtraEvidence: sendExtraEvidence, _sendResultToBU: sendResultToBU, _renderCloseBig: renderCloseBig, _closeBig: closeBig, _closeOneItem: function () {}, _itemCloseResultMap: itemCloseResultMap, _packCloseIf: packCloseIf, _packsOfRec: packsOfRec, _itemCloseOpenOfRec: itemCloseOpenOfRec, _closeItemStateGet: closeItemStateGet, _closeItemStateSave: closeItemStateSave, _closeItemSyncFromSheet: closeItemSyncFromSheet, _closeItemNoteInfo: closeItemNoteInfo, _recCloseGateChange: recClosePickChange, _fillInspectPack: fillInspectPack, _importBCT: importBCT }
+    _renderInspect: renderInspect, _saveAuditResult: saveAuditResult, _inspItemRows: inspItemRows, _packPlanTitle: packPlanTitle, _packShowName: packShowName, _inspItemsSummarize: inspItemsSummarize, _inspStateGet: inspStateGet, _inspStateSave: inspStateSave, _renderInspItems: renderInspItems, _renderResult4: renderResult4, _sumDecide: sumDecide, _sumTgText4: sumTgText4, _copySumTg: copySumTg, _renderExtraTable: renderExtraTable, _sendExtraEvidence: sendExtraEvidence, _sendResultToBU: sendResultToBU, _renderCloseBig: renderCloseBig, _closeBig: closeBig, _closeOneItem: function () {}, _itemCloseResultMap: itemCloseResultMap, _packCloseIf: packCloseIf, _packsOfRec: packsOfRec, _itemCloseOpenOfRec: itemCloseOpenOfRec, _closeItemStateGet: closeItemStateGet, _closeItemStateSave: closeItemStateSave, _closeItemSyncFromSheet: closeItemSyncFromSheet, _closeItemNoteInfo: closeItemNoteInfo, _recCloseGateChange: recClosePickChange, _fillInspectPack: fillInspectPack, _loadManual: loadManual, _importBCT: importBCT }
 })();

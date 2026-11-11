@@ -546,4 +546,42 @@ setTimeout(() => {
   try { setTimeout(function () { try { runV140(); } catch (e) { try { restoreF(); } catch (e5) {} bail('run: ' + e); } }, 0); } catch (eSetup) { try { restoreF(); } catch (e5) {} bail('setup: ' + eSetup); }
 })();
 
-setTimeout(function () { var r = globalThis.v140Res || { p: -1, f: -1 }; console.log("══ v1.40: " + r.p + " pass / " + r.f + " fail"); }, 600);
+
+
+// ===== v1.41 — ย้ายทำเนียบเวอร์ชันออกจากแถบซ้าย: nav-foot เหลือเวอร์ชันสั้น + ประวัติยาวพับได้ที่แท็บคู่มือ =====
+(function () {
+  var res141 = { p: 0, f: 0 };
+  globalThis.v141Res = res141;
+  var ok141 = function (name, cond, note) { if (cond) res141.p++; else { res141.f++; console.error('❌ v1.41: ' + name + (note !== undefined && note !== '' && note !== null ? ' :: ' + note : '')); } };
+  var bail = function (m) { res141.f++; console.error('❌ v1.41: FATAL ' + m); };
+  function runV141() {
+    try {
+      var d = w.document, gat = w.GAT;
+      /* แท็บคู่มือ: กล่องพับประวัติเวอร์ชัน (เช็ค #ver ใน callback เดียวกัน — jsdom รัน inline script ท้ายหน้าทีหลัง) */
+      gat._loadManual();
+      setTimeout(function () {
+        try {
+          var short = w.GAT_CONFIG.VERSION.split(' — ')[0];
+          d.getElementById('ver').textContent = short; /* จำลอง inline script ท้าย index.html (browser ทำเอง — outside-only ไม่รัน inline) */
+          ok141('แถบซ้าย #ver = เวอร์ชันสั้น', d.getElementById('ver').textContent === short, d.getElementById('ver').textContent.slice(0, 60));
+          ok141('แถบซ้าย #ver ไม่มีประวัติยาว (ไม่มี "; เดิม")', d.getElementById('ver').textContent.indexOf('เดิม') < 0, d.getElementById('ver').textContent.slice(-40));
+          var box = d.getElementById('manBody');
+          var det = box.querySelector('details');
+          ok141('คู่มือมีกล่องพับ <details> ประวัติเวอร์ชัน', !!det, box.innerHTML.slice(0, 160));
+          if (det) {
+            ok141('หัวกล่องระบุ "ประวัติเวอร์ชัน"', det.querySelector('summary').textContent.indexOf('ประวัติเวอร์ชัน') >= 0, det.querySelector('summary').textContent);
+            var body = det.textContent;
+            ok141('กล่องแสดงเวอร์ชันปัจจุบัน (v1.41)', body.indexOf('v1.41') >= 0, body.slice(0, 120));
+            ok141('กล่องประวัติรวบประวัติเก่า (v1.40..v1.38.1) ครบ', ['v1.40', 'v1.39', 'v1.38.2', 'v1.38.1'].every(function (v) { return body.indexOf(v) >= 0; }), body.slice(0, 260));
+          }
+          ok141('แถบซ้าย #ver สั้น < 60 ตัวอักษร', d.getElementById('ver').textContent.length < 60, d.getElementById('ver').textContent.length);
+          ok141('✅ ชุด v1.41 จบครบ', true);
+        } catch (e2) { bail('ตรวจคู่มือ: ' + e2); }
+      }, 60);
+    } catch (eTop) { bail('รวม: ' + eTop); }
+  }
+  try { setTimeout(runV141, 80); } catch (eSetup) { bail('setup: ' + eSetup); }
+})();
+
+
+setTimeout(function () { var r = globalThis.v140Res || { p: -1, f: -1 }; console.log("══ v1.40: " + r.p + " pass / " + r.f + " fail"); var r2 = globalThis.v141Res || { p: -1, f: -1 }; console.log("══ v1.41: " + r2.p + " pass / " + r2.f + " fail"); }, 700);
