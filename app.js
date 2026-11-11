@@ -1441,28 +1441,68 @@ function loadProcessDocs() {
     });
     return out + '</div>';
   }
+  /* v1.48 — รวมลิงก์หลักฐานเดิมต่อประเด็น (key "i" หรือ "i::j") จากทุกแพ็คของเรื่องนี้ — ใช้เติมช่องแนบ ③ ให้ BU แก้/ส่งต่อได้เร็ว (#31751) */
+  function sentLinksForKey(key, packsArr) {
+    var parts = String(key).split('::');
+    var pi = Number(parts[0]), si = parts[1] === undefined ? null : Number(parts[1]);
+    var out = [], seen = {};
+    (packsArr || []).forEach(function (pk) {
+      var linkTxt = String(pk.LINKS || '');
+      var re = /\[\s*ประเด็น\s*([0-9]+)(?:\.([0-9]+))?:[^\]]*\]\s*([^\[]*)/g;
+      var m3;
+      while ((m3 = re.exec(linkTxt)) !== null) {
+        var same = (m3[2] === undefined) ? (Number(m3[1]) - 1 === pi && si === null) : (Number(m3[1]) - 1 === pi && Number(m3[2]) - 1 === si);
+        if (!same) continue;
+        var us = (m3[3] || '').match(/https?:\/\/[^\s]+/g) || [];
+        us.forEach(function (u) { if (!seen[u]) { seen[u] = 1; out.push(u); } });
+      }
+    });
+    return out;
+  }
   function renderPackEvid() {
     var box = document.getElementById('packEvidBox'); if (!box) return;
     var n = currentPackNotif(); if (!n) { box.innerHTML = ''; return; }
     var sel = packSelItems();
     var subs = notifSubs(n);
+    /* v1.48 — ช่องแนบ ③: อ่านการส่งเดิมของเรื่องนี้จากชีต → ติ๊กแล้ว "ขึ้นข้อมูลที่เคยส่ง": เติมลิงก์เดิมให้ + บล็อครายละเอียดการส่ง (#31751) */
+    var sentPacks = (state.packs || []).filter(function (p) { return planIdOfPack(p) === n.NOTIF_ID; });
+    var sentIdx = {};
+    sentPacks.forEach(function (pk) {
+      var segs = String(pk.LINKS || '').split(/\[\s*ประเด็น\s*/);
+      segs.slice(1).forEach(function (seg) {
+        var mm = seg.match(/^([0-9]+)(?:\.([0-9]+))?/); if (!mm) return;
+        var key = mm[2] === undefined ? (Number(mm[1]) - 1) : (Number(mm[1]) - 1) + '::' + (Number(mm[2]) - 1);
+        if (sentIdx[key] === undefined) sentIdx[key] = [];
+        sentIdx[key].push(pk);
+      });
+    });
+    var hasSent = Object.keys(sentIdx).length > 0;
+    var sentHint = hasSent ? '<div style="margin:4px 0 6px;color:#0e8345;font-size:12.5px"><b>มีการส่งมาก่อน ' + sentPacks.length + ' ครั้ง</b> — ติ๊กประเด็นที่เคยส่ง → ช่องแนบจะเติมลิงก์เดิมให้อัตโนมัติ + รายละเอียดการส่ง (ลิงก์กดเปิดได้ — แก้ไข/เพิ่มแล้วส่งครั้งใหม่ได้)</div>' : '';
     var picked = (n.items || []).map(function (it, i) { return { i: i, t: it }; }).filter(function (x) { return sel[n.NOTIF_ID + '::' + x.i]; });
-    if (!picked.length) { box.innerHTML = '<i style="color:#7d93b2">ติ๊กประเด็นหลักด้านบน → ช่องแนบหลักฐานจะเกิดต่อประเด็นย่อยที่เลือก (บังคับ)</i>'; updatePackCounts(); return; }
+    if (!picked.length) { box.innerHTML = '<i style="color:#7d93b2">ติ๊กประเด็นหลักด้านบน → ช่องแนบหลักฐานจะเกิดต่อประเด็นย่อยที่เลือก (บังคับ)</i>' + sentHint; updatePackCounts(); return; }
     var rows = [];
     picked.forEach(function (x) {
       var evMain = 'ev_' + n.NOTIF_ID + '_' + x.i;
       var mSubs = (subs[x.i] || []).map(function (st2, j) { return { j: j, t: st2 }; }).filter(function (y) { return sel[n.NOTIF_ID + '::' + x.i + '::' + y.j]; });
       if (!mSubs.length) {
-        /* ไม่มีย่อย (หรือไม่ติ๊กย่อยเลย) → แนบที่ประเด็นหลักโดยตรง */
-        rows.push('<div style="margin:6px 0"><label style="display:block;font-size:13px;margin-bottom:3px"><b>📎 หลักฐาน ' + (x.i + 1) + ':</b> ' + escP(x.t) + ' <i style="color:#d4a648">(บังคับ)</i></label>' +
-          '<textarea id="' + escP(evMain) + '" data-evrid="' + escP(String(x.i)) + '" placeholder="ลิงก์ไฟล์/เอกสารหลักฐานประเด็นนี้ (ขึ้นบรรทัดใหม่ = หลายลิงก์)" style="width:100%;min-height:52px"></textarea></div>');
+        /* ไม่มีย่อย (หรือไม่ติ๊กย่อยเลย) → แนบที่ประเด็นหลักโดยตรง — v1.48: เคยส่ง = เติมลิงก์เดิม + ป้าย + รายละเอียดการส่ง */
+        var keyM = String(x.i);
+        var linksM = sentLinksForKey(keyM, sentPacks);
+        var bM = sentIdx[keyM] ? ' <span style="background:#e7f5ec;color:#0e8345;font-size:11px;font-weight:700;border-radius:8px;padding:1px 8px">ส่งแล้ว</span>' : '';
+        var dM = sentIdx[keyM] ? renderSentDetail(keyM, sentPacks, n, subs, false) : '';
+        rows.push('<div style="margin:6px 0"><label style="display:block;font-size:13px;margin-bottom:3px"><b>📎 หลักฐาน ' + (x.i + 1) + ':</b> ' + escP(x.t) + bM + ' <i style="color:#d4a648">(บังคับ)</i></label>' + dM +
+          '<textarea id="' + escP(evMain) + '" data-evrid="' + escP(keyM) + '" placeholder="ลิงก์ไฟล์/เอกสารหลักฐานประเด็นนี้ (ขึ้นบรรทัดใหม่ = หลายลิงก์)" style="width:100%;min-height:52px">' + (linksM.length ? escP(linksM.join('\n')) : '') + '</textarea></div>');
       } else {
-        /* v1.33 — มีย่อยที่ติ๊ก → ช่องแนบต่อย่อย (บังคับเฉพาะย่อยที่ส่ง) */
+        /* v1.33 — มีย่อยที่ติ๊ก → ช่องแนบต่อย่อย (บังคับเฉพาะย่อยที่ส่ง) — v1.48: เคยส่ง = เติมลิงก์เดิม + ป้าย + รายละเอียดการส่งต่อย่อย */
         rows.push('<div style="margin:8px 0 2px"><b>▪ ประเด็น ' + (x.i + 1) + ':</b> ' + escP(x.t) + '</div>');
         mSubs.forEach(function (y) {
           var eid = evMain + '_' + y.j;
-          rows.push('<div style="margin:6px 0 6px 22px"><label style="display:block;font-size:13px;margin-bottom:3px"><b>📎 ย่อย ' + (x.i + 1) + '.' + (y.j + 1) + ':</b> ' + escP(y.t) + ' <i style="color:#d4a648">(บังคับ)</i></label>' +
-            '<textarea id="' + escP(eid) + '" data-evrid="' + escP(x.i + '::' + y.j) + '" placeholder="ลิงก์หลักฐานของประเด็นย่อยนี้ (ขึ้นบรรทัดใหม่ = หลายลิงก์)" style="width:100%;min-height:52px"></textarea></div>');
+          var keyS = x.i + '::' + y.j;
+          var linksS = sentLinksForKey(keyS, sentPacks);
+          var bS = sentIdx[keyS] ? ' <span style="background:#e7f5ec;color:#0e8345;font-size:11px;font-weight:700;border-radius:8px;padding:1px 8px">ส่งแล้ว</span>' : '';
+          var dS = sentIdx[keyS] ? renderSentDetail(keyS, sentPacks, n, subs, true) : '';
+          rows.push('<div style="margin:6px 0 6px 22px"><label style="display:block;font-size:13px;margin-bottom:3px"><b>📎 ย่อย ' + (x.i + 1) + '.' + (y.j + 1) + ':</b> ' + escP(y.t) + bS + ' <i style="color:#d4a648">(บังคับ)</i></label>' + dS +
+            '<textarea id="' + escP(eid) + '" data-evrid="' + escP(keyS) + '" placeholder="ลิงก์หลักฐานของประเด็นย่อยนี้ (ขึ้นบรรทัดใหม่ = หลายลิงก์)" style="width:100%;min-height:52px">' + (linksS.length ? escP(linksS.join('\n')) : '') + '</textarea></div>');
         });
       }
     });

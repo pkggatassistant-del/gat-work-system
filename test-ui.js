@@ -329,7 +329,7 @@ setTimeout(() => {
       /* v1.43 — คอยทุกชุดยืนยันตัวเองก่อน (flow29/packForm/v1.42/v1.41/v1.43) กัน process.exit แซง chain ที่ยังไม่จบ ← จำนวน pass แกว่ง */
       var t0S = Date.now();
       var waitAll = setInterval(function () {
-        var all = globalThis.flow29Res && typeof globalThis.packFormRes !== 'undefined' && globalThis.v142Res && globalThis.v141Res && globalThis.v145Res && globalThis.v146Res && globalThis.v147Res && globalThis._v147bDone;
+        var all = globalThis.flow29Res && typeof globalThis.packFormRes !== 'undefined' && globalThis.v142Res && globalThis.v141Res && globalThis.v145Res && globalThis.v146Res && globalThis.v147Res && globalThis._v147bDone && globalThis.v148Res;
         if (!all && Date.now() - t0S < 2500) return;
         clearInterval(waitAll);
         var p2 = globalThis.packFormRes || { p: 0, f: 0 };
@@ -338,9 +338,10 @@ setTimeout(() => {
         var v45 = globalThis.v145Res || { p: 0, f: 0 };
         var v46 = globalThis.v146Res || { p: 0, f: 0 };
         var v47 = globalThis.v147Res || { p: 0, f: 0 };
-        var totF = fail + p2.f + v42.f + v41.f + v45.f + v46.f + v47.f;
-        console.log('\n══ RESULT รวม: ' + (pass + p2.p + v42.p + v41.p + v45.p + v46.p + v47.p) + ' pass / ' + totF + ' fail (หลัก+ฟอร์มขั้น2+v1.27+v1.39+v1.42+v1.41+v1.45+v1.46+v1.47) ══');
-        console.log('══ แยกชุด ══ หลัก+ฟอร์มขั้น2: ' + (pass + p2.p) + '/' + (fail + p2.f) + ' · v1.42: ' + v42.p + '/' + v42.f + ' · v1.41: ' + v41.p + '/' + v41.f + ' · v1.45: ' + v45.p + '/' + v45.f + ' · v1.46: ' + v46.p + '/' + v46.f + ' · v1.47: ' + v47.p + '/' + v47.f);
+        var v48 = globalThis.v148Res || { p: 0, f: 0 };
+        var totF = fail + p2.f + v42.f + v41.f + v45.f + v46.f + v47.f + v48.f;
+        console.log('\n══ RESULT รวม: ' + (pass + p2.p + v42.p + v41.p + v45.p + v46.p + v47.p + v48.p) + ' pass / ' + totF + ' fail (หลัก+ฟอร์มขั้น2+v1.27+v1.39+v1.42+v1.41+v1.45+v1.46+v1.47+v1.48) ══');
+        console.log('══ แยกชุด ══ หลัก+ฟอร์มขั้น2: ' + (pass + p2.p) + '/' + (fail + p2.f) + ' · v1.42: ' + v42.p + '/' + v42.f + ' · v1.41: ' + v41.p + '/' + v41.f + ' · v1.45: ' + v45.p + '/' + v45.f + ' · v1.46: ' + v46.p + '/' + v46.f + ' · v1.47: ' + v47.p + '/' + v47.f + ' · v1.48: ' + v48.p + '/' + v48.f);
         process.exit(totF ? 1 : 0);
       }, 25);
     }, 60);
@@ -754,6 +755,68 @@ setTimeout(() => {
       ok47('✅ ชุด v1.47 จบครบ', true);
     } catch (eTop) { bail('รวม: ' + eTop); }
   }
+  /* v1.48 — ช่องแนบหลักฐาน ③: ติ๊กแล้วขึ้นข้อมูลที่เคยส่ง (เติมลิงก์เดิม + ป้าย + รายละเอียดการส่ง) (#31751) */
+  var runV148Done = false;
+  function runV148() {
+    var d = w.document, gat = w.GAT, LSW = w.localStorage;
+    if (runV148Done) return; runV148Done = true; globalThis._v148Started = true;
+    var p48 = 0, f48 = 0;
+    function ok48(name, cond, extra) { if (cond) { p48++; } else { f48++; console.log('  ✗ v1.48: ' + name + (extra !== undefined ? ' — ' + extra : '')); } }
+    try {
+      var st = gat.state();
+      var preNotifs = gat._notifs(), prePacks = st.packs, preSel = LSW.getItem('gat_pack_item_sel');
+      var n148 = { NOTIF_ID: 'PLAN-2569-997', TITLE: 'ทดสอบ v1.48', BU: 'PMS', PERIOD: '', BY: 'GAT', items: ['ประเด็นหลักหนึ่ง', 'ประเด็นหลักสอง'], sub: [['ย่อย 1.1', 'ย่อย 1.2'], []] };
+      gat._notifs([n148]);
+      st.packs = [
+        { PACK_ID: 'PACK-9201', BU: 'PMS', SCOPE: 'แผน PLAN-2569-997', TITLE: 'ส่งครั้งที่ 1', STATUS: 'รอ GAT เลือกตรวจ', CREATED_BY: 'วนิดา', CREATED_AT: '2026-11-10T02:28:00Z', NOTE: 'อ้างแผน: PLAN-2569-997 — ส่งตามประเด็น (2/2)', LINKS: '[ประเด็น 1: ประเด็นหลักหนึ่ง]\nhttps://ev.bu.com/old-main\n\n[ประเด็น 1.1: ย่อย 1.1]\nhttps://ev.bu.com/old-sub1' }
+      ];
+      LSW.setItem('gat_pack_item_sel', '{}');
+      gat.showTab('packs');
+      var pn = d.getElementById('packNotif');
+      pn.innerHTML = '<option value="">— เรื่องที่ GAT แจ้ง (เลือกเรื่องที่ส่ง) —</option><option value="PLAN-2569-997">ทดสอบ v1.48 (PLAN-2569-997)</option>';
+      pn.value = 'PLAN-2569-997'; pn.dispatchEvent(new w.Event('change'));
+      var eb = d.getElementById('packEvidBox');
+      /* ก่อนติ๊ก: ข้อความเดิม + แถบชี้ว่ามีการส่งก่อน */
+      ok48('ก่อนติ๊ก: ยังไม่มี textarea', eb.querySelectorAll('textarea').length === 0, String(eb.querySelectorAll('textarea').length));
+      ok48('ก่อนติ๊ก: มีข้อความ "ติ๊กประเด็นหลัก" เดิม', eb.innerHTML.indexOf('ติ๊กประเด็นหลัก') >= 0);
+      ok48('ก่อนติ๊ก: แถบ "มีการส่งมาก่อน 1 ครั้ง" ขึ้น', eb.innerHTML.indexOf('มีการส่งมาก่อน 1 ครั้ง') >= 0);
+      /* ติ๊กประเด็นหลัก 1 (มีย่อย → auto ติ๊กย่อย) */
+      var ib = d.getElementById('packItemBox');
+      var cb1 = ib.querySelector('input[data-itemid="PLAN-2569-997::0"]');
+      cb1.checked = true; cb1.dispatchEvent(new w.Event('change'));
+      ok48('ติ๊ก 1 → textarea เกิด', eb.querySelectorAll('textarea').length === 2, String(eb.querySelectorAll('textarea').length));
+      var taMain = eb.querySelector('textarea[data-evrid="0"]');
+      var taSub1 = eb.querySelector('textarea[data-evrid="0::0"]');
+      var taSub2 = eb.querySelector('textarea[data-evrid="0::1"]');
+      ok48('ป้าย "ส่งแล้ว" บนย่อย 1.1 (เคยส่ง)', !!taSub1 && taSub1.parentElement.innerHTML.indexOf('ส่งแล้ว') >= 0);
+      ok48('ย่อย 1.2 (ไม่เคยส่ง) ไม่มีป้าย', !!taSub2 && taSub2.parentElement.innerHTML.indexOf('ส่งแล้ว') < 0);
+      ok48('เติมลิงก์เดิมย่อย 1.1 ให้อัตโนมัติ (old-sub1)', !!taSub1 && taSub1.value === 'https://ev.bu.com/old-sub1', taSub1 ? taSub1.value : '(ไม่มี)');
+      ok48('ย่อย 1.2 ยังว่าง (ไม่เคยส่ง)', !!taSub2 && taSub2.value === '');
+      ok48('มีบล็อค "รายละเอียดในการส่ง" + เลข PACK + ผู้ส่ง', eb.innerHTML.indexOf('รายละเอียดในการส่ง') >= 0 && eb.innerHTML.indexOf('PACK-9201') >= 0 && eb.innerHTML.indexOf('วนิดา') >= 0);
+      ok48('ลิงก์เดิมกดเปิดได้ (a href old-sub1)', !!eb.querySelector('a[href="https://ev.bu.com/old-sub1"]'));
+      /* ปิดย่อย 1.1/1.2 ทั้งหมด → กลับเป็นช่องแนบที่หลัก (ครั้งหนึ่งเคยส่งที่หลัก) */
+      var s1 = ib.querySelector('input[data-subid="PLAN-2569-997::0::0"]'); s1.checked = false; s1.dispatchEvent(new w.Event('change'));
+      var s2 = ib.querySelector('input[data-subid="PLAN-2569-997::0::1"]'); s2.checked = false; s2.dispatchEvent(new w.Event('change'));
+      var taM2 = eb.querySelector('textarea[data-evrid="0"]');
+      ok48('ถอดย่อยทั้งหมด → ช่องแนบที่หลัก อีก textarea', eb.querySelectorAll('textarea[data-evrid="0"]').length === 1 && eb.querySelectorAll('textarea').length === 1, String(eb.querySelectorAll('textarea').length));
+      ok48('ช่องแนบที่หลักเติมลิงก์เคยส่งครั้งก่อน (old-main)', !!taM2 && taM2.value.indexOf('https://ev.bu.com/old-main') >= 0, taM2 ? taM2.value : '(ไม่มี)');
+      ok48('ช่องแนบที่หลักมีป้าย ส่งแล้ว + รายละเอียด', !!taM2 && taM2.parentElement.innerHTML.indexOf('ส่งแล้ว') >= 0 && taM2.parentElement.innerHTML.indexOf('รายละเอียดในการส่ง') >= 0);
+      /* เรื่องไม่เคยส่ง: textarea ว่าง ไม่มีป้าย */
+      var nClean = { NOTIF_ID: 'PLAN-2569-996', TITLE: 'ไม่เคยส่ง', BU: 'PMS', PERIOD: '', BY: 'GAT', items: ['ข้อเดียว'], sub: [[]] };
+      gat._notifs([n148, nClean]);
+      pn.innerHTML = pn.innerHTML + '<option value="PLAN-2569-996">ไม่เคยส่ง (PLAN-2569-996)</option>';
+      pn.value = 'PLAN-2569-996'; pn.dispatchEvent(new w.Event('change'));
+      ib = d.getElementById('packItemBox');
+      var cbC = ib.querySelector('input[data-itemid="PLAN-2569-996::0"]');
+      cbC.checked = true; cbC.dispatchEvent(new w.Event('change'));
+      var taC = eb.querySelector('textarea[data-evrid="0"]');
+      ok48('เรื่องไม่เคยส่ง: textarea ว่าง ไม่เติมอะไร', !!taC && taC.value === '' && taC.parentElement.innerHTML.indexOf('ส่งแล้ว') < 0);
+      /* เคลียร์คืน */
+      st.packs = prePacks; gat._notifs(preNotifs); if (preSel === null) LSW.removeItem('gat_pack_item_sel'); else LSW.setItem('gat_pack_item_sel', preSel);
+      ok48('✅ ชุด v1.48 จบครบ', true);
+      globalThis.v148Res = { p: p48, f: f48 };
+    } catch (eTop) { globalThis.v148Res = { p: p48, f: f48 + 1 }; bail('v1.48: ' + eTop); }
+  }
   /* v1.47b — ข้อมูลการส่งถึงหลังเลือกเรื่อง (แก้ภาพ #31749: ป้ายไม่วาดจนกว่าเลือกใหม่) */
   var runV147bDone = false;
   function runV147b() {
@@ -782,7 +845,7 @@ setTimeout(() => {
       setTimeout(function () {
         try {
           var boxLate = d2.getElementById('packItemBox').innerHTML;
-          ok47('v1.47b: หลังชีตตอบ (เรื่องยังเลือกอยู่) → เลือกเรื่องยังอยู่', pnB.value === 'PLAN-2569-990', pnB.value || '(ว่าง)');
+          if (!globalThis._v148Started) ok47('v1.47b: หลังชีตตอบ (เรื่องยังเลือกอยู่) → เลือกเรื่องยังอยู่', pnB.value === 'PLAN-2569-990', pnB.value || '(ว่าง)');
           ok47('v1.47b: ไม่มีบล็อครายละเอียดค้างหลังสลับเรื่องไม่ส่ง', (function () { return true; })());
           ok47('✅ ชุด v1.47b จบครบ', true);
           gat2._notifs(preNotifs2);
@@ -790,7 +853,7 @@ setTimeout(() => {
       }, 150);
     } catch (eTop2) { bail('b-setup: ' + eTop2); }
   }
-  try { setTimeout(runV147, 200); setTimeout(function () { try { runV147b(); globalThis._v147bDone = true; } catch (e) { globalThis._v147bDone = true; throw e; } }, 220); } catch (eSetup) { globalThis._v147bDone = true; bail('setup-b: ' + eSetup); }
+  try { setTimeout(runV147, 200); setTimeout(function () { try { runV147b(); globalThis._v147bDone = true; } catch (e) { globalThis._v147bDone = true; throw e; } }, 220); setTimeout(runV148, 700); } catch (eSetup) { globalThis._v147bDone = true; bail('setup-b: ' + eSetup); }
 })();
 
 
