@@ -30,6 +30,13 @@
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
+   <script>
+setTimeout(function(){
+  var by=document.getElementById('inspBy');
+  if(by){var c=by.closest('.card'); if(c) c.style.display='none';}
+},600);
+</script>
+
 body{margin:0;font-family:'IBM Plex Sans Thai','Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
 ::selection{background:var(--blue);color:#fff}
 
