@@ -816,7 +816,8 @@ function loadProcessDocs() {
   function renderResult4() {
     var sel = document.getElementById('sumPackPick'); if (!sel) return;
     var cur = sel.value;
-    var list = (state.packs || []).filter(function (x) { var s = String(x.STATUS || ''); return s.indexOf('ตรวจแล้ว') >= 0 || s.indexOf('ส่งหลักฐานเพิ่มเติม') >= 0 || s.indexOf('ไม่ผ่าน') >= 0 || s.indexOf('รอปิดประเด็น') >= 0; });
+    var list = (state.packs || []).filter(function (x) { var s = String(x.STATUS || ''); if (s.indexOf('ลบออก') >= 0) return false; if (String(x.AI_NOTE || '').trim()) return true; return s.indexOf('ตรวจแล้ว') >= 0 || s.indexOf('ส่งหลักฐานเพิ่มเติม') >= 0 || s.indexOf('ไม่ผ่าน') >= 0 || s.indexOf('รอปิดประเด็น') >= 0; });
+
     sel.innerHTML = '<option value="">— เลือกชื่อเรื่อง (ผลตรวจขั้น 3) —</option>' + list.map(function (x) {
       return '<option value="' + escP(x.PACK_ID) + '">' + escP(packPlanTitle(x) + ' (' + x.PACK_ID + ')') + '</option>';
     }).join('');
